@@ -19,7 +19,7 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create:(context) => TimetableModel(),
+      create: (_) => TimetableModel(),
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(

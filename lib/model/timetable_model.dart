@@ -1,38 +1,53 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
 class TimetableModel extends ChangeNotifier {
-  var _activeDate = DateTime.now();
-  late DateTime _activeWeekStartDate;
+
+  // Date of the currently selected day
+  DateTime _activeDate = DateTime.now();
+
+  // Date of the start (the monday) of the active week. 
+  // (Day view) the active week that visible in the app bar 
+  // and the one containing the active day
+  late DateTime _activeWeekDate;
 
   TimetableModel() {
-    _activeWeekStartDate = _weekStartFromDate(_activeDate);
+    _activeWeekDate = _weekStart(_activeDate);
   }
 
 
   DateTime get activeDate => _activeDate;
-  DateTime get activeWeekStartDate => _activeWeekStartDate;
+  DateTime get activeWeekDate => _activeWeekDate;
 
   set activeDate(DateTime newActiveDate) {
     if (_activeDate == newActiveDate) return;
     _activeDate = newActiveDate;
-    var newActiveWeekStartDate = _weekStartFromDate(newActiveDate);
-    if (_activeWeekStartDate == newActiveWeekStartDate) return;
-    _activeWeekStartDate = newActiveWeekStartDate;
-    notifyListeners();
-  }
-
-  set activeWeekStartDate(DateTime newActiveWeekStartDate) {
-    if (newActiveWeekStartDate.weekday != DateTime.monday) {
-      developer.log("Provided week start date not a monday!");
-      developer.log("Date provided: " + newActiveWeekStartDate.toString() + " has weekday index: " + newActiveWeekStartDate.weekday.toString());
-      
-      newActiveWeekStartDate = _weekStartFromDate(newActiveWeekStartDate);
+    var newActiveWeekDate = _weekStart(newActiveDate);
+    if (_activeWeekDate != newActiveWeekDate) {
+      _activeWeekDate = newActiveWeekDate;
     }
-    if (_activeWeekStartDate == newActiveWeekStartDate) return;
-    _activeWeekStartDate = newActiveWeekStartDate;
     notifyListeners();
   }
 
-  DateTime _weekStartFromDate(DateTime date) => date.subtract(Duration(days:  date.weekday - 1));
+  set activeWeekDate(DateTime newActiveWeekDate) {
+    if (newActiveWeekDate.weekday != DateTime.monday) {
+      developer.log("Provided week start date not a monday!");
+      developer.log('Date provided:  $newActiveWeekDate has weekday index: ${newActiveWeekDate.weekday}');
+
+      newActiveWeekDate = _weekStart(newActiveWeekDate);
+    }
+    if (_activeWeekDate == newActiveWeekDate) return;
+    _activeWeekDate = newActiveWeekDate;
+    notifyListeners();
+  }
+
+
+  void shiftActiveWeek(int days) {
+    var newActiveWeekDate = activeWeekDate.add(Duration(days: days));
+    activeWeekDate = newActiveWeekDate;
+  }
+
+  DateTime _weekStart(DateTime date) => date.subtract(Duration(days:  date.weekday - 1));
 }
