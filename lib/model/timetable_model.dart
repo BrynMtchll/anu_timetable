@@ -1,16 +1,14 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
 class TimetableModel extends ChangeNotifier {
 
-  // Date of the currently selected day
+  /// Date of the currently selected day
   DateTime _activeDate = DateTime.now();
 
-  // Date of the start (the monday) of the active week. 
-  // (Day view) the active week that visible in the app bar 
-  // and the one containing the active day
+  /// Date of the start (the monday) of the active week. 
+  /// (Day view) the active week that visible in the app bar 
+  /// and the one containing the [_activeDate].
   late DateTime _activeWeekDate;
 
   TimetableModel() {
@@ -43,11 +41,12 @@ class TimetableModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  void shiftActiveWeek(int days) {
-    var newActiveWeekDate = activeWeekDate.add(Duration(days: days));
+  /// sets [activeWeekDate] to the week [weeks] over
+  void shiftActiveWeek(int weeks) {
+    DateTime newActiveWeekDate = activeWeekDate.add(Duration(days: weeks * 7));
     activeWeekDate = newActiveWeekDate;
   }
 
+  /// returns the week start date for a given date
   DateTime _weekStart(DateTime date) => date.subtract(Duration(days:  date.weekday - 1));
 }

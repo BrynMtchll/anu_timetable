@@ -47,16 +47,18 @@ class _WeekBarState extends State<WeekBar> {
   Color? _weekdayItemColor(timetableModel, weekday) 
     => timetableModel.activeDate.weekday == weekday ? Colors.lightBlue : null;
 
-  // computes the week start date for a given page
+  /// Computes the week start date for a given page.
   DateTime _weekDate(int page, DateTime activeWeekDate) {
     int differencefromActiveInDays = (page - _activePage) * 7;
     DateTime pageDate = activeWeekDate.add(Duration(days: differencefromActiveInDays));
     return pageDate;
   }
 
+  /// Returns the date of the given [weekday], 
   DateTime _weekdayDate(int page, activeWeekDate, int weekday) 
     => _weekDate(page, activeWeekDate).add(Duration(days: weekday - 1));
 
+  /// row element for the [_weekdayItem]s.
   Align _week(int page) {
     return Align(
       alignment: Alignment.center,
@@ -71,7 +73,8 @@ class _WeekBarState extends State<WeekBar> {
     );
   }
 
-  /// Widget for each day of the week bar, i.e. each item for the page.
+  /// Widget for each day of the week bar, i.e. each item of the page.
+  /// Tapping this widget sets that date as the [timetableModel.activeDate].
   GestureDetector _weekdayItem(int page, int weekday) => GestureDetector(
     onTap: () {
       var timetableModel = Provider.of<TimetableModel>(context, listen: false);
@@ -120,9 +123,9 @@ class _WeekBarState extends State<WeekBar> {
   );
 
   void _handlePageChanged(int newActivePage) {
-    var differencefromActiveInDays = (newActivePage - _activePage) * 7;
+    var difference = (newActivePage - _activePage);
     Provider.of<TimetableModel>(context, listen: false)
-        .shiftActiveWeek(differencefromActiveInDays);
+        .shiftActiveWeek(difference);
     _activePage = newActivePage;
   }
 
