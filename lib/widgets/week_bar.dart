@@ -26,14 +26,14 @@ class WeekBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _WeekBarState extends State<WeekBar> {
-  late PageController _pageViewController;
+  late PageController _pageController;
   static const initialPage = 1000;
   int _activePage = initialPage;
   
   @override
   void initState() {
     super.initState();
-    _pageViewController = PageController(
+    _pageController = PageController(
       initialPage: _activePage
     );
   }
@@ -41,7 +41,7 @@ class _WeekBarState extends State<WeekBar> {
   @override
   void dispose() {
     super.dispose();
-    _pageViewController.dispose();
+    _pageController.dispose();
   }
 
   Color? _weekdayItemColor(timetableModel, weekday) 
@@ -57,21 +57,6 @@ class _WeekBarState extends State<WeekBar> {
   /// Returns the date of the given [weekday], 
   DateTime _weekdayDate(int page, activeWeekDate, int weekday) 
     => _weekDate(page, activeWeekDate).add(Duration(days: weekday - 1));
-
-  /// row element for the [_weekdayItem]s.
-  Align _week(int page) {
-    return Align(
-      alignment: Alignment.center,
-      child: IntrinsicHeight(child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
-            _weekdayItem(page, weekday),
-        ],
-     ))
-    );
-  }
 
   /// Widget for each day of the week bar, i.e. each item of the page.
   /// Tapping this widget sets that date as the [timetableModel.activeDate].
@@ -122,6 +107,21 @@ class _WeekBarState extends State<WeekBar> {
     )
   );
 
+  /// row element for the [_weekdayItem]s.
+  Align _weekBuilder(int page) {
+    return Align(
+      alignment: Alignment.center,
+      child: IntrinsicHeight(child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
+            _weekdayItem(page, weekday),
+        ],
+     ))
+    );
+  }
+
   void _handlePageChanged(int newActivePage) {
     var difference = (newActivePage - _activePage);
     Provider.of<TimetableModel>(context, listen: false)
@@ -134,9 +134,9 @@ class _WeekBarState extends State<WeekBar> {
     return SizedBox(
       height: 80, 
       child: PageView.builder(
-        controller: _pageViewController,
+        controller: _pageController,
         onPageChanged: _handlePageChanged,
-        itemBuilder: (context, page) => _week(page),
+        itemBuilder: (context, page) => _weekBuilder(page),
         )
       );
   }
