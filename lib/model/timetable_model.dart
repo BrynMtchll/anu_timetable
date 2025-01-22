@@ -16,22 +16,13 @@ class TimetableModel extends ChangeNotifier {
   late final currentDate;
   late final currentWeekDate;
   late final hashDate;
-  // late int _weekBarActivePage;
 
   TimetableModel({required this.currentDate, required this.currentWeekDate, required this.hashDate}) {
     _activeDate = currentDate;
     _activeWeekDate = currentWeekDate;
-    // _weekBarActivePage = weekBarInitialPage;
   }
 
   int get weekBarActivePage => (_activeWeekDate.difference(hashDate).inDays / 7).toInt();
-
-  // set weekBarActivePage(int newActivePage) {
-  //   if (_weekBarActivePage == newActivePage) return;
-  //   _weekBarActivePage = newActivePage;
-  //   developer.log("New week bar active page: $_weekBarActivePage.");
-  //   notifyListeners();
-  // }
 
   DateTime get activeDate => _activeDate;
   DateTime get activeWeekDate => _activeWeekDate;
@@ -53,7 +44,7 @@ class TimetableModel extends ChangeNotifier {
     }
     if (_activeWeekDate == newActiveWeekDate) return;
     _activeWeekDate = newActiveWeekDate;
-      developer.log("New active week start date: $_activeWeekDate.");
+    developer.log("New active week start date: $_activeWeekDate.");
 
     notifyListeners();
   }
@@ -70,20 +61,14 @@ class TimetableModel extends ChangeNotifier {
     DateTime activeDateWeekStart = weekStart(_activeDate);
     int differenceInDays = activeWeekDate.difference(activeDateWeekStart).inDays;
     if (differenceInDays % 7 != 0) {
-      developer.log("err: difference between weeks in days not a multiple of 7");
+      developer.log("error in function weekStart()");
       return -1;
     }
     int page = weekBarActivePage - (differenceInDays/7).toInt();
-    print(weekBarActivePage);
-    print("changing to page: $page");
-
-    // print(differenceInDays);
-    print(_activeDate);
-    print(activeWeekDate);
     return page;
   }
 
-    /// Computes the week start date for a given page.
+  /// Computes the week start date for a given page.
   DateTime weekDate(int page, DateTime activeWeekDate) {
     int differencefromActiveInDays = (page - weekBarActivePage) * 7;
     DateTime weekStartDate = activeWeekDate.add(Duration(days: differencefromActiveInDays));
@@ -101,13 +86,9 @@ class TimetableModel extends ChangeNotifier {
   }
 
   void shiftActiveWeek(int newWeekBarActivePage) {
-    print(weekBarActivePage);
-    print(newWeekBarActivePage);
     var weeks = (newWeekBarActivePage - weekBarActivePage);
-    print(weeks);
     DateTime newActiveWeekDate = activeWeekDate.add(Duration(days: weeks * 7));
     activeWeekDate = newActiveWeekDate;
-    // _weekBarActivePage = newWeekBarActivePage;
   }
 
   /// sets [activeDate] to the day [days] over
@@ -115,7 +96,6 @@ class TimetableModel extends ChangeNotifier {
     DateTime newActiveDate = activeDate.add(Duration(days: days));
     developer.log("Active date shifted $days day(s).");
     activeDate = newActiveDate;
-
   }
 
   /// returns the week start date for a given date

@@ -29,10 +29,6 @@ class _WeekBarState extends State<WeekBar> {
   late PageController pageController;
   late TimetableModel timetableModel;
 
-
-  static const initialPage = 1000;
-  int _activePage = initialPage;
-  
   @override
   void initState() {
     super.initState();

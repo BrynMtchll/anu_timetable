@@ -143,7 +143,6 @@ class _DayViewState extends State<DayView> {
     ));
   }
 
-
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
