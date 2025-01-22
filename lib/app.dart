@@ -16,10 +16,42 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   int currentPageIndex = 0;
+
+  DateTime currentDate = DateTime.now();
+  late DateTime currentWeekDate = TimetableModel.weekStart(currentDate);
+
+  static DateTime hashDate = TimetableModel.weekStart(DateTime(2000, 0, 0));
+  
+
+  late int weekBarInitialPage = (currentWeekDate.difference(hashDate).inDays / 7).toInt();
+  late PageController weekBarPageController = PageController(
+      initialPage: weekBarInitialPage,
+    );
+  
+  @override
+  void initState() {
+    super.initState();
+
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    weekBarPageController.dispose();
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => TimetableModel(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TimetableModel(
+          currentDate: currentDate,
+          currentWeekDate: currentWeekDate,
+          hashDate: hashDate,
+        )),
+        ChangeNotifierProvider.value(value: weekBarPageController),
+      ],
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -30,7 +62,9 @@ class _AppState extends State<App> {
           appBar: AppBar(
             title: Text("Home"),
             elevation: 3.0,
-            bottom:  (currentPageIndex == 1) ? WeekBar() : null,
+            bottom:  (currentPageIndex == 1) ? 
+            WeekBar() : 
+            null,
           ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: currentPageIndex,
@@ -56,7 +90,7 @@ class _AppState extends State<App> {
           ]),
           body: <Widget>[
             const HomePage(),
-            const TimetablePage(),
+             TimetablePage(),
             const MessagesPage()
           ][currentPageIndex]
         )
