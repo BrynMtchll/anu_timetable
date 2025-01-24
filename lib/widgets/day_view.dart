@@ -1,3 +1,4 @@
+import 'package:anu_timetable/widgets/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
@@ -12,12 +13,9 @@ class DayView extends StatefulWidget {
 
 class _DayViewState extends State<DayView> {
 
-  late PageController _pageController;
-  late PageController weekBarPageController;
-
-  static const initialPage = 7000;
-
-  int _activePage = initialPage;
+  // late DayViewPageController pageController;
+  // late WeekBarPageController weekBarPageController;
+  late TimetableModel timetableModel;
 
   final double leftMargin = 50;
 
@@ -32,34 +30,17 @@ class _DayViewState extends State<DayView> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(
-      initialPage: _activePage
-    );
   }
 
   @override
   void dispose() {
     super.dispose();
-    _pageController.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    weekBarPageController = Provider.of<PageController>(context);
-  }
-
-  void _handlePageChanged(int newActivePage) {
-    var timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    var weekBarPageController = Provider.of<PageController>(context, listen: false);
-    var difference = (newActivePage - _activePage);
-    timetableModel.shiftActiveDay(difference);
-    _activePage = newActivePage;
-
-    weekBarPageController.animateToPage(
-      timetableModel.weekBarPageForActiveDate(),
-      duration: Duration(milliseconds: 400), 
-      curve: Curves.easeInOut);
+    timetableModel = Provider.of<TimetableModel>(context);
   }
 
   LayoutBuilder _dayBuilder(int page) {
@@ -100,7 +81,7 @@ class _DayViewState extends State<DayView> {
       number = (hour % 12).toString();
     
     hour >= 12 ?
-      unit = "pm" :
+      unit = "pm":
       unit = "am";
 
     return Text.rich(TextSpan(
@@ -146,8 +127,8 @@ class _DayViewState extends State<DayView> {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      controller: _pageController,
-      onPageChanged: _handlePageChanged,
+      controller: timetableModel.dayViewPageController,
+      onPageChanged: timetableModel.handleDayViewPageChanged,
       itemBuilder: (context, page) => _dayBuilder(page),
     );
   }

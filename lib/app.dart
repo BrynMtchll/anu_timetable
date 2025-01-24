@@ -6,6 +6,7 @@ import 'package:anu_timetable/pages/messages_page.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/widgets/controllers.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -17,27 +18,26 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   int currentPageIndex = 0;
 
-  DateTime currentDate = DateTime.now();
-  late DateTime currentWeekDate = TimetableModel.weekStart(currentDate);
-
-  static DateTime hashDate = TimetableModel.weekStart(DateTime(2000, 0, 0));
+  late int weekBarInitialPage = TimetableModel.weekBarPage(TimetableModel.weekOfDay(DateTime.now()));
+  late WeekBarPageController weekBarPageController = WeekBarPageController(
+    initialPage: weekBarInitialPage,
+  );
   
-
-  late int weekBarInitialPage = (currentWeekDate.difference(hashDate).inDays / 7).toInt();
-  late PageController weekBarPageController = PageController(
-      initialPage: weekBarInitialPage,
-    );
+  late int dayViewInitialPage = TimetableModel.dayViewPage(DateTime.now());
+  late DayViewPageController dayViewPageController = DayViewPageController(
+    initialPage: dayViewInitialPage,
+  );
   
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
   void dispose() {
     super.dispose();
     weekBarPageController.dispose();
+    dayViewPageController.dispose();
   }
 
 
@@ -45,12 +45,20 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TimetableModel(
-          currentDate: currentDate,
-          currentWeekDate: currentWeekDate,
-          hashDate: hashDate,
-        )),
+        ChangeNotifierProvider.value(value: dayViewPageController),
         ChangeNotifierProvider.value(value: weekBarPageController),
+        ChangeNotifierProxyProvider2<DayViewPageController, WeekBarPageController, TimetableModel>(
+          create: (context) => TimetableModel(
+            dayViewPageController: dayViewPageController, 
+            weekBarPageController: weekBarPageController
+          ), 
+          update: (_, dayViewPageController, weekBarPageController, timetableModel) {
+            if (timetableModel == null) throw ArgumentError.notNull('timetableModel');   
+            timetableModel.dayViewPageController = dayViewPageController;
+            timetableModel.weekBarPageController = weekBarPageController;
+            return timetableModel;
+          }
+        )
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

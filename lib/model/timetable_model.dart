@@ -1,103 +1,144 @@
-import 'dart:async';
-
+import 'package:anu_timetable/widgets/controllers.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
+import 'package:anu_timetable/widgets/day_view.dart';
+import 'package:anu_timetable/widgets/week_bar.dart';
 
 class TimetableModel extends ChangeNotifier {
 
-  /// Date of the currently selected day
-  late DateTime _activeDate;
+  /// All dates are mapped to pages for the respective [PageView]s
+  /// implemented in [WeekBar] and [DayView].
+  /// [WeekBar] pages are mapped to weeks, with the date 
+  /// corresponding to the start of the week.
+  /// [DayView] pages are mapped to dates one to one.
+  /// 
+  static late DateTime hashDate = weekOfDay(DateTime(2000, 0, 0));
 
-  /// Date of the start (the monday) of the active week. 
-  /// (Day view) the active week that visible in the app bar 
-  /// and the one containing the [_activeDate].
-  late DateTime _activeWeekDate;
+  late DayViewPageController dayViewPageController;
 
-  late final currentDate;
-  late final currentWeekDate;
-  late final hashDate;
+  late WeekBarPageController weekBarPageController;
 
-  TimetableModel({required this.currentDate, required this.currentWeekDate, required this.hashDate}) {
-    _activeDate = currentDate;
-    _activeWeekDate = currentWeekDate;
+  /// The desired effect, when changing the [dayViewPageController.page] 
+  /// by multiple days, is for the target page to be animated to
+  /// as though it were the adjacent page.
+  /// The default behaviour, however, is for all intermediate pages 
+  /// to be animated between.
+  /// 
+  /// The hacky solution is to 
+  ///   1. temporarily copy the target page to the adjacent page, 
+  ///   2. animate to that, and 
+  ///   3. jump to the target page. 
+  /// 
+  /// the date corrosponding to the target page is 
+  /// temporarily stored in [dayOverride] under the adjacent page index.
+  /// [dayOverride] is then checked when getting the [day]
+  /// for a day view page.
+  Map<int, dynamic> dayOverride = {};
+
+  TimetableModel({required this.dayViewPageController, required this.weekBarPageController});
+
+  /// Returns the monday of the week corrosponding to the given 
+  /// week bar page.
+  DateTime week(double? weekBarPage) {
+    if (weekBarPage == null) {
+      throw ArgumentError("weekBarPage is null!");
+    }
+    return hashDate.add(Duration(days: (weekBarPage.round() * 7).round()));
   }
 
-  int get weekBarActivePage => (_activeWeekDate.difference(hashDate).inDays / 7).toInt();
+  /// Returns the day corrosponding to the given day view page.
+  /// 
+  /// Before [weekBarPageController] is assigned to the page view
+  /// in [WeekBar], [weekBarPageController.page] is null.
+  /// 
+  /// The [WeekBar] weekday items require the day of the active page on
+  /// initialisation, which is the current date.
+  DateTime day(double? dayViewPage) {
+    if (dayViewPage == null) {
+      return day(dayViewPageController.initialPage.toDouble());
+    }
+    if (dayOverride.containsKey(dayViewPage.round())) {
+      return dayOverride[dayViewPage.round()];
+    }
+    return hashDate.add(Duration(days: dayViewPage.round()));
+  }
 
-  DateTime get activeDate => _activeDate;
-  DateTime get activeWeekDate => _activeWeekDate;
+  /// Returns the day view page corrosponding to the given date.
+  static int dayViewPage(DateTime day) => 
+    day.difference(hashDate).inDays;
+  
+  /// Returns the week bar page corrosponding to the given date.
+  static int weekBarPage(DateTime week) => 
+    (week.difference(hashDate).inDays / 7).toInt();  
+  /// Returns the monday of the week that the given date is in.
+  static DateTime weekOfDay(DateTime day) => 
+    day.subtract(Duration(days:  day.weekday - 1));
 
-  set activeDate(DateTime newActiveDate) {
-    if (_activeDate == newActiveDate) return;
-    _activeDate = newActiveDate;
-    developer.log("New active date: $_activeDate.");
+  /// Returns the monday of the week that the active date is in.
+  DateTime weekOfActiveDay() => weekOfDay(activeDay());
+  
+  /// Returns the day corrosponding to [dayViewPageController.page].
+  DateTime activeDay() => day(dayViewPageController.page);
+  
+  /// Returns the monday of the week corrosponding to 
+  /// [weekBarPageController.page].
+  DateTime activeWeek() => week(weekBarPageController.page);
+  
+  /// Returns the day of the weekday for the given week
+  DateTime weekday(double weekBarPage, int weekday) => 
+    week(weekBarPage).add(Duration(days: weekday - 1));
+  
+  void changeDayViewPage(int weekBarPage) { 
+    DateTime newActiveDay = weekday(weekBarPage.toDouble(), activeDay().weekday);
+    if (activeDay() != newActiveDay) {
+      animateDirectToDayViewPage(newActiveDay);
+    }
+  }
+  
+  void changeWeekBarPage() {
+    int newWeekBarPage = weekBarPage(weekOfActiveDay());
+    int activeWeekBarPage = weekBarPageController.page!.round();
+    if (newWeekBarPage != activeWeekBarPage) {
+      weekBarPageController.animateToPage(
+        newWeekBarPage, 
+        duration: Duration(milliseconds: 400), 
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
+  animateDirectToDayViewPage(DateTime newActiveDay) async{
+    DateTime activeDay = day(dayViewPageController.page);
+
+    if (dayViewPageController.page == null) {
+      throw AssertionError("dayViewPageController.page is null!");
+    }
+
+    int adjacentDayViewPage = dayViewPageController.page!.round();
+    if (newActiveDay.isAfter(activeDay)) {
+      adjacentDayViewPage++;
+    } else {
+      adjacentDayViewPage--;
+    }
+
+    dayOverride.addAll({adjacentDayViewPage: newActiveDay});
+
+    await dayViewPageController.animateToPage(
+      adjacentDayViewPage,
+      curve: Curves.easeInOut,
+      duration: Duration(milliseconds: 400),
+    );
+
+    dayOverride.remove(adjacentDayViewPage);
+    dayViewPageController.jumpToPage(dayViewPage(newActiveDay));
+  }
+
+  void handleWeekBarPageChanged(int weekBarPage) {
+    changeDayViewPage(weekBarPage);
     notifyListeners();
   }
 
-  set activeWeekDate(DateTime newActiveWeekDate) {
-    if (newActiveWeekDate.weekday != DateTime.monday) {
-      developer.log("Provided week start date not a monday!");
-      developer.log('Date provided:  $newActiveWeekDate has weekday index: ${newActiveWeekDate.weekday}');
-
-      newActiveWeekDate = weekStart(newActiveWeekDate);
-    }
-    if (_activeWeekDate == newActiveWeekDate) return;
-    _activeWeekDate = newActiveWeekDate;
-    developer.log("New active week start date: $_activeWeekDate.");
-
+  void handleDayViewPageChanged(int dayViewPage) {
+    changeWeekBarPage();
     notifyListeners();
   }
-
-  void updateActiveWeek() {
-    var newActiveWeekDate = weekStart(_activeDate);
-    if (_activeWeekDate != newActiveWeekDate) {
-      _activeWeekDate = newActiveWeekDate;
-    }
-  }
-
-  /// Returns the page index of the week bar for the active date
-  int weekBarPageForActiveDate() {
-    DateTime activeDateWeekStart = weekStart(_activeDate);
-    int differenceInDays = activeWeekDate.difference(activeDateWeekStart).inDays;
-    if (differenceInDays % 7 != 0) {
-      developer.log("error in function weekStart()");
-      return -1;
-    }
-    int page = weekBarActivePage - (differenceInDays/7).toInt();
-    return page;
-  }
-
-  /// Computes the week start date for a given page.
-  DateTime weekDate(int page, DateTime activeWeekDate) {
-    int differencefromActiveInDays = (page - weekBarActivePage) * 7;
-    DateTime weekStartDate = activeWeekDate.add(Duration(days: differencefromActiveInDays));
-    return weekStartDate;
-  }
-
-  /// Returns the date of the given [weekday], 
-  DateTime weekdayDate(int page, activeWeekDate, int weekday) 
-    => weekDate(page, activeWeekDate).add(Duration(days: weekday - 1));
-
-
-  bool isActiveDayInActiveWeek() {
-    int diff = _activeDate.difference(_activeWeekDate).inDays;
-    return 0 <= diff && diff < 7;
-  }
-
-  void shiftActiveWeek(int newWeekBarActivePage) {
-    var weeks = (newWeekBarActivePage - weekBarActivePage);
-    DateTime newActiveWeekDate = activeWeekDate.add(Duration(days: weeks * 7));
-    activeWeekDate = newActiveWeekDate;
-  }
-
-  /// sets [activeDate] to the day [days] over
-  void shiftActiveDay(int days) {
-    DateTime newActiveDate = activeDate.add(Duration(days: days));
-    developer.log("Active date shifted $days day(s).");
-    activeDate = newActiveDate;
-  }
-
-  /// returns the week start date for a given date
-  static DateTime weekStart(DateTime date) => date.subtract(Duration(days:  date.weekday - 1));
 }

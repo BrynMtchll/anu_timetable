@@ -26,9 +26,7 @@ class WeekBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _WeekBarState extends State<WeekBar> {
-  late PageController pageController;
   late TimetableModel timetableModel;
-
   @override
   void initState() {
     super.initState();
@@ -42,23 +40,23 @@ class _WeekBarState extends State<WeekBar> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    pageController = Provider.of<PageController>(context);
-    timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    timetableModel = Provider.of<TimetableModel>(context);
   }
 
 
-  Color? _weekdayItemColor(page, timetableModel, weekday) => 
-    timetableModel.weekdayDate(page, timetableModel.activeWeekDate, weekday) == 
-    timetableModel.activeDate ? 
+  Color? _weekdayItemColor(page, weekday) {
+    return timetableModel.weekday(page.toDouble(), weekday) == timetableModel.activeDay() ? 
     Colors.lightBlue : null;
+  }
+
+  void _onWeekdayItemTap(int page, int weekday) {
+    timetableModel.animateDirectToDayViewPage(timetableModel.weekday(page.toDouble(), weekday));
+  }
 
   /// Widget for each day of the week bar, i.e. each item of the page.
   /// Tapping this widget sets that date as the [timetableModel.activeDate].
-  GestureDetector _weekdayItem(int page, int weekday, timetableModel) => GestureDetector(
-    onTap: () {
-      var timetableModel = Provider.of<TimetableModel>(context, listen: false);
-      timetableModel.activeDate = timetableModel.weekdayDate(page, timetableModel.activeWeekDate, weekday);
-    },
+  GestureDetector _weekdayItem(int page, int weekday) => GestureDetector(
+    onTap: () => _onWeekdayItemTap(page, weekday),
     child: Column(
       children: [
         Padding(
@@ -80,7 +78,7 @@ class _WeekBarState extends State<WeekBar> {
           height: 33,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: _weekdayItemColor(page, timetableModel, weekday),
+            color: _weekdayItemColor(page, weekday),
           ),
           child: Align(
             alignment: Alignment.center,
@@ -89,7 +87,7 @@ class _WeekBarState extends State<WeekBar> {
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
-              timetableModel.weekdayDate(page, timetableModel.activeWeekDate, weekday).day.toString()
+              timetableModel.weekday(page.toDouble(), weekday).day.toString()
             )
           ),
         )
@@ -98,7 +96,7 @@ class _WeekBarState extends State<WeekBar> {
   );
 
   /// row element for the [_weekdayItem]s.
-  Align _weekBuilder(int page, timetableModel) {
+  Align _weekBuilder(int page) {
     return Align(
       alignment: Alignment.center,
       child: IntrinsicHeight(child: Row(
@@ -106,15 +104,10 @@ class _WeekBarState extends State<WeekBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
-            _weekdayItem(page, weekday, timetableModel),
+            _weekdayItem(page, weekday),
         ],
      ))
     );
-  }
-
-  void _handlePageChanged(int newActivePage) {
-    timetableModel.shiftActiveWeek(newActivePage);
-    print("page change");
   }
 
   @override
@@ -124,9 +117,9 @@ class _WeekBarState extends State<WeekBar> {
         return SizedBox(
           height: 80, 
           child: PageView.builder(
-            controller: pageController,
-            onPageChanged: _handlePageChanged,
-            itemBuilder: (context, page) => _weekBuilder(page, timetableModel),
+            controller: timetableModel.weekBarPageController,
+            onPageChanged: timetableModel.handleWeekBarPageChanged,
+            itemBuilder: (context, page) => _weekBuilder(page),
           )
         );
       }
