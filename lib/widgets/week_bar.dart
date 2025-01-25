@@ -23,12 +23,11 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => Size.fromHeight(80);
 
   Color? _weekdayItemColor(TimetableModel timetableModel, int page, int weekday) {
-    return timetableModel.weekday(page.toDouble(), weekday) == timetableModel.activeDay() ? 
-    Colors.lightBlue : null;
+    DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
+    return weekdayDate == timetableModel.activeDay() ?Colors.lightBlue : null;
   }
 
   /// Widget for each day of the week bar, i.e. each item of the page.
-  /// Tapping this widget sets that date as the [timetableModel.activeDate].
   Consumer _weekdayItem(int page, int weekday) => Consumer<TimetableModel>(
     builder: (context, timetableModel, child) => GestureDetector(
       onTap: () {
@@ -65,7 +64,7 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
-                timetableModel.weekday(page.toDouble(), weekday).day.toString()
+                timetableModel.weekdayDate(page.toDouble(), weekday).day.toString()
               )
             ),
           )
