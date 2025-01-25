@@ -1,5 +1,5 @@
 import 'package:anu_timetable/model/timetable_model.dart';
-import 'package:anu_timetable/widgets/controllers.dart';
+import 'package:anu_timetable/controllers.dart';
 import 'package:test/test.dart';
 
 void main() {

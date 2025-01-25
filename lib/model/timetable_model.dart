@@ -1,4 +1,4 @@
-import 'package:anu_timetable/widgets/controllers.dart';
+import 'package:anu_timetable/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
@@ -10,8 +10,7 @@ class TimetableModel extends ChangeNotifier {
   /// [WeekBar] pages are mapped to weeks, with the date 
   /// corresponding to the start of the week.
   /// [DayView] pages are mapped to dates one to one.
-  /// 
-  static late DateTime hashDate = weekOfDay(DateTime(2000, 0, 0));
+  static DateTime hashDate = weekOfDay(DateTime(2000, 0, 0));
 
   late DayViewPageController dayViewPageController;
 
@@ -23,18 +22,17 @@ class TimetableModel extends ChangeNotifier {
   /// The default behaviour, however, is for all intermediate pages 
   /// to be animated between.
   /// 
-  /// The hacky solution is to 
-  ///   1. temporarily copy the target page to the adjacent page, 
-  ///   2. animate to that, and 
-  ///   3. jump to the target page. 
-  /// 
-  /// the date corrosponding to the target page is 
-  /// temporarily stored in [dayOverride] under the adjacent page index.
-  /// [dayOverride] is then checked when getting the [day]
-  /// for a day view page.
+  /// The hacky solution is implemented in [animateDirectToDayViewPage].
+  /// It uses [dayOverride] to map the adjacent page to the date for 
+  /// the target page, so that the target page can be temporarily copied 
+  /// onto the adjacent page. 
+  /// [dayOverride] is first checked when getting the [day] a day view page.
   Map<int, dynamic> dayOverride = {};
 
-  TimetableModel({required this.dayViewPageController, required this.weekBarPageController});
+  TimetableModel({
+    required this.dayViewPageController, 
+    required this.weekBarPageController
+  });
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
@@ -87,13 +85,17 @@ class TimetableModel extends ChangeNotifier {
   DateTime weekday(double weekBarPage, int weekday) => 
     week(weekBarPage).add(Duration(days: weekday - 1));
   
-  void changeDayViewPage(int weekBarPage) { 
-    DateTime newActiveDay = weekday(weekBarPage.toDouble(), activeDay().weekday);
+  /// Updates the [dayViewPageController.page], i.e. the active day,
+  /// to the week given, maintaining the same weekday.
+  void changeDayViewPage() { 
+    DateTime newActiveDay = weekday(weekBarPageController.page!, activeDay().weekday);
     if (activeDay() != newActiveDay) {
       animateDirectToDayViewPage(newActiveDay);
     }
   }
   
+  /// Updates the [weekBarPageController.page], i.e. the active week,
+  /// to the week containing the [dayViewPageController.page] (the active day).
   void changeWeekBarPage() {
     int newWeekBarPage = weekBarPage(weekOfActiveDay());
     int activeWeekBarPage = weekBarPageController.page!.round();
@@ -106,6 +108,14 @@ class TimetableModel extends ChangeNotifier {
     }
   }
 
+  /// Functionality for the hacky solution to animate to 
+  /// a non adjacent day, skipping intermediate days.
+  /// Steps:
+  ///   1.  Set the date for the adjacent day view page of the same side
+  ///       to that of the target page by adding it to [dayOverride].
+  ///   2.  Animate to the adjacent page.
+  ///   3.  Jump to the target page and remove the override date from 
+  ///       [dayOverride].
   animateDirectToDayViewPage(DateTime newActiveDay) async{
     DateTime activeDay = day(dayViewPageController.page);
 
@@ -114,6 +124,7 @@ class TimetableModel extends ChangeNotifier {
     }
 
     int adjacentDayViewPage = dayViewPageController.page!.round();
+
     if (newActiveDay.isAfter(activeDay)) {
       adjacentDayViewPage++;
     } else {
@@ -132,12 +143,20 @@ class TimetableModel extends ChangeNotifier {
     dayViewPageController.jumpToPage(dayViewPage(newActiveDay));
   }
 
-  void handleWeekBarPageChanged(int weekBarPage) {
-    changeDayViewPage(weekBarPage);
+  /// Handler for the onTap event of the [DayView]'s weekday items.
+  void handleWeekBarWeekdayTap(int page, int weekdayIndex) {
+    DateTime newActiveDay = weekday(page.toDouble(), weekdayIndex);
+    animateDirectToDayViewPage(newActiveDay);
+  }
+
+  /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
+  void handleWeekBarPageChanged() {
+    changeDayViewPage();
     notifyListeners();
   }
 
-  void handleDayViewPageChanged(int dayViewPage) {
+  /// Handler for the onPageChanged event of the [DayView]'s [PageView].
+  void handleDayViewPageChanged() {
     changeWeekBarPage();
     notifyListeners();
   }

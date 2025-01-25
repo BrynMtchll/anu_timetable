@@ -1,47 +1,21 @@
-import 'package:anu_timetable/widgets/controllers.dart';
+import 'package:anu_timetable/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/widgets/hour_line_painter.dart';
 
-class DayView extends StatefulWidget {
+class DayView extends StatelessWidget {
   const DayView({super.key});
 
-  @override
-  State<DayView> createState() => _DayViewState();
-}
+  static const double leftMargin = 50;
 
-class _DayViewState extends State<DayView> {
-
-  // late DayViewPageController pageController;
-  // late WeekBarPageController weekBarPageController;
-  late TimetableModel timetableModel;
-
-  final double leftMargin = 50;
-
-  final double height = 1500;
+  static const double height = 1500;
 
   /// An even segment for each of the 24 hours of the day,
   /// plus a half hour top and bottom for padding.
-  late double hourHeight = height / 25;
+  static const double hourHeight = height / 25;
 
-  late double vertPadding = hourHeight / 2;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    timetableModel = Provider.of<TimetableModel>(context);
-  }
+  static const double vertPadding = hourHeight / 2;
 
   LayoutBuilder _dayBuilder(int page) {
     return LayoutBuilder(
@@ -127,8 +101,11 @@ class _DayViewState extends State<DayView> {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      controller: timetableModel.dayViewPageController,
-      onPageChanged: timetableModel.handleDayViewPageChanged,
+      controller: Provider.of<DayViewPageController>(context, listen: false),
+      onPageChanged: (page) {
+        Provider.of<TimetableModel>(context, listen: false)
+          .handleDayViewPageChanged();
+      },
       itemBuilder: (context, page) => _dayBuilder(page),
     );
   }

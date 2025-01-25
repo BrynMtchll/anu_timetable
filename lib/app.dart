@@ -6,7 +6,7 @@ import 'package:anu_timetable/pages/messages_page.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
-import 'package:anu_timetable/widgets/controllers.dart';
+import 'package:anu_timetable/controllers.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
