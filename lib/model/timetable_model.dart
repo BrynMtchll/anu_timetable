@@ -76,7 +76,13 @@ class TimetableModel extends ChangeNotifier {
 
   /// Returns the monday of the week that the active date is in.
   DateTime weekOfActiveDay() => weekOfDay(activeDay());
-  
+
+  /// Returns the day with time set to zero.
+  DateTime roundDay(DateTime day) => DateTime(day.year, day.month, day.day);
+
+  /// Returns the current day excluding the time.
+  DateTime currentDay() => roundDay(DateTime.now());
+
   /// Returns the day corrosponding to [dayViewPageController.page].
   DateTime activeDay() {
     if (dayOverride.isNotEmpty) {

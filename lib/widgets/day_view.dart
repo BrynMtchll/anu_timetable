@@ -1,101 +1,31 @@
 import 'package:anu_timetable/controllers.dart';
+import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/widgets/hour_line_painter.dart';
+import 'package:anu_timetable/model/timetable_layout.dart';
+import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 
-class DayView extends StatelessWidget {
+class DayView extends StatefulWidget {
   const DayView({super.key});
 
-  static const double leftMargin = 50;
+  @override
+  State<DayView> createState() => _DayViewState();
+}
 
-  static const double height = 1500;
+class _DayViewState extends State<DayView> {
+  late LinkedScrollControllerGroup _controllers;
 
-  /// An even segment for each of the 24 hours of the day,
-  /// plus a half hour top and bottom for padding.
-  static const double hourHeight = height / 25;
-
-  static const double vertPadding = hourHeight / 2;
-
-  LayoutBuilder _dayBuilder(int page) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight,
-            ),
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: CustomPaint(
-                    size: Size(constraints.maxWidth - leftMargin, height),
-                    painter: HourLinePainter(
-                      hourHeight: hourHeight, 
-                      vertPadding: vertPadding
-                    )
-                  ),
-                ),
-                for (int i = 0; i < 25; i++) _hourLineLabel(i), 
-              ],
-            )
-          ),
-        );
-      }
-    );
+  @override
+  void initState() {
+    super.initState();
+    _controllers = LinkedScrollControllerGroup();
   }
 
-  Text _hourLineLabelText(int hour) {
-    String number;
-    String unit;
-
-    hour % 12 == 0 ?
-      number = 12.toString() :
-      number = (hour % 12).toString();
-    
-    hour >= 12 ?
-      unit = "pm":
-      unit = "am";
-
-    return Text.rich(TextSpan(
-      children: <TextSpan>[
-        TextSpan(
-          text: number,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          )
-        ),
-        TextSpan(
-          style: TextStyle(
-            fontSize: 11,
-          ),
-          text: unit,
-        )
-      ]
-    ));
-  }
-
-  Positioned _hourLineLabel(int hour) {
-    final double labelHeight = 30;
-    return Positioned(
-      top: hourHeight * hour + vertPadding  - (labelHeight / 2),
-      left: 0,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: SizedBox(
-          width: leftMargin,
-          height: labelHeight,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: EdgeInsets.only(right: 5),
-              child: _hourLineLabelText(hour),
-          )
-        )
-      )
-    ));
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -106,7 +36,43 @@ class DayView extends StatelessWidget {
         Provider.of<TimetableModel>(context, listen: false)
           .handleDayViewPageChanged();
       },
-      itemBuilder: (context, page) => _dayBuilder(page),
+      itemBuilder: (context, page) => _dayBuilder(context, page),
+    );
+  }
+
+  LayoutBuilder _dayBuilder(context, int page) {
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        TimetableLayout timetableLayout = TimetableLayout();
+        Size size = Size(constraints.maxWidth, timetableLayout.height);
+        return SingleChildScrollView(
+          controller: _controllers.addAndGet(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: CustomPaint(
+                    size: size,
+                    painter: HourLinePainter(
+                      timetableLayout: timetableLayout,
+                    ),
+                  ),
+                ),
+                if (timetableModel.day(page.toDouble()) == timetableModel.currentDay())
+                      LiveTimeIndicator(
+                        size: size,
+                        timetableLayout: timetableLayout,
+                      )
+              ],
+            )
+          ),
+        );
+      }
     );
   }
 }

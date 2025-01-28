@@ -22,14 +22,39 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => Size.fromHeight(80);
 
-  Color? _weekdayItemColor(TimetableModel timetableModel, int page, int weekday) {
-    DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
-    return weekdayDate == timetableModel.activeDay() ?Colors.lightBlue : null;
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 80, 
+      child: PageView.builder(
+        controller: Provider.of<WeekBarPageController>(context, listen: false),
+        onPageChanged: (page) {
+          Provider.of<TimetableModel>(context, listen: false)
+            .handleWeekBarPageChanged();
+        },
+        itemBuilder: (context, page) => _weekBuilder(page),
+      )
+    );
+  }
+
+  /// row element for the [_weekdayItem]s.
+  Align _weekBuilder(int page) {
+    return Align(
+      alignment: Alignment.center,
+      child: IntrinsicHeight(child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
+            _weekdayItem(page, weekday),
+        ],
+     ))
+    );
   }
 
   /// Widget for each day of the week bar, i.e. each item of the page.
-  Consumer _weekdayItem(int page, int weekday) => Consumer<TimetableModel>(
-    builder: (context, timetableModel, child) => GestureDetector(
+  Consumer<TimetableModel> _weekdayItem(int page, int weekday) => Consumer<TimetableModel>(
+    builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => GestureDetector(
       onTap: () {
         Provider.of<TimetableModel>(context, listen: false)
           .handleWeekBarWeekdayTap(page, weekday);
@@ -49,12 +74,11 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          
           Container(
-            width: 33,
-            height: 33,
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(8),
               color: _weekdayItemColor(timetableModel, page, weekday),
             ),
             child: Align(
@@ -62,6 +86,7 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
               child:  Text(
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
+                  color: _weekdayItemTextColor(timetableModel, page, weekday),
                   fontSize: 14,
                 ),
                 timetableModel.weekdayDate(page.toDouble(), weekday).day.toString()
@@ -72,34 +97,14 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
       )
     )
   );
-
-  /// row element for the [_weekdayItem]s.
-  Align _weekBuilder(int page) {
-    return Align(
-      alignment: Alignment.center,
-      child: IntrinsicHeight(child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
-            _weekdayItem(page, weekday),
-        ],
-     ))
-    );
+  
+  Color? _weekdayItemColor(TimetableModel timetableModel, int page, int weekday) {
+    DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
+    return weekdayDate == timetableModel.activeDay() ?Colors.lightBlue : null;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 80, 
-      child: PageView.builder(
-        controller: Provider.of<WeekBarPageController>(context, listen: false),
-        onPageChanged: (page) {
-          Provider.of<TimetableModel>(context, listen: false)
-            .handleWeekBarPageChanged();
-        },
-        itemBuilder: (context, page) => _weekBuilder(page),
-      )
-    );
+  Color? _weekdayItemTextColor(TimetableModel timetableModel, int page, int weekday) {
+    DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
+    return weekdayDate == timetableModel.activeDay() ?Colors.grey[50] : Colors.grey[900];
   }
 }
