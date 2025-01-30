@@ -1,9 +1,9 @@
-import 'dart:async';
 import 'package:anu_timetable/model/timetable_layout.dart';
-import 'package:calendar_view/calendar_view.dart';
 import 'package:flutter/material.dart';
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:provider/provider.dart';
 
-class LiveTimeIndicator extends StatefulWidget {
+class LiveTimeIndicator extends StatelessWidget {
 
   final Size size;
 
@@ -17,43 +17,18 @@ class LiveTimeIndicator extends StatefulWidget {
   });
 
   @override
-  State<LiveTimeIndicator> createState() => _LiveTimeIndicatorState();
-}
-
-class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
-  late Timer _timer;
-  TimeOfDay _currentTime = TimeOfDay.now();
-
-    @override
-  void initState() {
-    super.initState();
-
-    _timer = Timer.periodic(Duration(seconds: 1), _onTick);
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: widget.size,
-      painter: LiveTimePainter(
-        timetableLayout: widget.timetableLayout,
-        currentTime: _currentTime,
-      ),
+    return Consumer<CurrentSecond>(
+      builder: (BuildContext context, CurrentSecond currentSecond, Widget? child) {
+        return CustomPaint(
+          size: size,
+          painter: LiveTimePainter(
+            timetableLayout: timetableLayout,
+            currentSecond: currentSecond,
+          ),
+        );
+      }
     );
-  }
-
-  void _onTick(Timer? timer) {
-    final time = TimeOfDay.now();
-    if (time != _currentTime && mounted) {
-      _currentTime = time;
-      setState(() {});
-    }
   }
 }
 
@@ -61,35 +36,32 @@ class LiveTimePainter extends CustomPainter {
 
   final TimetableLayout timetableLayout;
 
-  final TimeOfDay currentTime;
+  final CurrentSecond currentSecond;
 
   const LiveTimePainter({
     required this.timetableLayout,
-    required this.currentTime,
+    required this.currentSecond,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     double vertOffset = _liveTimeVertOffset(size);
-
-    Paint myPaint = Paint()
+    Paint paint = Paint()
       ..color = Colors.lightBlue
       ..strokeWidth = 2.0;
 
-    canvas.drawLine(Offset(timetableLayout.leftMargin - 5, vertOffset), Offset(size.width, vertOffset), myPaint);
+    canvas.drawLine(Offset(timetableLayout.leftMargin - 5, vertOffset), Offset(size.width, vertOffset), paint);
     _paintLiveTimeLabel(canvas, vertOffset);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) =>
-      oldDelegate is LiveTimePainter;
+    oldDelegate is LiveTimePainter;
 
   /// Returns the vertical position representing of the current time
   /// respective to the [timetableLayout] dimensions.
   double _liveTimeVertOffset(Size size) {
-    int minutesPerDay = TimeOfDay.minutesPerHour * TimeOfDay.hoursPerDay;
-    double currentTimeAsFractionOfDay = (currentTime.getTotalMinutes / minutesPerDay);
-    double dayOffset = currentTimeAsFractionOfDay * timetableLayout.dayHeight;
+    double dayOffset = currentSecond.getFractionOfDay() * timetableLayout.dayHeight;
     return dayOffset + timetableLayout.vertPadding;
   }
 
@@ -98,34 +70,37 @@ class LiveTimePainter extends CustomPainter {
 
     TextPainter textPainter = TextPainter(
       text: _liveTimeLabelText(),
-      textAlign: TextAlign.end,
+      textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     )
       ..layout(
-        minWidth: timetableLayout.leftMargin - textPaddingRight,
-        maxWidth: timetableLayout.leftMargin - textPaddingRight,
+        minWidth: 0,
+        maxWidth: timetableLayout.leftMargin,
       );
+
+    double horzOffset = timetableLayout.leftMargin - textPainter.width - textPaddingRight;
 
     Paint paint = Paint()
       ..color = Colors.lightBlue;
 
     RRect rect = RRect.fromLTRBR(
-        timetableLayout.leftMargin - textPainter.width - 5, 
-        vertOffset - 10, timetableLayout.leftMargin - 5, 
+        horzOffset - (textPaddingRight / 2), 
+        vertOffset - 10, 
+        horzOffset + textPainter.width + (textPaddingRight / 2), 
         vertOffset + 10, 
         Radius.circular(5.0)
       );
     canvas.drawRRect(rect, paint);
-    textPainter.paint(canvas, Offset(0, vertOffset - (textPainter.height / 2)));
+    textPainter.paint(canvas, Offset(horzOffset, vertOffset - (textPainter.height / 2)));
   }
 
   TextSpan _liveTimeLabelText() {
     return TextSpan(
-      text: "${currentTime.hourOfPeriod}:${currentTime.minute.toString().padLeft(2, '0')}",
+      text: currentSecond.string,
       style: TextStyle(
         fontWeight: FontWeight.bold,
-        /// The default color for TextPainter text is white 
-        /// so for a quick fix this is hardcoded to sync with
+        /// The default color for TextPainter text is white. 
+        /// For a quick fix the color is hardcoded to match
         /// the default text theme.
         /// TODO: get text colour from theme.
         color: Colors.grey[50],

@@ -1,7 +1,8 @@
-import 'package:anu_timetable/controllers.dart';
+import 'package:anu_timetable/model/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
 class TimetableModel extends ChangeNotifier {
 
@@ -34,7 +35,7 @@ class TimetableModel extends ChangeNotifier {
 
   TimetableModel({
     required this.dayViewPageController, 
-    required this.weekBarPageController
+    required this.weekBarPageController,
   });
 
   /// Returns the monday of the week corrosponding to the given 
@@ -76,12 +77,6 @@ class TimetableModel extends ChangeNotifier {
 
   /// Returns the monday of the week that the active date is in.
   DateTime weekOfActiveDay() => weekOfDay(activeDay());
-
-  /// Returns the day with time set to zero.
-  DateTime roundDay(DateTime day) => DateTime(day.year, day.month, day.day);
-
-  /// Returns the current day excluding the time.
-  DateTime currentDay() => roundDay(DateTime.now());
 
   /// Returns the day corrosponding to [dayViewPageController.page].
   DateTime activeDay() {
