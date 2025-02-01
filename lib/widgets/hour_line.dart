@@ -5,13 +5,11 @@ import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
 class HourLine extends StatelessWidget {
   final Size size;
-  final TimetableLayout timetableLayout;
   final bool isCurrentDay;
 
   const HourLine({
     super.key, 
     required this.size,
-    required this.timetableLayout,
     required this.isCurrentDay,
   });
 
@@ -21,10 +19,10 @@ class HourLine extends StatelessWidget {
       builder: (BuildContext context, CurrentMinute currentMinute, Widget? child) {
         return CustomPaint(
           size: size,
-          painter: HourLinePainter(
-            timetableLayout: timetableLayout,
+          painter: _HourLinePainter(
             currentMinute: currentMinute,
             isCurrentDay: isCurrentDay,
+            context: context,
           )
         );
       }
@@ -32,17 +30,19 @@ class HourLine extends StatelessWidget {
   }
 }
 
-class HourLinePainter extends CustomPainter {
-
-  final TimetableLayout timetableLayout;
+class _HourLinePainter extends CustomPainter {
   final CurrentMinute currentMinute;
   final bool isCurrentDay;
+  final BuildContext context;
+  late ColorScheme colorScheme;
 
-  HourLinePainter({
-    required this.timetableLayout,
+  _HourLinePainter({
     required this.currentMinute,
     required this.isCurrentDay,
-  });
+    required this.context,
+  }) {
+    colorScheme = Theme.of(context).colorScheme;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,12 +56,12 @@ class HourLinePainter extends CustomPainter {
   }
 
   double _getVertOffset(int hour) =>
-    timetableLayout.vertPadding + hour * timetableLayout.hourHeight;
+    TimetableLayout.vertPadding + hour * TimetableLayout.hourHeight;
 
   void _paintLines(canvas, size) {
     for (int hour = 0; hour < 25; hour++) {
       final vertOffset = _getVertOffset(hour);
-      canvas.drawLine(Offset(timetableLayout.leftMargin, vertOffset), Offset(size.width, vertOffset), Paint());
+      canvas.drawLine(Offset(TimetableLayout.leftMargin, vertOffset), Offset(size.width, vertOffset), Paint());
     }
   }
 
@@ -77,12 +77,12 @@ class HourLinePainter extends CustomPainter {
       double textPaddingRight = 10.0;
 
       textPainter.layout(
-        minWidth: timetableLayout.leftMargin - textPaddingRight,
-        maxWidth: timetableLayout.leftMargin - textPaddingRight,
+        minWidth: TimetableLayout.leftMargin - textPaddingRight,
+        maxWidth: TimetableLayout.leftMargin - textPaddingRight,
       );
       final vertOffset = _getVertOffset(hour) - (textPainter.height / 2);
 
-      if (currentMinute.differenceFromHour(hour) > 15) {
+      if (currentMinute.differenceFromHour(hour) > 15 || !isCurrentDay) {
         textPainter.paint(canvas, Offset(0, vertOffset));
       }
     }
@@ -106,18 +106,14 @@ class HourLinePainter extends CustomPainter {
           text: number,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            /// The default color for TextPainter text is white 
-            /// so for a quick fix this is hardcoded to sync with
-            /// the default text theme.
-            /// TODO: get text colour from theme.
-            color: Colors.grey[900],
+            color: colorScheme.onSurface,
             fontSize: 13,
           )
         ),
         TextSpan(
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey[900],
+            color: colorScheme.onSurface,
           ),
           text: unit,
         )

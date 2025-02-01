@@ -7,13 +7,9 @@ class LiveTimeIndicator extends StatelessWidget {
 
   final Size size;
 
-  final TimetableLayout timetableLayout;
-
-
   const LiveTimeIndicator({
     super.key, 
     required this.size,
-    required this.timetableLayout,
   });
 
   @override
@@ -22,9 +18,9 @@ class LiveTimeIndicator extends StatelessWidget {
       builder: (BuildContext context, CurrentSecond currentSecond, Widget? child) {
         return CustomPaint(
           size: size,
-          painter: LiveTimePainter(
-            timetableLayout: timetableLayout,
+          painter: _LiveTimePainter(
             currentSecond: currentSecond,
+            context: context,
           ),
         );
       }
@@ -32,37 +28,39 @@ class LiveTimeIndicator extends StatelessWidget {
   }
 }
 
-class LiveTimePainter extends CustomPainter {
-
-  final TimetableLayout timetableLayout;
-
+class _LiveTimePainter extends CustomPainter {
+  
   final CurrentSecond currentSecond;
+  final BuildContext context;
+  late ColorScheme colorScheme;
 
-  const LiveTimePainter({
-    required this.timetableLayout,
+  _LiveTimePainter({
     required this.currentSecond,
-  });
+    required this.context,
+  }) {
+    colorScheme = Theme.of(context).colorScheme;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     double vertOffset = _liveTimeVertOffset(size);
     Paint paint = Paint()
-      ..color = Colors.lightBlue
+      ..color = colorScheme.primary
       ..strokeWidth = 2.0;
 
-    canvas.drawLine(Offset(timetableLayout.leftMargin - 5, vertOffset), Offset(size.width, vertOffset), paint);
+    canvas.drawLine(Offset(TimetableLayout.leftMargin - 5, vertOffset), Offset(size.width, vertOffset), paint);
     _paintLiveTimeLabel(canvas, vertOffset);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) =>
-    oldDelegate is LiveTimePainter;
+    oldDelegate is _LiveTimePainter;
 
   /// Returns the vertical position representing of the current time
-  /// respective to the [timetableLayout] dimensions.
+  /// respective to the [TimetableLayout] dimensions.
   double _liveTimeVertOffset(Size size) {
-    double dayOffset = currentSecond.getFractionOfDay() * timetableLayout.dayHeight;
-    return dayOffset + timetableLayout.vertPadding;
+    double dayOffset = currentSecond.getFractionOfDay() * TimetableLayout.dayHeight;
+    return dayOffset + TimetableLayout.vertPadding;
   }
 
   void _paintLiveTimeLabel(Canvas canvas, double vertOffset) {
@@ -75,13 +73,13 @@ class LiveTimePainter extends CustomPainter {
     )
       ..layout(
         minWidth: 0,
-        maxWidth: timetableLayout.leftMargin,
+        maxWidth: TimetableLayout.leftMargin,
       );
 
-    double horzOffset = timetableLayout.leftMargin - textPainter.width - textPaddingRight;
+    double horzOffset = TimetableLayout.leftMargin - textPainter.width - textPaddingRight;
 
     Paint paint = Paint()
-      ..color = Colors.lightBlue;
+      ..color = colorScheme.primary;
 
     RRect rect = RRect.fromLTRBR(
         horzOffset - (textPaddingRight / 2), 
@@ -103,7 +101,7 @@ class LiveTimePainter extends CustomPainter {
         /// For a quick fix the color is hardcoded to match
         /// the default text theme.
         /// TODO: get text colour from theme.
-        color: Colors.grey[50],
+        color: colorScheme.onInverseSurface,
         fontSize: 11,
       )
     );

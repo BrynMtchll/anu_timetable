@@ -51,9 +51,7 @@ class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
 
-        TimetableLayout timetableLayout = TimetableLayout();
-
-        Size size = Size(constraints.maxWidth, timetableLayout.height);
+        Size size = Size(constraints.maxWidth, TimetableLayout.height);
 
         return Consumer<CurrentDay>(
           builder: (context, currentDay, child) { 
@@ -70,12 +68,11 @@ class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<
                 children: [
                   Align(
                     alignment: Alignment.centerRight,
-                    child: HourLine(size: size, timetableLayout: timetableLayout, isCurrentDay: isCurrentDay)
+                    child: HourLine(size: size, isCurrentDay: isCurrentDay)
                   ),
                   if (isCurrentDay)
                     LiveTimeIndicator(
                       size: size,
-                      timetableLayout: timetableLayout,
                     )
                   ],
                 )

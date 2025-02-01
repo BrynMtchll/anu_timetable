@@ -21,7 +21,7 @@ class WeekBar extends StatefulWidget implements PreferredSizeWidget {
   const WeekBar({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(80);
+  Size get preferredSize => Size.fromHeight(TimetableLayout.weekBarHeight);
 
   @override
   State<WeekBar> createState() => _WeekBarState();
@@ -41,41 +41,36 @@ class _WeekBarState extends State<WeekBar>{
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder:(context, constraints) => Align(
-        alignment: Alignment.centerRight,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: 80,
-            maxWidth: Provider.of<TabController>(context).index == 1 ? constraints.maxWidth : constraints.maxWidth,
-          ),
-          child: PageView.builder(
-            controller: Provider.of<WeekBarPageController>(context, listen: false),
-            onPageChanged: (page) {
-              Provider.of<TimetableModel>(context, listen: false)
-                .handleWeekBarPageChanged();
-            },
-            itemBuilder: (context, page) {
-              EdgeInsets padding = 
-                Provider.of<TabController>(context).index == 1 ? 
-                EdgeInsets.only(left: TimetableLayout().leftMargin) : 
-                EdgeInsets.all(0);
-                
-              return AnimatedPadding(
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: padding,
-              child: _weekBuilder(page, constraints),
-            );
-            }
-          )
+    return Align(
+      alignment: Alignment.centerRight,
+      child: SizedBox(
+        height: TimetableLayout.weekBarHeight,
+        child: PageView.builder(
+          controller: Provider.of<WeekBarPageController>(context, listen: false),
+          onPageChanged: (page) {
+            Provider.of<TimetableModel>(context, listen: false)
+              .handleWeekBarPageChanged();
+          },
+          itemBuilder: (context, page) {
+            EdgeInsets padding = 
+              Provider.of<TabController>(context).index == 1 ? 
+              EdgeInsets.only(left: TimetableLayout.leftMargin) : 
+              EdgeInsets.all(0);
+              
+            return AnimatedPadding(
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            padding: padding,
+            child: _weekBuilder(page),
+          );
+          }
         )
       )
     );
   }
 
   /// row element for the [_weekdayItem]s.
-  Align _weekBuilder(int page, constraints) {
+  Align _weekBuilder(int page) {
     return Align(
       alignment: Alignment.center,
       child: IntrinsicHeight(child: Row(
@@ -136,13 +131,15 @@ class _WeekBarState extends State<WeekBar>{
   
   Color? _weekdayItemColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
     if (Provider.of<TabController>(context).index != 0) return null;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
-    return weekdayDate == timetableModel.activeDay ?Colors.lightBlue : null;
+    return weekdayDate == timetableModel.activeDay ? colorScheme.primary : null;
   }
 
   Color? _weekdayItemTextColor(TimetableModel timetableModel, int page, int weekday) {
     if (Provider.of<TabController>(context).index != 0) return null;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
-    return weekdayDate == timetableModel.activeDay ?Colors.grey[50] : Colors.grey[900];
+    return weekdayDate == timetableModel.activeDay ? colorScheme.onPrimary : colorScheme.onSurface;
   }
 }
