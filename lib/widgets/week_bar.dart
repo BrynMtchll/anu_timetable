@@ -4,19 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/timetable_layout.dart';
 
-String _weekdayCharacters(int weekday){
-  switch (weekday) {
-    case DateTime.monday: return 'M';
-    case DateTime.tuesday: return 'Tu';
-    case DateTime.wednesday: return 'W';
-    case DateTime.thursday: return 'Th';
-    case DateTime.friday: return 'F';
-    case DateTime.saturday: return 'Sa';
-    case DateTime.sunday: return 'Su';
-    default: return '';
-  }
-}
-
 class WeekBar extends StatefulWidget implements PreferredSizeWidget {
   const WeekBar({super.key});
 
@@ -40,16 +27,23 @@ class _WeekBarState extends State<WeekBar>{
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      alignment: Alignment.topRight,
+      child: Container(
         height: TimetableLayout.weekBarHeight,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: colorScheme.onSurface, width: 0.2)
+          ),
+        ),
         child: PageView.builder(
           controller: Provider.of<WeekBarPageController>(context, listen: false),
           onPageChanged: (page) {
             Provider.of<TimetableModel>(context, listen: false)
               .handleWeekBarPageChanged();
           },
+
           itemBuilder: (context, page) {
             EdgeInsets padding = 
               Provider.of<TabController>(context).index == 1 ? 
@@ -100,7 +94,7 @@ class _WeekBarState extends State<WeekBar>{
                   fontWeight: FontWeight.w600,
                   fontSize: 11,
                 ),
-                _weekdayCharacters(weekday)
+                TimetableModel.weekdayCharacters(weekday)
               ),
             ),
           ),
@@ -109,14 +103,14 @@ class _WeekBarState extends State<WeekBar>{
             height: 30,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: _weekdayItemColor(context, timetableModel, page, weekday),
+              border: Border.all(color: _weekdayItemColor(context, timetableModel, page, weekday), width: 0.5),
             ),
             child: Align(
               alignment: Alignment.center,
               child:  Text(
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: _weekdayItemTextColor(timetableModel, page, weekday),
+                  // fontWeight: FontWeight.w400,
+                  // color: _weekdayItemTextColor(timetableModel, page, weekday),
                   fontSize: 14,
                 ),
                 timetableModel.weekdayDate(page.toDouble(), weekday).day.toString()
@@ -128,11 +122,11 @@ class _WeekBarState extends State<WeekBar>{
     )
   );
   
-  Color? _weekdayItemColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
-    if (Provider.of<TabController>(context).index != 0) return null;
+  Color _weekdayItemColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    if (Provider.of<TabController>(context).index != 0) return colorScheme.surface;
     DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
-    return weekdayDate == timetableModel.activeDay ? colorScheme.primary : null;
+    return weekdayDate == timetableModel.activeDay ? colorScheme.inverseSurface : colorScheme.surface;
   }
 
   Color? _weekdayItemTextColor(TimetableModel timetableModel, int page, int weekday) {

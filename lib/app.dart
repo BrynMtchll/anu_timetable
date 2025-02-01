@@ -3,13 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
 import 'package:anu_timetable/pages/messages_page.dart';
-// import 'package:calendar_view/calendar_view.dart';
-import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/controllers.dart';
-import 'package:anu_timetable/model/controllers.dart';
-
+import 'package:anu_timetable/widgets/app_bar.dart';
 class App extends StatefulWidget {
   const App({super.key});
 
@@ -45,7 +42,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
       weekViewPageController.jumpToPage(weekBarPageController.page!.round());
     }
   }
-
 
   @override
   void initState() {
@@ -109,11 +105,9 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
           useMaterial3: true,
         ),
         home: Scaffold(
-          appBar: AppBar(
-            title: Text("Home"),
-            elevation: 3.0,
-          ),
+          appBar: MyAppBar(),
           bottomNavigationBar: NavigationBar(
+            elevation: 0,
             selectedIndex: currentPageIndex,
             onDestinationSelected: (int index) {
               setState(() {
@@ -133,7 +127,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
                 icon: Icon(Icons.message), 
                 label: 'Messages'
               ),
-
           ]),
           body: <Widget>[
             const HomePage(),

@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.1.2
   linked_scroll_controller: ^0.2.0
+  calendar_date_picker2: ^1.1.8
 
 dev_dependencies:
   flutter_test:

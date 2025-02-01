@@ -32,40 +32,12 @@ class _TimetablePageState extends State<TimetablePage> {
       builder: (BuildContext context, BoxConstraints constraints) {
         return Consumer<TabController>(
           builder: (context, tabController, child) => 
-            Column(
-            children: [
-              SizedBox(
-                height: TimetableLayout.tabBarHeight,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 7.5),
-                  child: TabBar(
-                    splashFactory: NoSplash.splashFactory,
-                    dividerHeight: 0,
-                    labelColor: Theme.of(context).colorScheme.onInverseSurface,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicatorPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                    indicator: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceTint,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    controller: tabController,
-                    tabs: [
-                      Tab(text: "day"),
-                      Tab(text: "week"),
-                    ],
-                  ),
-                )
-              ),
-              Column(
+             Column(
                 children: [
                   WeekBar(),
                   ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxHeight: constraints.maxHeight - TimetableLayout.tabBarHeight - TimetableLayout.weekBarHeight,
+                      maxHeight: constraints.maxHeight - TimetableLayout.weekBarHeight,
                       maxWidth: constraints.maxWidth,
                     ),
                     child: TabBarView(
@@ -78,8 +50,8 @@ class _TimetablePageState extends State<TimetablePage> {
                   ),
                 ]
               )
-            ]
-          )
+            
+          
         );
       }
     );

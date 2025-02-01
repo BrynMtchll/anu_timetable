@@ -2,11 +2,11 @@ class TimetableLayout {
 
   static final double leftMargin = 50;
 
-  static final double height = 1500;
+  static final double height = 1700;
 
   static final double tabBarHeight = 45;
 
-  static final double weekBarHeight = 80;
+  static final double weekBarHeight = 70;
 
   /// An even segment for each of the 24 hours of the day,
   /// plus a half hour top and bottom for padding.

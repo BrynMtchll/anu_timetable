@@ -22,6 +22,12 @@ class CurrentDay extends ChangeNotifier {
   static DateTime _roundDay(DateTime day) {
     return DateTime(day.year, day.month, day.day);
   }
+
+  DateTime yearStart() =>
+    DateTime(value.year);
+  
+  DateTime yearEnd() =>
+    DateTime(value.year, 12, 31);
 }
 
 /// Holds the current time, updated every minute. 

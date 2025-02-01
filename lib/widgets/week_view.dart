@@ -48,17 +48,12 @@ class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<
 
   LayoutBuilder _dayBuilder(context, int page) {
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-
         Size size = Size(constraints.maxWidth, TimetableLayout.height);
-
         return Consumer<CurrentDay>(
           builder: (context, currentDay, child) { 
-
           bool isCurrentDay = timetableModel.day(page.toDouble()) == currentDay.value;
-
           return SingleChildScrollView(
             // controller: _controllers.addAndGet(),
             child: ConstrainedBox(
@@ -68,10 +63,7 @@ class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<
               child: Stack(
                 children: [
                   HourLines(size: size, isCurrentDay: isCurrentDay),
-
-                  // HourLines(size: size, isCurrentDay: isCurrentDay),
                   DayLines(size: size,isCurrentDay: isCurrentDay ),
-
                   if (isCurrentDay)
                     LiveTimeIndicator(
                       size: size,

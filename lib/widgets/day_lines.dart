@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/widgets/paints.dart';
 
 class DayLines extends StatelessWidget {
   final Size size;
@@ -20,9 +21,7 @@ class DayLines extends StatelessWidget {
         return CustomPaint(
           size: size,
           painter: DayLinePainter(
-            // currentMinute: currentMinute,
-            // isCurrentDay: isCurrentDay,
-            // context: context,
+            context: context,
           )
         );
       }
@@ -31,29 +30,25 @@ class DayLines extends StatelessWidget {
 }
 
 class DayLinePainter extends CustomPainter {
-  // final CurrentMinute currentMinute;
-  // final bool isCurrentDay;
-  // final BuildContext context;
-  // late ColorScheme colorScheme;
+  final BuildContext context;
+  late ColorScheme colorScheme;
 
-  // DayLinePainter({
-    // required this.currentMinute,
-    // required this.isCurrentDay,
-    // required this.context,
-  // }) {
-    // colorScheme = Theme.of(context).colorScheme;
-  // }
+  DayLinePainter({
+    required this.context,
+  }) {
+    colorScheme = Theme.of(context).colorScheme;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     double innerWidth = size.width - TimetableLayout.leftMargin;
     double dayWidth = innerWidth / 7;
 
-    for (int i = 1; i < 7; i++) {
+    for (int i = 0; i < 8; i++) {
       canvas.drawLine(
-        Offset(TimetableLayout.leftMargin + i * dayWidth, 0), 
-        Offset(TimetableLayout.leftMargin + i * dayWidth, size.height), 
-        Paint(),
+        Offset(TimetableLayout.leftMargin + i * dayWidth, -400), 
+        Offset(TimetableLayout.leftMargin + i * dayWidth, size.height + 400), 
+        PaintFactory.linePaint(context),
       );
     }
   }

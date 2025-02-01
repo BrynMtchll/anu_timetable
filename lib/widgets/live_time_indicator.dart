@@ -39,6 +39,7 @@ class _LiveTimePainter extends CustomPainter {
     required this.context,
   }) {
     colorScheme = Theme.of(context).colorScheme;
+    
   }
 
   @override

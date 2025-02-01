@@ -211,6 +211,12 @@ class TimetableModel extends ChangeNotifier {
     }
   }
 
+  void jumpToDay(DateTime day) {
+    dayViewPageController.jumpToPage(dayViewPage(day));
+    if (weekViewPageController.hasClients) weekViewPageController.jumpToPage((weekViewPage(weekOfDay(day))));
+    weekBarPageController.jumpToPage((weekViewPage(weekOfDay(day))));
+  }
+
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged() {
     if (tabController.index == 0) {
@@ -234,5 +240,36 @@ class TimetableModel extends ChangeNotifier {
     changeDayViewPage();
     changeWeekViewPage();
     notifyListeners();
+  }
+
+  static String weekdayCharacters(int weekday){
+    switch (weekday) {
+      case DateTime.monday: return 'M';
+      case DateTime.tuesday: return 'Tu';
+      case DateTime.wednesday: return 'W';
+      case DateTime.thursday: return 'Th';
+      case DateTime.friday: return 'F';
+      case DateTime.saturday: return 'Sa';
+      case DateTime.sunday: return 'Su';
+      default: return '';
+    }
+  }
+
+  static String monthString(int month) {
+    switch (month) {
+      case DateTime.january: return 'January';
+      case DateTime.february: return 'February';
+      case DateTime.march: return 'March';
+      case DateTime.april: return 'April';
+      case DateTime.may: return 'May';
+      case DateTime.june: return 'June';
+      case DateTime.july: return 'July';
+      case DateTime.august: return 'August';
+      case DateTime.september: return 'September';
+      case DateTime.october: return 'October';
+      case DateTime.november: return 'November';
+      case DateTime.december: return 'December';
+      default: return '';
+    }
   }
 }

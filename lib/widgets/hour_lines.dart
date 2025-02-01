@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/widgets/paints.dart';
 
 class HourLines extends StatelessWidget {
   final Size size;
@@ -70,7 +71,7 @@ class _HourLinePainter extends CustomPainter {
           size.width, 
           vertOffset
         ), 
-        Paint()
+        PaintFactory.linePaint(context),
       );
     }
   }
