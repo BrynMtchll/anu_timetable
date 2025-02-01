@@ -2,6 +2,7 @@ import 'package:anu_timetable/model/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable_layout.dart';
 
 String _weekdayCharacters(int weekday){
   switch (weekday) {
@@ -40,21 +41,41 @@ class _WeekBarState extends State<WeekBar>{
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 80, 
-      child: PageView.builder(
-        controller: Provider.of<WeekBarPageController>(context, listen: false),
-        onPageChanged: (page) {
-          Provider.of<TimetableModel>(context, listen: false)
-            .handleWeekBarPageChanged();
-        },
-        itemBuilder: (context, page) => _weekBuilder(page),
+    return LayoutBuilder(
+      builder:(context, constraints) => Align(
+        alignment: Alignment.centerRight,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: 80,
+            maxWidth: Provider.of<TabController>(context).index == 1 ? constraints.maxWidth : constraints.maxWidth,
+          ),
+          child: PageView.builder(
+            controller: Provider.of<WeekBarPageController>(context, listen: false),
+            onPageChanged: (page) {
+              Provider.of<TimetableModel>(context, listen: false)
+                .handleWeekBarPageChanged();
+            },
+            itemBuilder: (context, page) {
+              EdgeInsets padding = 
+                Provider.of<TabController>(context).index == 1 ? 
+                EdgeInsets.only(left: TimetableLayout().leftMargin) : 
+                EdgeInsets.all(0);
+                
+              return AnimatedPadding(
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: padding,
+              child: _weekBuilder(page, constraints),
+            );
+            }
+          )
+        )
       )
     );
   }
 
   /// row element for the [_weekdayItem]s.
-  Align _weekBuilder(int page) {
+  Align _weekBuilder(int page, constraints) {
     return Align(
       alignment: Alignment.center,
       child: IntrinsicHeight(child: Row(
