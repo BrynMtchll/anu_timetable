@@ -10,6 +10,16 @@ class DayViewPageController extends PageController {
   });
 }
 
+class WeekViewPageController extends PageController {
+  WeekViewPageController({
+    super.initialPage,
+    super.keepPage,
+    double viewportFraction = 1.0,
+    super.onAttach,
+    super.onDetach,
+  });
+}
+
 class WeekBarPageController extends PageController {
   WeekBarPageController({
     super.initialPage,

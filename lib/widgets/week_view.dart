@@ -8,14 +8,14 @@ import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
-class DayView extends StatefulWidget {
-  const DayView({super.key});
+class WeekView extends StatefulWidget {
+  const WeekView({super.key});
 
   @override
-  State<DayView> createState() => _DayViewState();
+  State<WeekView> createState() => _WeekViewState();
 }
 
-class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<DayView> {
+class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<WeekView>{
   late LinkedScrollControllerGroup _controllers;
 
   @override
@@ -36,10 +36,10 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
   Widget build(BuildContext context) {
     super.build(context);
     return PageView.builder(
-      controller: Provider.of<DayViewPageController>(context, listen: false),
+      controller: Provider.of<WeekViewPageController>(context, listen: false),
       onPageChanged: (page) {
         Provider.of<TimetableModel>(context, listen: false)
-          .handleDayViewPageChanged();
+          .handleWeekViewPageChanged();
       },
       itemBuilder: (context, page) => _dayBuilder(context, page),
     );
@@ -47,6 +47,7 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
 
   LayoutBuilder _dayBuilder(context, int page) {
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
 

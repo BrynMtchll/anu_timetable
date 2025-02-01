@@ -13,12 +13,18 @@ class TimetableModel extends ChangeNotifier {
   /// [DayView] pages are mapped to dates one to one.
   static DateTime hashDate = weekOfDay(DateTime(2000, 0, 0));
 
-  /// [WeekBar] and [DayView] both affect each other's [PageView]s.
+  /// [WeekBar], [WeekView] and [DayView]'s [PageView]s are all synced.
   /// They're controllers are managed here so as to decouple them 
   /// from one another. 
   late DayViewPageController dayViewPageController;
 
+  late WeekViewPageController weekViewPageController;
+
   late WeekBarPageController weekBarPageController;
+
+  late TabController tabController;
+
+  late DateTime _persistedActiveDay;
 
   /// The desired effect, when changing the [dayViewPageController.page] 
   /// by multiple days, is for the target page to be animated to
@@ -30,13 +36,17 @@ class TimetableModel extends ChangeNotifier {
   /// It uses [dayOverride] to map the adjacent page to the date for 
   /// the target page, so that the target page can be temporarily copied 
   /// onto the adjacent page. 
-  /// [dayOverride] is first checked when getting the [day] a day view page.
+  /// [dayOverride] is first checked when getting the [day].
   Map<int, dynamic> dayOverride = {};
 
   TimetableModel({
     required this.dayViewPageController, 
+    required this.weekViewPageController, 
     required this.weekBarPageController,
-  });
+    required this.tabController,
+  }) {
+    _persistedActiveDay = CurrentDay().value;
+  }
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
@@ -67,6 +77,11 @@ class TimetableModel extends ChangeNotifier {
   /// Returns the day view page corrosponding to the given date.
   static int dayViewPage(DateTime day) => 
     day.difference(hashDate).inDays;
+
+  /// Returns the day view page corrosponding to the given date.
+  /// The [WeekView] and [WeekBar] pages are mapped identically.
+  static int weekViewPage(DateTime week) => 
+    (week.difference(hashDate).inDays / 7).toInt();  
   
   /// Returns the week bar page corrosponding to the given date.
   static int weekBarPage(DateTime week) => 
@@ -76,14 +91,19 @@ class TimetableModel extends ChangeNotifier {
     day.subtract(Duration(days:  day.weekday - 1));
 
   /// Returns the monday of the week that the active date is in.
-  DateTime weekOfActiveDay() => weekOfDay(activeDay());
+  DateTime get weekOfActiveDay {
+   return weekOfDay(activeDay);
+  } 
 
   /// Returns the day corrosponding to [dayViewPageController.page].
-  DateTime activeDay() {
+  /// [WeekBar] requires [activeDay] before [DayViewPageController] is attached
+  /// to the [PageView] of [DayView].
+  DateTime get activeDay {
     if (dayOverride.isNotEmpty) {
       return dayOverride.values.first;
     }
-    return day(dayViewPageController.page);
+    return dayViewPageController.hasClients ? 
+      day(dayViewPageController.page) : _persistedActiveDay;
   }
   
   /// Returns the monday of the week corrosponding to 
@@ -97,19 +117,46 @@ class TimetableModel extends ChangeNotifier {
   DateTime weekdayDate(double weekBarPage, int weekday) => 
     week(weekBarPage).add(Duration(days: weekday - 1));
   
+  /// TODO: fix comment
   /// Updates the [dayViewPageController.page], i.e. the active day,
   /// to the week given, maintaining the same weekday.
   void changeDayViewPage() { 
-    DateTime newActiveDay = weekdayDate(weekBarPageController.page!, activeDay().weekday);
-    if (activeDay() != newActiveDay) {
+    DateTime newActiveDay = weekdayDate(weekBarPageController.page!, activeDay.weekday);
+    if (activeDay != newActiveDay) {
+      _persistedActiveDay = newActiveDay;
       animateDirectToDayViewPage(newActiveDay);
     }
   }
+
+  /// Animates the [weekViewPageController.page] to the same page as
+  /// [weekBarPageController.page].
+  /// If the [weekViewPageController] has not yet been assigned to [WeekView]'s 
+  /// [PageView], i.e. the week tab has not yet been made active, nothing is done.
+  void changeWeekViewPage() {
+    if (weekViewPageController.hasClients) {
+      int newWeekViewPage = weekBarPageController.page!.round();
+      int activeWeekViewPage = weekViewPageController.page!.round();
+      if (newWeekViewPage != activeWeekViewPage) {
+        weekViewPageController.animateToPage(
+          newWeekViewPage, 
+          duration: Duration(milliseconds: 400), 
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+  }
   
+  /// TODO: fix comment
   /// Updates the [weekBarPageController.page], i.e. the active week,
   /// to the week containing the [dayViewPageController.page] (the active day).
   void changeWeekBarPage() {
-    int newWeekBarPage = weekBarPage(weekOfActiveDay());
+    int newWeekBarPage;
+    if (tabController.index == 0) {
+      newWeekBarPage = weekBarPage(weekOfActiveDay);
+    } else {
+      newWeekBarPage = weekViewPageController.page!.round();
+    }
+    print(weekBarPageController.page!);
     int activeWeekBarPage = weekBarPageController.page!.round();
     if (newWeekBarPage != activeWeekBarPage) {
       weekBarPageController.animateToPage(
@@ -129,7 +176,6 @@ class TimetableModel extends ChangeNotifier {
   ///   3.  Jump to the target page and remove the override date from 
   ///       [dayOverride].
   animateDirectToDayViewPage(DateTime newActiveDay) async {
-    DateTime activeDay = day(dayViewPageController.page);
 
     if (dayViewPageController.page == null) {
       throw AssertionError("dayViewPageController.page is null!");
@@ -157,20 +203,37 @@ class TimetableModel extends ChangeNotifier {
 
   /// Handler for the onTap event of the [DayView]'s weekday items.
   void handleWeekBarWeekdayTap(int page, int weekday) async {
+    if (tabController.index == 0) {
     DateTime newActiveDay = weekdayDate(page.toDouble(), weekday);
+    // _persistedActiveDay = newActiveDay;
+
     await animateDirectToDayViewPage(newActiveDay);
     notifyListeners();
+    }
+  }
+
+  /// Handler for the onPageChanged event of the [DayView]'s [PageView].
+  void handleDayViewPageChanged() {
+    if (tabController.index == 0) {
+      changeWeekViewPage();
+      changeWeekBarPage();
+      notifyListeners();
+    }
+  }
+
+  /// Handler for the onPageChanged event of the [WeekView]'s [PageView].
+  void handleWeekViewPageChanged() {
+    if (tabController.index == 1) {
+      changeDayViewPage();
+      changeWeekBarPage();
+      notifyListeners();
+    }
   }
 
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   void handleWeekBarPageChanged() {
     changeDayViewPage();
-    notifyListeners();
-  }
-
-  /// Handler for the onPageChanged event of the [DayView]'s [PageView].
-  void handleDayViewPageChanged() {
-    changeWeekBarPage();
+    changeWeekViewPage();
     notifyListeners();
   }
 }

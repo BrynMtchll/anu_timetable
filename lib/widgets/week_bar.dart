@@ -16,11 +16,27 @@ String _weekdayCharacters(int weekday){
   }
 }
 
-class WeekBar extends StatelessWidget implements PreferredSizeWidget {
+class WeekBar extends StatefulWidget implements PreferredSizeWidget {
   const WeekBar({super.key});
 
   @override
   Size get preferredSize => Size.fromHeight(80);
+
+  @override
+  State<WeekBar> createState() => _WeekBarState();
+}
+
+class _WeekBarState extends State<WeekBar>{
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +72,7 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
   Consumer<TimetableModel> _weekdayItem(int page, int weekday) => Consumer<TimetableModel>(
     builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => GestureDetector(
       onTap: () {
-        Provider.of<TimetableModel>(context, listen: false)
-          .handleWeekBarWeekdayTap(page, weekday);
+        timetableModel.handleWeekBarWeekdayTap(page, weekday);
       },
       child: Column(
         children: [
@@ -79,7 +94,7 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
             height: 30,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: _weekdayItemColor(timetableModel, page, weekday),
+              color: _weekdayItemColor(context, timetableModel, page, weekday),
             ),
             child: Align(
               alignment: Alignment.center,
@@ -98,13 +113,15 @@ class WeekBar extends StatelessWidget implements PreferredSizeWidget {
     )
   );
   
-  Color? _weekdayItemColor(TimetableModel timetableModel, int page, int weekday) {
+  Color? _weekdayItemColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
+    if (Provider.of<TabController>(context).index != 0) return null;
     DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
-    return weekdayDate == timetableModel.activeDay() ?Colors.lightBlue : null;
+    return weekdayDate == timetableModel.activeDay ?Colors.lightBlue : null;
   }
 
   Color? _weekdayItemTextColor(TimetableModel timetableModel, int page, int weekday) {
+    if (Provider.of<TabController>(context).index != 0) return null;
     DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
-    return weekdayDate == timetableModel.activeDay() ?Colors.grey[50] : Colors.grey[900];
+    return weekdayDate == timetableModel.activeDay ?Colors.grey[50] : Colors.grey[900];
   }
 }
