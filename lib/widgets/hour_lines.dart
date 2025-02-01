@@ -3,11 +3,11 @@ import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
-class HourLine extends StatelessWidget {
+class HourLines extends StatelessWidget {
   final Size size;
   final bool isCurrentDay;
 
-  const HourLine({
+  const HourLines({
     super.key, 
     required this.size,
     required this.isCurrentDay,
@@ -61,7 +61,17 @@ class _HourLinePainter extends CustomPainter {
   void _paintLines(canvas, size) {
     for (int hour = 0; hour < 25; hour++) {
       final vertOffset = _getVertOffset(hour);
-      canvas.drawLine(Offset(TimetableLayout.leftMargin, vertOffset), Offset(size.width, vertOffset), Paint());
+      canvas.drawLine(
+        Offset(
+          TimetableLayout.leftMargin, 
+          vertOffset
+        ), 
+        Offset(
+          size.width, 
+          vertOffset
+        ), 
+        Paint()
+      );
     }
   }
 

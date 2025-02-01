@@ -3,7 +3,7 @@ import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
-import 'package:anu_timetable/widgets/hour_line.dart';
+import 'package:anu_timetable/widgets/hour_lines.dart';
 import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
@@ -65,10 +65,7 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
               ),
               child: Stack(
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: HourLine(size: size, isCurrentDay: isCurrentDay)
-                  ),
+                  HourLines(size: size, isCurrentDay: isCurrentDay),
                   if (isCurrentDay)
                     LiveTimeIndicator(
                       size: size,

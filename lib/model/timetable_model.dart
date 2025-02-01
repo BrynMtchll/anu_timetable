@@ -5,7 +5,6 @@ import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
 class TimetableModel extends ChangeNotifier {
-
   /// All dates are mapped to pages for the respective [PageView]s
   /// implemented in [WeekBar] and [DayView].
   /// [WeekBar] pages are mapped to weeks, with the date 

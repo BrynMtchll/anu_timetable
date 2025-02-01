@@ -28,7 +28,6 @@ class WeekBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _WeekBarState extends State<WeekBar>{
-
   @override
   void initState() {
     super.initState();
@@ -58,11 +57,11 @@ class _WeekBarState extends State<WeekBar>{
               EdgeInsets.all(0);
               
             return AnimatedPadding(
-            duration: Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            padding: padding,
-            child: _weekBuilder(page),
-          );
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: padding,
+              child: _weekBuilder(page),
+            );
           }
         )
       )
