@@ -6,24 +6,28 @@ import 'package:anu_timetable/widgets/paints.dart';
 
 class HourLines extends StatelessWidget {
   final Size size;
-  final bool isCurrentDay;
+  final bool pageIsCurrent;
 
   const HourLines({
     super.key, 
     required this.size,
-    required this.isCurrentDay,
+    required this.pageIsCurrent,
   });
 
   @override
   Widget build(BuildContext context) {
     return Consumer<CurrentMinute>(
       builder: (BuildContext context, CurrentMinute currentMinute, Widget? child) {
-        return CustomPaint(
-          size: size,
-          painter: _HourLinePainter(
-            currentMinute: currentMinute,
-            isCurrentDay: isCurrentDay,
-            context: context,
+        return SizedBox(
+          width: size.width,
+          height: size.height,
+          child: CustomPaint(
+            size: size,
+            painter: _HourLinePainter(
+              currentMinute: currentMinute,
+              pageIsCurrent: pageIsCurrent,
+              context: context,
+            )
           )
         );
       }
@@ -33,13 +37,13 @@ class HourLines extends StatelessWidget {
 
 class _HourLinePainter extends CustomPainter {
   final CurrentMinute currentMinute;
-  final bool isCurrentDay;
+  final bool pageIsCurrent;
   final BuildContext context;
   late ColorScheme colorScheme;
 
   _HourLinePainter({
     required this.currentMinute,
-    required this.isCurrentDay,
+    required this.pageIsCurrent,
     required this.context,
   }) {
     colorScheme = Theme.of(context).colorScheme;
@@ -47,24 +51,11 @@ class _HourLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _paintLabels(canvas);
-    _paintLines(canvas, size);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-
-  double _getVertOffset(int hour) =>
-    TimetableLayout.vertPadding + hour * TimetableLayout.hourHeight;
-
-  void _paintLines(canvas, size) {
-    for (int hour = 0; hour < 25; hour++) {
+   for (int hour = 0; hour < 25; hour++) {
       final vertOffset = _getVertOffset(hour);
       canvas.drawLine(
         Offset(
-          TimetableLayout.leftMargin, 
+          0,
           vertOffset
         ), 
         Offset(
@@ -76,7 +67,62 @@ class _HourLinePainter extends CustomPainter {
     }
   }
 
-  void _paintLabels(canvas) {
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+
+  double _getVertOffset(int hour) =>
+    TimetableLayout.vertPadding + hour * TimetableLayout.hourHeight;
+}
+
+class HourLineLabels extends StatelessWidget {
+  final Size size;
+  final bool pageIsCurrent;
+
+  const HourLineLabels({
+    super.key, 
+    required this.size,
+    required this.pageIsCurrent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CurrentMinute>(
+      builder: (BuildContext context, CurrentMinute currentMinute, Widget? child) {
+        return SizedBox(
+          width: size.width,
+          height: size.height,
+          child: CustomPaint(
+          size: size,
+          painter: _HourLineLabelPainter(
+            currentMinute: currentMinute,
+            pageIsCurrent: pageIsCurrent,
+            context: context,
+          )
+          )
+        );
+      }
+    );
+  }
+}
+
+class _HourLineLabelPainter extends CustomPainter {
+  final CurrentMinute currentMinute;
+  final bool pageIsCurrent;
+  final BuildContext context;
+  late ColorScheme colorScheme;
+
+  _HourLineLabelPainter({
+    required this.currentMinute,
+    required this.pageIsCurrent,
+    required this.context,
+  }) {
+    colorScheme = Theme.of(context).colorScheme;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
     TextPainter textPainter = TextPainter(
       textAlign: TextAlign.end,
       textDirection: TextDirection.ltr,
@@ -86,18 +132,25 @@ class _HourLinePainter extends CustomPainter {
       textPainter.text = _hourLineLabelText(hour);
 
       double textPaddingRight = 10.0;
-
       textPainter.layout(
         minWidth: TimetableLayout.leftMargin - textPaddingRight,
         maxWidth: TimetableLayout.leftMargin - textPaddingRight,
       );
       final vertOffset = _getVertOffset(hour) - (textPainter.height / 2);
 
-      if (currentMinute.differenceFromHour(hour) > 15 || !isCurrentDay) {
+      if (currentMinute.differenceFromHour(hour) > 15 || !pageIsCurrent) {
         textPainter.paint(canvas, Offset(0, vertOffset));
       }
     }
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width, size.height), Paint());
   }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+
+  double _getVertOffset(int hour) =>
+    TimetableLayout.vertPadding + hour * TimetableLayout.hourHeight;
 
   TextSpan _hourLineLabelText(int hour) {
     String number;

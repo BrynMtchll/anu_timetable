@@ -36,41 +36,48 @@ class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return PageView.builder(
-      controller: Provider.of<WeekViewPageController>(context, listen: false),
-      onPageChanged: (page) {
-        Provider.of<TimetableModel>(context, listen: false)
-          .handleWeekViewPageChanged();
-      },
-      itemBuilder: (context, page) => _dayBuilder(context, page),
-    );
-  }
 
-  LayoutBuilder _dayBuilder(context, int page) {
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         Size size = Size(constraints.maxWidth, TimetableLayout.height);
-        return Consumer<CurrentDay>(
-          builder: (context, currentDay, child) { 
-          bool isCurrentDay = timetableModel.day(page.toDouble()) == currentDay.value;
+        return Consumer2<TimetableModel, CurrentDay>(
+          builder: (context, timetableModel, currentDay, child) { 
+          bool pageIsCurrent = timetableModel.activeWeek() == TimetableModel.weekOfDay(currentDay.value);
+          
           return SingleChildScrollView(
-            // controller: _controllers.addAndGet(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
-              child: Stack(
+              child:  Row(
+              children: [
+                HourLineLabels(
+                  size: Size(TimetableLayout.leftMargin, TimetableLayout.height), 
+                  pageIsCurrent: pageIsCurrent
+                ),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: TimetableLayout.height,
+                    maxWidth: constraints.maxWidth - TimetableLayout.leftMargin,
+                  ),
+                  
+              child: PageView.builder(
+                controller: Provider.of<WeekViewPageController>(context, listen: false),
+                onPageChanged: (page) {
+                  Provider.of<TimetableModel>(context, listen: false)
+                    .handleWeekViewPageChanged();
+                },
+                itemBuilder: (context, page) => Stack(
                 children: [
-                  HourLines(size: size, isCurrentDay: isCurrentDay),
-                  DayLines(size: size,isCurrentDay: isCurrentDay ),
-                  if (isCurrentDay)
+                  HourLines(size: size, pageIsCurrent: pageIsCurrent),
+                  DayLines(size: size),
+                  if (pageIsCurrent)
                     LiveTimeIndicator(
                       size: size,
                     )
                   ],
                 )
+              )
               ),
+              ]
+            ),
+            
             );
           }
         );

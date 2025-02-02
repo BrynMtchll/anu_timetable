@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/widgets/paints.dart';
 
 class DayLines extends StatelessWidget {
   final Size size;
-  final bool isCurrentDay;
 
   const DayLines({
     super.key, 
     required this.size,
-    required this.isCurrentDay,
   });
 
   @override
@@ -41,13 +38,11 @@ class DayLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double innerWidth = size.width - TimetableLayout.leftMargin;
-    double dayWidth = innerWidth / 7;
-
-    for (int i = 0; i < 8; i++) {
+    double dayWidth = size.width / 7;
+    for (int i = 1; i < 8; i++) {
       canvas.drawLine(
-        Offset(TimetableLayout.leftMargin + i * dayWidth, -400), 
-        Offset(TimetableLayout.leftMargin + i * dayWidth, size.height + 400), 
+        Offset(i * dayWidth, -400), 
+        Offset(i * dayWidth, size.height + 400), 
         PaintFactory.linePaint(context),
       );
     }

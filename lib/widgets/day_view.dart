@@ -49,13 +49,14 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-
-        Size size = Size(constraints.maxWidth, TimetableLayout.height);
+        // TODO: move into TimetableLayout and pass reference to users.
+        Size hourLineLabelsSize = Size(TimetableLayout.leftMargin, TimetableLayout.height);
+        Size hourLinesSize = Size(constraints.maxWidth - TimetableLayout.leftMargin, TimetableLayout.height);
+        Size liveTimeIndicatorSize = Size(constraints.maxWidth, TimetableLayout.height);
 
         return Consumer<CurrentDay>(
           builder: (context, currentDay, child) { 
-
-          bool isCurrentDay = timetableModel.day(page.toDouble()) == currentDay.value;
+          bool pageIsCurrent = timetableModel.day(page.toDouble()) == currentDay.value;
 
           return SingleChildScrollView(
             // controller: _controllers.addAndGet(),
@@ -65,11 +66,11 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
               ),
               child: Stack(
                 children: [
-                  HourLines(size: size, isCurrentDay: isCurrentDay),
-                  if (isCurrentDay)
-                    LiveTimeIndicator(
-                      size: size,
-                    )
+                  HourLineLabels(size: hourLineLabelsSize, pageIsCurrent: pageIsCurrent),
+                  Positioned(left: TimetableLayout.leftMargin,
+                    child: HourLines(size: hourLinesSize, pageIsCurrent: pageIsCurrent),
+                  ),
+                  if (pageIsCurrent) LiveTimeIndicator(size: liveTimeIndicatorSize)
                   ],
                 )
               ),

@@ -2,9 +2,9 @@ import 'package:anu_timetable/model/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:provider/provider.dart';
+import 'package:anu_timetable/widgets/paints.dart';
 
 class LiveTimeIndicator extends StatelessWidget {
-
   final Size size;
 
   const LiveTimeIndicator({
@@ -29,7 +29,7 @@ class LiveTimeIndicator extends StatelessWidget {
 }
 
 class _LiveTimePainter extends CustomPainter {
-  
+
   final CurrentSecond currentSecond;
   final BuildContext context;
   late ColorScheme colorScheme;
@@ -39,17 +39,17 @@ class _LiveTimePainter extends CustomPainter {
     required this.context,
   }) {
     colorScheme = Theme.of(context).colorScheme;
-    
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     double vertOffset = _liveTimeVertOffset(size);
-    Paint paint = Paint()
-      ..color = colorScheme.primary
-      ..strokeWidth = 2.0;
 
-    canvas.drawLine(Offset(TimetableLayout.leftMargin - 5, vertOffset), Offset(size.width, vertOffset), paint);
+    Offset p1 = Offset(TimetableLayout.leftMargin - 5, vertOffset);
+    Offset p2 = Offset(size.width, vertOffset);
+    Paint paint = PaintFactory.liveLinePaint(context);
+
+    canvas.drawLine(p1, p2, paint);
     _paintLiveTimeLabel(canvas, vertOffset);
   }
 
@@ -98,10 +98,6 @@ class _LiveTimePainter extends CustomPainter {
       text: currentSecond.string,
       style: TextStyle(
         fontWeight: FontWeight.bold,
-        /// The default color for TextPainter text is white. 
-        /// For a quick fix the color is hardcoded to match
-        /// the default text theme.
-        /// TODO: get text colour from theme.
         color: colorScheme.onInverseSurface,
         fontSize: 11,
       )

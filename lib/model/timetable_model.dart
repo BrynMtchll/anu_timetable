@@ -238,7 +238,7 @@ class TimetableModel extends ChangeNotifier {
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   void handleWeekBarPageChanged() {
     changeDayViewPage();
-    changeWeekViewPage();
+    // changeWeekViewPage();
     notifyListeners();
   }
 

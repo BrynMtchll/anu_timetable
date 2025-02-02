@@ -29,31 +29,28 @@ class _TimetablePageState extends State<TimetablePage> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return Consumer<TabController>(
+      builder: (BuildContext context, BoxConstraints constraints) =>
+        Consumer<TabController>(
           builder: (context, tabController, child) => 
-             Column(
-                children: [
-                  WeekBar(),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: constraints.maxHeight - TimetableLayout.weekBarHeight,
-                      maxWidth: constraints.maxWidth,
-                    ),
-                    child: TabBarView(
-                      controller: tabController,
-                      children: [
-                        DayView(),
-                        WeekView(),
-                      ]
-                    )
+            Column(
+              children: [
+                WeekBar(),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: constraints.maxHeight - TimetableLayout.weekBarHeight,
+                    maxWidth: constraints.maxWidth,
                   ),
-                ]
-              )
-            
-          
-        );
-      }
+                  child: TabBarView(
+                    controller: tabController,
+                    children: [
+                      DayView(),
+                      WeekView(),
+                    ]
+                  )
+                ),
+              ]
+            )
+        )
     );
   }
 }

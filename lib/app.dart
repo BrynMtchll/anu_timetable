@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
+import 'package:linked_scroll_controller/linked_scroll_controller.dart';
+
 class App extends StatefulWidget {
   const App({super.key});
 
@@ -27,6 +29,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   late WeekBarPageController weekBarPageController;
 
   late TabController tabController;
+
+  // late LinkedScrollControllerGroup _controllerGroup;
 
   /// [weekViewPageController] is only assigned to [WeekView]'s [PageView] 
   /// after the week tab has been made active. Consequentially the 
@@ -49,7 +53,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
       dayViewPageController = DayViewPageController(
       initialPage: dayViewInitialPage,
     );
-
     weekViewPageController = WeekViewPageController(
       initialPage: weekViewInitialPage,
       onAttach: handleDayViewPageControllerAttach,
@@ -108,7 +111,10 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
           appBar: MyAppBar(),
           bottomNavigationBar: NavigationBar(
             elevation: 0,
+            backgroundColor: ColorScheme.fromSeed(seedColor: Colors.deepPurple).surface,
             selectedIndex: currentPageIndex,
+            indicatorColor: Colors.transparent,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             onDestinationSelected: (int index) {
               setState(() {
                 currentPageIndex = index;
@@ -116,15 +122,20 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             },
             destinations: const <Widget>[
               NavigationDestination(
-                icon: Icon(Icons.home), 
+                icon: Icon(Icons.home_outlined), 
+                selectedIcon: Icon(Icons.home),
                 label: 'Home'
               ),
               NavigationDestination(
-                icon: Icon(Icons.calendar_today), 
+                icon: Icon(
+                  Icons.calendar_view_week_outlined,
+                ), 
+                selectedIcon: Icon(Icons.calendar_view_week),
                 label: 'Timetable'
               ),
               NavigationDestination(
-                icon: Icon(Icons.message), 
+                icon: Icon(Icons.chat_bubble_outline), 
+                selectedIcon: Icon(Icons.chat_bubble), 
                 label: 'Messages'
               ),
           ]),

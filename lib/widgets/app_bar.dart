@@ -8,10 +8,36 @@ import 'package:anu_timetable/widgets/tab_bar.dart';
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
   const MyAppBar({super.key});
 
-  void _onPressed(context, currentDay, timetableModel) async {
-    print(currentDay.yearStart());
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      leadingWidth: 120,
+      leading: Align(
+        alignment: Alignment.centerLeft,
+        child: _PickerButton(),
+      ),
+      actions: [
+        MyTabBar()
+      ],
+    );
+  }
+  
+  @override
+  Size get preferredSize => Size.fromHeight(50);
+}
 
-    CalendarDatePicker2Config config = CalendarDatePicker2Config(
+class _CalendarDialog extends StatelessWidget {
+  final CurrentDay currentDay;
+  final TimetableModel timetableModel;
+
+  const _CalendarDialog({
+    super.key,
+    required this.currentDay, 
+    required this.timetableModel
+    });
+
+  CalendarDatePicker2Config _configCalendarDatePicker2(currentDay) =>
+    CalendarDatePicker2Config(
       firstDate: currentDay.yearStart(),
       lastDate: currentDay.yearEnd(),
       hideLastMonthIcon: true,
@@ -26,13 +52,10 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
       },
     );
 
+  @override
+  Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    
-    await showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      // barrierColor: const Color.fromARGB(70, 41, 41, 41),
-      builder:(context) => Dialog(
+    return Dialog(
         alignment: Alignment.center,
         backgroundColor: colorScheme.surface,
         child: Container(
@@ -49,39 +72,42 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
                 }
                 Navigator.pop(context);
               },
-              config: config, 
+              config: _configCalendarDatePicker2(currentDay), 
               value: List.empty(),
             )
           ) 
-      )
+      );
+  }
+}
+
+class _PickerButton extends StatelessWidget {
+  const _PickerButton({super.key});
+
+  void _onPressed(context, currentDay, timetableModel) async {
+    await showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      // barrierColor: const Color.fromARGB(70, 41, 41, 41),
+      builder:(context) => 
+        _CalendarDialog(
+          currentDay: currentDay, 
+          timetableModel: timetableModel
+        )
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    CurrentDay currentDay = Provider.of<CurrentDay>(context);
-
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context);
-
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    return AppBar(
-      leadingWidth: 120,
-      leading: Align(
-        alignment: Alignment.centerLeft,
-        child: GestureDetector(
+    return Consumer2<CurrentDay, TimetableModel>(
+      builder: (context, currentDay, timetableModel, child) => 
+        GestureDetector(
           onTap: () => _onPressed(context, currentDay, timetableModel),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
             child: Row(
               children: [
-                Text(
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                  TimetableModel.monthString(timetableModel.weekOfActiveDay.month)
-                ),
+                _PickerButtonText(),
                 Icon(
                   Icons.arrow_drop_down,
                   color: colorScheme.onSurface,
@@ -91,13 +117,23 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
             )
           )
         )
-      ),
-      actions: [
-        MyTabBar()
-      ],
     );
   }
-  
+}
+
+class _PickerButtonText extends StatelessWidget {
+  const _PickerButtonText({super.key});
+
   @override
-  Size get preferredSize => Size.fromHeight(50);
+  Widget build(BuildContext context) {
+    return Consumer<TimetableModel>(
+      builder: (context, timetableModel, child) => Text(
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+        TimetableModel.monthString(timetableModel.weekOfActiveDay.month)
+      )
+    );
+  }
 }
