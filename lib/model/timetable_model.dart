@@ -94,6 +94,19 @@ class TimetableModel extends ChangeNotifier {
    return weekOfDay(activeDay);
   } 
 
+  /// Returns true if the active day is the current day
+  bool dayIsCurrent(int page, CurrentDay currentDay) => 
+    day(page.toDouble()) == currentDay.value;
+
+      /// Returns true if the active day is the current day
+  bool weekIsCurrent(int page, CurrentDay currentDay) => 
+    week(page.toDouble()) == TimetableModel.weekOfDay(currentDay.value);
+
+
+  /// Returns true if the active week contains the current day
+  bool activeWeekIsCurrent(CurrentDay currentDay) => 
+    activeWeek() == TimetableModel.weekOfDay(currentDay.value); 
+
   /// Returns the day corrosponding to [dayViewPageController.page].
   /// [WeekBar] requires [activeDay] before [DayViewPageController] is attached
   /// to the [PageView] of [DayView].
@@ -112,7 +125,7 @@ class TimetableModel extends ChangeNotifier {
   /// Returns the day of the weekday for the given week.
   /// 
   /// 'Date' is suffixed to the function name to avoid ambiguity with the
-  /// naming of weekday for the index, which follows [DateTime.weekday]
+  /// naming [DateTime.weekday] to represent the weekday index.
   DateTime weekdayDate(double weekBarPage, int weekday) => 
     week(weekBarPage).add(Duration(days: weekday - 1));
   
@@ -120,11 +133,16 @@ class TimetableModel extends ChangeNotifier {
   /// Updates the [dayViewPageController.page], i.e. the active day,
   /// to the week given, maintaining the same weekday.
   void changeDayViewPage() { 
-    DateTime newActiveDay = weekdayDate(weekBarPageController.page!, activeDay.weekday);
-    if (activeDay != newActiveDay) {
-      _persistedActiveDay = newActiveDay;
-      animateDirectToDayViewPage(newActiveDay);
+
+    // day view page will fall out of sync if it has no clients at time of call
+    if (dayViewPageController.hasClients) {
+      DateTime newActiveDay = weekdayDate(weekBarPageController.page!, activeDay.weekday);
+      if (activeDay != newActiveDay) {
+        _persistedActiveDay = newActiveDay;
+        animateDirectToDayViewPage(newActiveDay);
+      }
     }
+    
   }
 
   /// Animates the [weekViewPageController.page] to the same page as
@@ -155,7 +173,6 @@ class TimetableModel extends ChangeNotifier {
     } else {
       newWeekBarPage = weekViewPageController.page!.round();
     }
-    print(weekBarPageController.page!);
     int activeWeekBarPage = weekBarPageController.page!.round();
     if (newWeekBarPage != activeWeekBarPage) {
       weekBarPageController.animateToPage(
@@ -238,7 +255,7 @@ class TimetableModel extends ChangeNotifier {
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   void handleWeekBarPageChanged() {
     changeDayViewPage();
-    // changeWeekViewPage();
+    changeWeekViewPage();
     notifyListeners();
   }
 

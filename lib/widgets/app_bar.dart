@@ -11,13 +11,16 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leadingWidth: 120,
-      leading: Align(
+      leadingWidth: 104,
+      leading: Container(
         alignment: Alignment.centerLeft,
         child: _PickerButton(),
       ),
+      titleSpacing: 0,
+      centerTitle: true,
+      title: MyTabBar(),
       actions: [
-        MyTabBar()
+        SizedBox(width: 104),
       ],
     );
   }
@@ -104,7 +107,7 @@ class _PickerButton extends StatelessWidget {
         GestureDetector(
           onTap: () => _onPressed(context, currentDay, timetableModel),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             child: Row(
               children: [
                 _PickerButtonText(),
@@ -129,7 +132,7 @@ class _PickerButtonText extends StatelessWidget {
     return Consumer<TimetableModel>(
       builder: (context, timetableModel, child) => Text(
         style: TextStyle(
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w400,
           fontSize: 14,
         ),
         TimetableModel.monthString(timetableModel.weekOfActiveDay.month)

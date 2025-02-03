@@ -1,4 +1,5 @@
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
@@ -109,36 +110,14 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ),
         home: Scaffold(
           appBar: MyAppBar(),
-          bottomNavigationBar: NavigationBar(
-            elevation: 0,
-            backgroundColor: ColorScheme.fromSeed(seedColor: Colors.deepPurple).surface,
-            selectedIndex: currentPageIndex,
-            indicatorColor: Colors.transparent,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            onDestinationSelected: (int index) {
+          bottomNavigationBar: MyBottomNavigationBar(
+            currentPageIndex: currentPageIndex, 
+            onPageChanged: (int index) {
               setState(() {
                 currentPageIndex = index;
               });
-            },
-            destinations: const <Widget>[
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined), 
-                selectedIcon: Icon(Icons.home),
-                label: 'Home'
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.calendar_view_week_outlined,
-                ), 
-                selectedIcon: Icon(Icons.calendar_view_week),
-                label: 'Timetable'
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.chat_bubble_outline), 
-                selectedIcon: Icon(Icons.chat_bubble), 
-                label: 'Messages'
-              ),
-          ]),
+            }
+          ),
           body: <Widget>[
             const HomePage(),
              TimetablePage(),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/widgets/hour_lines.dart';
-import 'package:anu_timetable/model/timetable_layout.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
@@ -52,11 +52,11 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
         // TODO: move into TimetableLayout and pass reference to users.
         Size hourLineLabelsSize = Size(TimetableLayout.leftMargin, TimetableLayout.height);
         Size hourLinesSize = Size(constraints.maxWidth - TimetableLayout.leftMargin, TimetableLayout.height);
-        Size liveTimeIndicatorSize = Size(constraints.maxWidth, TimetableLayout.height);
-
+        Size liveTimeIndicatorSize = Size(constraints.maxWidth - TimetableLayout.leftMargin, TimetableLayout.height);
+        Size liveTimeIndicatorLabelSize = Size(TimetableLayout.leftMargin, TimetableLayout.height);
         return Consumer<CurrentDay>(
           builder: (context, currentDay, child) { 
-          bool pageIsCurrent = timetableModel.day(page.toDouble()) == currentDay.value;
+          bool pageIsCurrent = timetableModel.dayIsCurrent(page, currentDay);
 
           return SingleChildScrollView(
             // controller: _controllers.addAndGet(),
@@ -70,7 +70,11 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
                   Positioned(left: TimetableLayout.leftMargin,
                     child: HourLines(size: hourLinesSize, pageIsCurrent: pageIsCurrent),
                   ),
-                  if (pageIsCurrent) LiveTimeIndicator(size: liveTimeIndicatorSize)
+                  if (pageIsCurrent) Positioned(
+                    left: TimetableLayout.leftMargin, 
+                    child: LiveTimeIndicator(size: liveTimeIndicatorSize),
+                  ),
+                  if (pageIsCurrent) LiveTimeIndicatorLabel(size: liveTimeIndicatorLabelSize)
                   ],
                 )
               ),

@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
-import 'package:anu_timetable/model/timetable_layout.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:provider/provider.dart';
-
 
 class TimetablePage extends StatefulWidget {
 
@@ -42,6 +41,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   ),
                   child: TabBarView(
                     controller: tabController,
+                    physics: NeverScrollableScrollPhysics(),
                     children: [
                       DayView(),
                       WeekView(),

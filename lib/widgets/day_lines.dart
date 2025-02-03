@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
-import 'package:anu_timetable/widgets/paints.dart';
+import 'package:anu_timetable/util/paints.dart';
 
 class DayLines extends StatelessWidget {
   final Size size;

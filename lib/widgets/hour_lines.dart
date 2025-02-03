@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:anu_timetable/model/timetable_layout.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
-import 'package:anu_timetable/widgets/paints.dart';
+import 'package:anu_timetable/util/paints.dart';
 
 class HourLines extends StatelessWidget {
   final Size size;
@@ -128,6 +128,9 @@ class _HourLineLabelPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
 
+    RRect backgroundRect = RRect.fromLTRBR(0, 0, size.width, size.height, Radius.zero);
+    canvas.drawRRect(backgroundRect, PaintFactory.backgroundPaint(context));
+
     for (int hour = 0; hour < 25; hour++) {
       textPainter.text = _hourLineLabelText(hour);
 
@@ -137,12 +140,13 @@ class _HourLineLabelPainter extends CustomPainter {
         maxWidth: TimetableLayout.leftMargin - textPaddingRight,
       );
       final vertOffset = _getVertOffset(hour) - (textPainter.height / 2);
+    
 
       if (currentMinute.differenceFromHour(hour) > 15 || !pageIsCurrent) {
         textPainter.paint(canvas, Offset(0, vertOffset));
-      }
+      } 
     }
-    canvas.drawLine(Offset(size.width, 0), Offset(size.width, size.height), Paint());
+    canvas.drawLine(Offset(size.width, -400), Offset(size.width, size.height + 400), PaintFactory.linePaint(context));
   }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
