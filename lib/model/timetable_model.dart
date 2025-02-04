@@ -16,7 +16,7 @@ class TimetableModel extends ChangeNotifier {
   /// [DayView] pages are mapped to dates one to one.
   static DateTime hashDate = weekOfDay(DateTime(2000, 0, 0));
 
-  /// [WeekBar], [WeekView] and [DayView]'s [PageView]s are all synced.
+  /// [WeekBar], [WeekView] and [DayView]'s [PageView]s all affect one another.
   /// They're controllers are managed here so as to decouple them 
   /// from one another. 
   late DayViewPageController dayViewPageController;
@@ -42,8 +42,10 @@ class TimetableModel extends ChangeNotifier {
   /// [dayOverride] is first checked when getting the [day].
   Map<int, dynamic> dayOverride = {};
 
-late bool _isWeekViewScrolling;
-late bool _isWeekBarScrolling;
+
+  /// Two state variables that are used to determine which 
+  late bool _isWeekViewScrolling;
+  late bool _isWeekBarScrolling;
 
   TimetableModel({
     required this.dayViewPageController, 
@@ -58,64 +60,30 @@ late bool _isWeekBarScrolling;
 
     weekViewPageController.addListener(() {
       if (_isWeekViewScrolling) {
-        _onWeekViewScroll();
+        weekBarPageController.matchToOther(weekViewPageController);
       }
     });
 
     weekBarPageController.addListener(() {
       if (_isWeekBarScrolling && weekViewPageController.hasClients) {
-        _onWeekBarScroll();
+        weekViewPageController.matchToOther(weekBarPageController);
       }
     });
   }
 
-  void _onWeekBarScroll() {
-    FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
-    Size size = view.physicalSize / view.devicePixelRatio;
-
-    double weekBarWidth = size.width;
-    double weekViewWidth = size.width - TimetableLayout.leftMargin;
-
-    double viewportRatio = weekViewPageController.viewportFraction / weekBarPageController.viewportFraction;
-    
-    double widthRatio = weekViewWidth / weekBarWidth;
-    double newPos = weekBarPageController.offset * viewportRatio * widthRatio;
-
-    weekViewPageController.position.correctPixels(newPos);
-    weekViewPageController.position.notifyListeners();
-  }
-
-  void _onWeekViewScroll() {
-    FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
-    Size size = view.physicalSize / view.devicePixelRatio;
-
-    double weekBarWidth = size.width;
-    double weekViewWidth = size.width - TimetableLayout.leftMargin;
-
-    double viewportRatio = weekBarPageController.viewportFraction / weekViewPageController.viewportFraction;
-    
-    double widthRatio = weekBarWidth / weekViewWidth;
-    double newPos = weekViewPageController.offset * viewportRatio * widthRatio;
-
-    weekBarPageController.position.correctPixels(newPos);
-    weekBarPageController.position.notifyListeners();
-  }
-
-  bool onNotification(Notification notification) {
-      if(notification is UserScrollNotification){
-        if(notification.direction != ScrollDirection.idle){
-          if (weekViewPageController.hasClients) {
-            (weekViewPageController.position as ScrollPositionWithSingleContext).goIdle();
-          }
-          _isWeekViewScrolling = false;
-          _isWeekBarScrolling = true;
-        }
-        else{
-          _isWeekViewScrolling = true;
-          _isWeekBarScrolling = false;
-        }
+  bool onNotification(UserScrollNotification notification) {
+    if(notification.direction != ScrollDirection.idle) {
+      if (weekViewPageController.hasClients) {
+        (weekViewPageController.position as ScrollPositionWithSingleContext).goIdle();
       }
-      return false;
+      _isWeekViewScrolling = false;
+      _isWeekBarScrolling = true;
+    }
+    else {
+      _isWeekViewScrolling = true;
+      _isWeekBarScrolling = false;
+    }
+    return false;
   }
 
   /// Returns the monday of the week corrosponding to the given 

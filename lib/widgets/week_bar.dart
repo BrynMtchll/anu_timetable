@@ -37,7 +37,7 @@ class _WeekBarState extends State<WeekBar>{
             bottom: BorderSide(color: colorScheme.onSurface, width: 0.2)
           ),
         ),
-        child:  NotificationListener(
+        child:  NotificationListener<UserScrollNotification>(
           onNotification: Provider.of<TimetableModel>(context, listen: false).onNotification,
           child: PageView.builder(
             controller: Provider.of<WeekBarPageController>(context, listen: false),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class TimetableLayout {
@@ -29,5 +31,14 @@ class TimetableLayout {
     hourLinesSize = Size(constraints.maxWidth - leftMargin, height);
     liveTimeIndicatorSize = Size(constraints.maxWidth - leftMargin, height);
     liveTimeIndicatorLabelSize = Size(leftMargin, height);
+  }
+
+  static Size get screenSize {
+    FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
+    return view.physicalSize / view.devicePixelRatio;
+  }
+
+  static double get screenWidth {
+    return screenSize.width;
   }
 }
