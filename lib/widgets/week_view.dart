@@ -91,7 +91,7 @@ class _WeekPageView extends StatelessWidget {
       child: SizedBox(
         width: size.width,
         height: size.height,
-        child:  PageView.builder(
+        child: PageView.builder(
           clipBehavior: Clip.none,
           controller: Provider.of<WeekViewPageController>(context, listen: false),
           onPageChanged: (page) {

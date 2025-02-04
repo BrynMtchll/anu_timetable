@@ -1,8 +1,12 @@
+import 'dart:ui';
+
 import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:flutter/rendering.dart';
 
 class TimetableModel extends ChangeNotifier {
   /// All dates are mapped to pages for the respective [PageView]s
@@ -38,6 +42,9 @@ class TimetableModel extends ChangeNotifier {
   /// [dayOverride] is first checked when getting the [day].
   Map<int, dynamic> dayOverride = {};
 
+late bool _isWeekViewScrolling;
+late bool _isWeekBarScrolling;
+
   TimetableModel({
     required this.dayViewPageController, 
     required this.weekViewPageController, 
@@ -45,6 +52,70 @@ class TimetableModel extends ChangeNotifier {
     required this.tabController,
   }) {
     _persistedActiveDay = CurrentDay().value;
+
+    _isWeekViewScrolling = true;
+    _isWeekBarScrolling = false;
+
+    weekViewPageController.addListener(() {
+      if (_isWeekViewScrolling) {
+        _onWeekViewScroll();
+      }
+    });
+
+    weekBarPageController.addListener(() {
+      if (_isWeekBarScrolling && weekViewPageController.hasClients) {
+        _onWeekBarScroll();
+      }
+    });
+  }
+
+  void _onWeekBarScroll() {
+    FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
+    Size size = view.physicalSize / view.devicePixelRatio;
+
+    double weekBarWidth = size.width;
+    double weekViewWidth = size.width - TimetableLayout.leftMargin;
+
+    double viewportRatio = weekViewPageController.viewportFraction / weekBarPageController.viewportFraction;
+    
+    double widthRatio = weekViewWidth / weekBarWidth;
+    double newPos = weekBarPageController.offset * viewportRatio * widthRatio;
+
+    weekViewPageController.position.correctPixels(newPos);
+    weekViewPageController.position.notifyListeners();
+  }
+
+  void _onWeekViewScroll() {
+    FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
+    Size size = view.physicalSize / view.devicePixelRatio;
+
+    double weekBarWidth = size.width;
+    double weekViewWidth = size.width - TimetableLayout.leftMargin;
+
+    double viewportRatio = weekBarPageController.viewportFraction / weekViewPageController.viewportFraction;
+    
+    double widthRatio = weekBarWidth / weekViewWidth;
+    double newPos = weekViewPageController.offset * viewportRatio * widthRatio;
+
+    weekBarPageController.position.correctPixels(newPos);
+    weekBarPageController.position.notifyListeners();
+  }
+
+  bool onNotification(Notification notification) {
+      if(notification is UserScrollNotification){
+        if(notification.direction != ScrollDirection.idle){
+          if (weekViewPageController.hasClients) {
+            (weekViewPageController.position as ScrollPositionWithSingleContext).goIdle();
+          }
+          _isWeekViewScrolling = false;
+          _isWeekBarScrolling = true;
+        }
+        else{
+          _isWeekViewScrolling = true;
+          _isWeekBarScrolling = false;
+        }
+      }
+      return false;
   }
 
   /// Returns the monday of the week corrosponding to the given 
@@ -133,7 +204,7 @@ class TimetableModel extends ChangeNotifier {
   /// Updates the [dayViewPageController.page], i.e. the active day,
   /// to the week given, maintaining the same weekday.
   void changeDayViewPage() { 
-
+    
     // day view page will fall out of sync if it has no clients at time of call
     if (dayViewPageController.hasClients) {
       DateTime newActiveDay = weekdayDate(weekBarPageController.page!, activeDay.weekday);
@@ -166,7 +237,7 @@ class TimetableModel extends ChangeNotifier {
   /// TODO: fix comment
   /// Updates the [weekBarPageController.page], i.e. the active week,
   /// to the week containing the [dayViewPageController.page] (the active day).
-  void changeWeekBarPage() {
+  void changeWeekBarPage() async {
     int newWeekBarPage;
     if (tabController.index == 0) {
       newWeekBarPage = weekBarPage(weekOfActiveDay);
@@ -175,7 +246,7 @@ class TimetableModel extends ChangeNotifier {
     }
     int activeWeekBarPage = weekBarPageController.page!.round();
     if (newWeekBarPage != activeWeekBarPage) {
-      weekBarPageController.animateToPage(
+      await weekBarPageController.animateToPage(
         newWeekBarPage, 
         duration: Duration(milliseconds: 400), 
         curve: Curves.easeInOut,
@@ -210,7 +281,7 @@ class TimetableModel extends ChangeNotifier {
     await dayViewPageController.animateToPage(
       adjacentDayViewPage,
       curve: Curves.easeInOut,
-      duration: Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 350),
     );
 
     dayOverride.remove(adjacentDayViewPage);
@@ -237,7 +308,6 @@ class TimetableModel extends ChangeNotifier {
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged() {
     if (tabController.index == 0) {
-      changeWeekViewPage();
       changeWeekBarPage();
       notifyListeners();
     }
@@ -245,18 +315,18 @@ class TimetableModel extends ChangeNotifier {
 
   /// Handler for the onPageChanged event of the [WeekView]'s [PageView].
   void handleWeekViewPageChanged() {
-    if (tabController.index == 1) {
+    if (_isWeekViewScrolling) {
       changeDayViewPage();
-      changeWeekBarPage();
       notifyListeners();
     }
   }
 
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   void handleWeekBarPageChanged() {
-    changeDayViewPage();
-    changeWeekViewPage();
-    notifyListeners();
+    if (_isWeekBarScrolling) {
+      changeDayViewPage();
+      notifyListeners();
+    }
   }
 
   static String weekdayCharacters(int weekday){

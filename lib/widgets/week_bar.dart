@@ -37,26 +37,28 @@ class _WeekBarState extends State<WeekBar>{
             bottom: BorderSide(color: colorScheme.onSurface, width: 0.2)
           ),
         ),
-        child: PageView.builder(
-          controller: Provider.of<WeekBarPageController>(context, listen: false),
-          onPageChanged: (page) {
-            Provider.of<TimetableModel>(context, listen: false)
-              .handleWeekBarPageChanged();
-          },
-
-          itemBuilder: (context, page) {
-            EdgeInsets padding = 
-              Provider.of<TabController>(context).index == 1 ? 
-              EdgeInsets.only(left: TimetableLayout.leftMargin) : 
-              EdgeInsets.all(0);
-              
-            return AnimatedPadding(
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: padding,
-              child: _Week(page: page),
-            );
-          }
+        child:  NotificationListener(
+          onNotification: Provider.of<TimetableModel>(context, listen: false).onNotification,
+          child: PageView.builder(
+            controller: Provider.of<WeekBarPageController>(context, listen: false),
+            onPageChanged: (page) {
+              Provider.of<TimetableModel>(context, listen: false)
+                .handleWeekBarPageChanged();
+            },
+            itemBuilder: (context, page) {
+              EdgeInsets padding = 
+                Provider.of<TabController>(context).index == 1 ? 
+                EdgeInsets.only(left: TimetableLayout.leftMargin) : 
+                EdgeInsets.all(0);
+                
+              return AnimatedPadding(
+                duration: Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: padding,
+                child: _Week(page: page),
+              );
+            }
+          )
         )
       )
     );
@@ -106,6 +108,7 @@ class _Weekday extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Consumer<TimetableModel>(
       builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
         GestureDetector(
@@ -120,6 +123,7 @@ class _Weekday extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(
                     style: TextStyle(
+                      color: colorScheme.secondary,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
@@ -141,7 +145,8 @@ class _Weekday extends StatelessWidget {
                   alignment: Alignment.center,
                   child:  Text(
                     style: TextStyle(
-                      // fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w400,
+                      color: colorScheme.onSurface,
                       // color: _weekdayItemTextColor(timetableModel, page, weekday),
                       fontSize: 14,
                     ),

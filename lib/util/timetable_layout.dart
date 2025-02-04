@@ -1,5 +1,6 @@
-class TimetableLayout {
+import 'package:flutter/material.dart';
 
+class TimetableLayout {
   static final double leftMargin = 50;
 
   static final double height = 1700;
@@ -15,4 +16,18 @@ class TimetableLayout {
   static final double vertPadding = hourHeight / 2;
 
   static final double dayHeight = height - 2 * vertPadding;
+
+  final BoxConstraints constraints;
+
+  late Size hourLineLabelsSize;
+  late Size hourLinesSize;
+  late Size liveTimeIndicatorSize;
+  late Size liveTimeIndicatorLabelSize;
+
+  TimetableLayout({required this.constraints}){
+    hourLineLabelsSize = Size(leftMargin, height);
+    hourLinesSize = Size(constraints.maxWidth - leftMargin, height);
+    liveTimeIndicatorSize = Size(constraints.maxWidth - leftMargin, height);
+    liveTimeIndicatorLabelSize = Size(leftMargin, height);
+  }
 }

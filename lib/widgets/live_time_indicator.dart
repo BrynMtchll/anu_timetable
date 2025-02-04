@@ -69,7 +69,7 @@ class _LiveTimePainter extends CustomPainter {
       canvas.drawLine(p1, p2, paint);
 
       paint.strokeWidth = PaintFactory.liveLineStrokeWidth;
-      Offset currp1 = Offset(currentWeekday - 1 * dayWidth, vertOffset);
+      Offset currp1 = Offset((currentWeekday - 1) * dayWidth, vertOffset);
       Offset currp2 = Offset(currentWeekday * dayWidth, vertOffset);
       canvas.drawLine(currp1, currp2, paint);
     

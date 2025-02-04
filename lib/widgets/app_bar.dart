@@ -39,7 +39,7 @@ class _CalendarDialog extends StatelessWidget {
     required this.timetableModel
     });
 
-  CalendarDatePicker2Config _configCalendarDatePicker2(currentDay) =>
+  CalendarDatePicker2Config _configCalendarDatePicker2(colorScheme, currentDay) =>
     CalendarDatePicker2Config(
       firstDate: currentDay.yearStart(),
       lastDate: currentDay.yearEnd(),
@@ -75,7 +75,7 @@ class _CalendarDialog extends StatelessWidget {
                 }
                 Navigator.pop(context);
               },
-              config: _configCalendarDatePicker2(currentDay), 
+              config: _configCalendarDatePicker2(colorScheme, currentDay), 
               value: List.empty(),
             )
           ) 
