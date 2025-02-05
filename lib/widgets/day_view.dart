@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/widgets/hour_lines.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
-import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
 class DayView extends StatefulWidget {
@@ -16,20 +15,7 @@ class DayView extends StatefulWidget {
   State<DayView> createState() => _DayViewState();
 }
 
-class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<DayView> {
-  late LinkedScrollControllerGroup _controllers;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllers = LinkedScrollControllerGroup();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
+class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<DayView>{
   @override
   bool get wantKeepAlive => true;
 
@@ -38,16 +24,18 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
     super.build(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        TimetableLayout timetableLayout = TimetableLayout(constraints: constraints);
-
-        return SingleChildScrollView(
-          child: ClipRect(
-            clipper: HorizontalClipper(),
-            child: SizedBox(
-              height: TimetableLayout.height,
-              child: _DayPageView(timetableLayout: timetableLayout)
+        return Consumer<DayViewScrollController>(
+          builder: (context, dayViewScrollController, child) => 
+            SingleChildScrollView(
+              controller: dayViewScrollController,
+              child: ClipRect(
+                clipper: HorizontalClipper(),
+                child: SizedBox(
+                  height: TimetableLayout.height,
+                  child: _DayPageView()
+                )
+              )
             )
-          )
         );
       }
     );
@@ -55,9 +43,7 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
 }
 
 class _DayPageView extends StatelessWidget {
-  final TimetableLayout timetableLayout;
-
-  const _DayPageView({super.key, required this.timetableLayout});
+  const _DayPageView();
 
   @override
   Widget build(BuildContext context) {
@@ -67,41 +53,36 @@ class _DayPageView extends StatelessWidget {
       onPageChanged: (page) {
         Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
       },
-      itemBuilder: (context, page) => _DayItem(page: page, timetableLayout: timetableLayout)
+      itemBuilder: (context, page) => _DayItem(page: page)
     );
   }
 }
 
 class _DayItem extends StatelessWidget {
   final int page;
-  final TimetableLayout timetableLayout;
 
-  const _DayItem({super.key, required this.page, required this.timetableLayout});
+  const _DayItem({required this.page});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CurrentDay>(
-      builder: (context, currentDay, child) { 
-      bool pageIsCurrent = _getPageIsCurrent(context, currentDay, page);
-      return Stack(
-        children: [
-          HourLineLabels(size: timetableLayout.hourLineLabelsSize, pageIsCurrent: pageIsCurrent),
-          Positioned(left: TimetableLayout.leftMargin,
-            child: HourLines(size: timetableLayout.hourLinesSize, pageIsCurrent: pageIsCurrent),
-          ),
-          if (pageIsCurrent) Positioned(
-            left: TimetableLayout.leftMargin, 
-            child: LiveTimeIndicator(size: timetableLayout.liveTimeIndicatorSize),
-          ),
-          if (pageIsCurrent) LiveTimeIndicatorLabel(size: timetableLayout.liveTimeIndicatorLabelSize)
+    return Consumer2<TimetableModel, CurrentDay>(
+      builder: (context, timetableModel, currentDay, child) { 
+        bool pageIsCurrent = timetableModel.dayIsCurrent(page, currentDay);
+        return Stack(
+          children: [
+            HourLineLabels(size: TimetableLayout.marginSize, pageIsCurrent: pageIsCurrent),
+            if (pageIsCurrent) LiveTimeIndicatorLabel(size: TimetableLayout.marginSize),
+            Positioned(
+              left: TimetableLayout.leftMargin,
+              child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent),
+            ),
+            if (pageIsCurrent) Positioned(
+              left: TimetableLayout.leftMargin, 
+              child: LiveTimeIndicator(size: TimetableLayout.innerSize),
+            ),
           ],
         );
       }
     );
-  }
-
-  bool _getPageIsCurrent(context, currentDay, page) {
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    return timetableModel.dayIsCurrent(page, currentDay);
   }
 }

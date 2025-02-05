@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
-import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -20,48 +19,44 @@ class App extends StatefulWidget {
 class _AppState extends State<App> with SingleTickerProviderStateMixin{
   int currentPageIndex = 0;
 
-  late int dayViewInitialPage = TimetableModel.dayViewPage(DateTime.now());
+  late int dayViewInitialPage = TimetableModel.getDayPage(DateTime.now());
   late DayViewPageController dayViewPageController;
 
-  late int weekViewInitialPage = TimetableModel.weekViewPage(DateTime.now());
+  late int weekViewInitialPage = TimetableModel.getWeekPage(DateTime.now());
   late WeekViewPageController weekViewPageController;
 
-  late int weekBarInitialPage = TimetableModel.weekBarPage(TimetableModel.weekOfDay(DateTime.now()));
+  late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(DateTime.now()));
   late WeekBarPageController weekBarPageController;
 
-  late TabController tabController;
+  late ViewTabController viewTabController;
 
-  // late LinkedScrollControllerGroup _controllerGroup;
+  late DayViewScrollController dayViewScrollController;
 
-  /// [weekViewPageController] is only assigned to [WeekView]'s [PageView] 
-  /// after the week tab has been made active. Consequentially the 
-  /// [weekViewPageController.page] is not synced with the active week. 
-  /// This listener handles the case where the active week is changed before 
-  /// this is done by setting the [weekViewPageController.page] as soon 
-  /// as [WeekView] is built.
-  void handleDayViewPageControllerAttach(ScrollPosition position) {
-    if (
-      weekViewPageController.hasClients && 
-      weekViewPageController.page != weekBarPageController.page
-    ) {
-      weekViewPageController.jumpToPage(weekBarPageController.page!.round());
-    }
-  }
+  late WeekViewScrollController weekViewScrollController;
 
   @override
   void initState() {
     super.initState();
-      dayViewPageController = DayViewPageController(
+    dayViewPageController = DayViewPageController(
       initialPage: dayViewInitialPage,
     );
+    
     weekViewPageController = WeekViewPageController(
       initialPage: weekViewInitialPage,
-      onAttach: handleDayViewPageControllerAttach,
+      onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController),
     );
     weekBarPageController = WeekBarPageController(
       initialPage: weekBarInitialPage,
     );
-    tabController = TabController(length: 2, vsync: this);
+
+    viewTabController = ViewTabController(length: 2, vsync: this);
+
+    dayViewScrollController = DayViewScrollController(
+      onAttach: (_) => dayViewScrollController.matchToOther(weekViewScrollController),
+    );
+    weekViewScrollController = WeekViewScrollController(
+      onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController),
+    );
   }
 
   @override
@@ -70,7 +65,10 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
     dayViewPageController.dispose();
     weekViewPageController.dispose();
     weekBarPageController.dispose();
-    tabController.dispose();
+    viewTabController.dispose();
+    dayViewScrollController.dispose();
+    weekViewScrollController.dispose();
+
   }
 
   @override
@@ -83,21 +81,43 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider.value(value: dayViewPageController),
         ChangeNotifierProvider.value(value: weekViewPageController),
         ChangeNotifierProvider.value(value: weekBarPageController),
-        ChangeNotifierProvider.value(value: tabController),
-        ChangeNotifierProxyProvider4<DayViewPageController, WeekViewPageController, WeekBarPageController, TabController, TimetableModel>(
+        ChangeNotifierProvider.value(value: viewTabController),
+        ChangeNotifierProvider.value(value: dayViewScrollController),
+        ChangeNotifierProvider.value(value: weekViewScrollController),
+        ChangeNotifierProxyProvider6<
+          DayViewPageController, 
+          WeekViewPageController, 
+          WeekBarPageController, 
+          ViewTabController, 
+          DayViewScrollController,
+          WeekViewScrollController,
+          TimetableModel
+        >(
           create: (context) => TimetableModel(
             dayViewPageController: dayViewPageController, 
             weekViewPageController: weekViewPageController, 
             weekBarPageController: weekBarPageController,
-            tabController: tabController,
-
+            viewTabController: viewTabController,
+            dayViewScrollController: dayViewScrollController,
+            weekViewScrollController: weekViewScrollController,
           ), 
-          update: (_, dayViewPageController, weekViewPageController, weekBarPageController, tabController, timetableModel) {
+          update: (
+            _, 
+            dayViewPageController, 
+            weekViewPageController, 
+            weekBarPageController, 
+            viewTabController, 
+            dayViewScrollController,
+            weekViewScrollController,
+            timetableModel
+          ) {
             if (timetableModel == null) throw ArgumentError.notNull('timetableModel');   
             timetableModel.dayViewPageController = dayViewPageController;
             timetableModel.weekViewPageController = weekViewPageController;
             timetableModel.weekBarPageController = weekBarPageController;
-            timetableModel.tabController = tabController;
+            timetableModel.viewTabController = viewTabController;
+            timetableModel.dayViewScrollController = dayViewScrollController;
+            timetableModel.weekViewScrollController = weekViewScrollController;
             return timetableModel;
           }
         )

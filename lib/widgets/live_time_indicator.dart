@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
@@ -14,9 +15,9 @@ class LiveTimeIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<CurrentSecond, TabController>(
-      builder: (context, currentSecond, tabController, child) {
-        bool weekViewActive = tabController.index == 1;
+    return Consumer2<CurrentSecond, ViewTabController>(
+      builder: (context, currentSecond, viewTabController, child) {
+        bool weekViewActive = viewTabController.index == 1;
         return CustomPaint(
           size: size,
           painter: _LiveTimePainter(

@@ -19,19 +19,11 @@ class TimetableLayout {
 
   static final double dayHeight = height - 2 * vertPadding;
 
-  final BoxConstraints constraints;
+  static final Size innerSize = Size(screenWidth - leftMargin, height);
 
-  late Size hourLineLabelsSize;
-  late Size hourLinesSize;
-  late Size liveTimeIndicatorSize;
-  late Size liveTimeIndicatorLabelSize;
+  static final Size marginSize = Size(leftMargin, height);
 
-  TimetableLayout({required this.constraints}){
-    hourLineLabelsSize = Size(leftMargin, height);
-    hourLinesSize = Size(constraints.maxWidth - leftMargin, height);
-    liveTimeIndicatorSize = Size(constraints.maxWidth - leftMargin, height);
-    liveTimeIndicatorLabelSize = Size(leftMargin, height);
-  }
+  static final Size size = Size(screenWidth, height);
 
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
@@ -40,5 +32,37 @@ class TimetableLayout {
 
   static double get screenWidth {
     return screenSize.width;
+  }
+
+
+  static String weekdayCharacters(int weekday){
+    switch (weekday) {
+      case DateTime.monday: return 'M';
+      case DateTime.tuesday: return 'Tu';
+      case DateTime.wednesday: return 'W';
+      case DateTime.thursday: return 'Th';
+      case DateTime.friday: return 'F';
+      case DateTime.saturday: return 'Sa';
+      case DateTime.sunday: return 'Su';
+      default: return '';
+    }
+  }
+
+  static String monthString(int month) {
+    switch (month) {
+      case DateTime.january: return 'January';
+      case DateTime.february: return 'February';
+      case DateTime.march: return 'March';
+      case DateTime.april: return 'April';
+      case DateTime.may: return 'May';
+      case DateTime.june: return 'June';
+      case DateTime.july: return 'July';
+      case DateTime.august: return 'August';
+      case DateTime.september: return 'September';
+      case DateTime.october: return 'October';
+      case DateTime.november: return 'November';
+      case DateTime.december: return 'December';
+      default: return '';
+    }
   }
 }

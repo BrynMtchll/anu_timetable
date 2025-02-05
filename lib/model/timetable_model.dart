@@ -1,7 +1,4 @@
-import 'dart:ui';
-
 import 'package:anu_timetable/model/controllers.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
@@ -25,9 +22,13 @@ class TimetableModel extends ChangeNotifier {
 
   late WeekBarPageController weekBarPageController;
 
-  late TabController tabController;
+  late ViewTabController viewTabController;
 
-  late DateTime _persistedActiveDay;
+  late DayViewScrollController dayViewScrollController;
+
+  late WeekViewScrollController weekViewScrollController;
+
+  late DateTime _persistedActiveDay = CurrentDay().value;
 
   /// The desired effect, when changing the [dayViewPageController.page] 
   /// by multiple days, is for the target page to be animated to
@@ -42,53 +43,20 @@ class TimetableModel extends ChangeNotifier {
   /// [dayOverride] is first checked when getting the [day].
   Map<int, dynamic> dayOverride = {};
 
-
-  /// Two state variables that are used to determine which 
-  late bool _isWeekViewScrolling;
-  late bool _isWeekBarScrolling;
-
   TimetableModel({
     required this.dayViewPageController, 
     required this.weekViewPageController, 
     required this.weekBarPageController,
-    required this.tabController,
+    required this.viewTabController,
+    required this.dayViewScrollController, 
+    required this.weekViewScrollController,
   }) {
-    _persistedActiveDay = CurrentDay().value;
-
-    _isWeekViewScrolling = true;
-    _isWeekBarScrolling = false;
-
-    weekViewPageController.addListener(() {
-      if (_isWeekViewScrolling) {
-        weekBarPageController.matchToOther(weekViewPageController);
-      }
-    });
-
-    weekBarPageController.addListener(() {
-      if (_isWeekBarScrolling && weekViewPageController.hasClients) {
-        weekViewPageController.matchToOther(weekBarPageController);
-      }
-    });
-  }
-
-  bool onNotification(UserScrollNotification notification) {
-    if(notification.direction != ScrollDirection.idle) {
-      if (weekViewPageController.hasClients) {
-        (weekViewPageController.position as ScrollPositionWithSingleContext).goIdle();
-      }
-      _isWeekViewScrolling = false;
-      _isWeekBarScrolling = true;
-    }
-    else {
-      _isWeekViewScrolling = true;
-      _isWeekBarScrolling = false;
-    }
-    return false;
+    addListeners();
   }
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
-  DateTime week(double? weekBarPage) {
+  static DateTime week(double? weekBarPage) {
     if (weekBarPage == null) {
       throw ArgumentError("weekBarPage is null!");
     }
@@ -102,28 +70,57 @@ class TimetableModel extends ChangeNotifier {
   /// 
   /// The [WeekBar] weekday items require the day of the active page on
   /// initialisation, which is the current date.
-  DateTime day(double? dayViewPage) {
-    if (dayViewPage == null) {
+  DateTime day(double? dayPage) {
+    if (dayPage == null) {
       return day(dayViewPageController.initialPage.toDouble());
     }
-    if (dayOverride.containsKey(dayViewPage.round())) {
-      return dayOverride[dayViewPage.round()];
+    if (dayOverride.containsKey(dayPage.round())) {
+      return dayOverride[dayPage.round()];
     }
-    return hashDate.add(Duration(days: dayViewPage.round()));
+    return pageToDay(dayPage);
+  }
+
+  /// Returns the day of the weekday for the given week.
+  /// 
+  /// 'Date' is suffixed to the function name to avoid ambiguity with the
+  /// naming [DateTime.weekday] to represent the weekday index.
+  static DateTime weekdayDate(double weekBarPage, int weekday) => 
+    week(weekBarPage).add(Duration(days: weekday - 1));
+  
+
+  /// Returns the day corrosponding to [dayViewPageController.page].
+  /// [WeekBar] requires [activeDay] before [DayViewPageController] is attached
+  /// to the [PageView] of [DayView].
+  DateTime get activeDay {
+    if (dayOverride.isNotEmpty) {
+      return dayOverride.values.first;
+    }
+    return dayViewPageController.hasClients ? 
+      day(dayViewPageController.page) : _persistedActiveDay;
+  }
+
+  /// Returns the monday of the week corrosponding to 
+  /// [weekBarPageController.page].
+  DateTime activeWeek() => week(weekBarPageController.page);
+
+  static DateTime pageToDay(double dayPage) {
+    return hashDate.add(Duration(days: dayPage.round()));
+  }
+
+  static int convertToDayPage(double weekPage, double dayPage) {
+    int weekday = pageToDay(dayPage).weekday;
+    DateTime day = TimetableModel.weekdayDate(weekPage, weekday);
+    return getDayPage(day);
   }
 
   /// Returns the day view page corrosponding to the given date.
-  static int dayViewPage(DateTime day) => 
+  static int getDayPage(DateTime day) => 
     day.difference(hashDate).inDays;
 
-  /// Returns the day view page corrosponding to the given date.
-  /// The [WeekView] and [WeekBar] pages are mapped identically.
-  static int weekViewPage(DateTime week) => 
+  /// Returns the week page corrosponding to the given date.
+  static int getWeekPage(DateTime week) => 
     (week.difference(hashDate).inDays / 7).toInt();  
   
-  /// Returns the week bar page corrosponding to the given date.
-  static int weekBarPage(DateTime week) => 
-    (week.difference(hashDate).inDays / 7).toInt();  
   /// Returns the monday of the week that the given date is in.
   static DateTime weekOfDay(DateTime day) => 
     day.subtract(Duration(days:  day.weekday - 1));
@@ -137,7 +134,8 @@ class TimetableModel extends ChangeNotifier {
   bool dayIsCurrent(int page, CurrentDay currentDay) => 
     day(page.toDouble()) == currentDay.value;
 
-      /// Returns true if the active day is the current day
+  /// Returns true if the active day is the current day
+  /// could be static
   bool weekIsCurrent(int page, CurrentDay currentDay) => 
     week(page.toDouble()) == TimetableModel.weekOfDay(currentDay.value);
 
@@ -145,34 +143,12 @@ class TimetableModel extends ChangeNotifier {
   /// Returns true if the active week contains the current day
   bool activeWeekIsCurrent(CurrentDay currentDay) => 
     activeWeek() == TimetableModel.weekOfDay(currentDay.value); 
+  
 
-  /// Returns the day corrosponding to [dayViewPageController.page].
-  /// [WeekBar] requires [activeDay] before [DayViewPageController] is attached
-  /// to the [PageView] of [DayView].
-  DateTime get activeDay {
-    if (dayOverride.isNotEmpty) {
-      return dayOverride.values.first;
-    }
-    return dayViewPageController.hasClients ? 
-      day(dayViewPageController.page) : _persistedActiveDay;
-  }
-  
-  /// Returns the monday of the week corrosponding to 
-  /// [weekBarPageController.page].
-  DateTime activeWeek() => week(weekBarPageController.page);
-  
-  /// Returns the day of the weekday for the given week.
-  /// 
-  /// 'Date' is suffixed to the function name to avoid ambiguity with the
-  /// naming [DateTime.weekday] to represent the weekday index.
-  DateTime weekdayDate(double weekBarPage, int weekday) => 
-    week(weekBarPage).add(Duration(days: weekday - 1));
-  
   /// TODO: fix comment
   /// Updates the [dayViewPageController.page], i.e. the active day,
   /// to the week given, maintaining the same weekday.
   void changeDayViewPage() { 
-    
     // day view page will fall out of sync if it has no clients at time of call
     if (dayViewPageController.hasClients) {
       DateTime newActiveDay = weekdayDate(weekBarPageController.page!, activeDay.weekday);
@@ -181,37 +157,13 @@ class TimetableModel extends ChangeNotifier {
         animateDirectToDayViewPage(newActiveDay);
       }
     }
-    
   }
 
-  /// Animates the [weekViewPageController.page] to the same page as
-  /// [weekBarPageController.page].
-  /// If the [weekViewPageController] has not yet been assigned to [WeekView]'s 
-  /// [PageView], i.e. the week tab has not yet been made active, nothing is done.
-  void changeWeekViewPage() {
-    if (weekViewPageController.hasClients) {
-      int newWeekViewPage = weekBarPageController.page!.round();
-      int activeWeekViewPage = weekViewPageController.page!.round();
-      if (newWeekViewPage != activeWeekViewPage) {
-        weekViewPageController.animateToPage(
-          newWeekViewPage, 
-          duration: Duration(milliseconds: 400), 
-          curve: Curves.easeInOut,
-        );
-      }
-    }
-  }
-  
   /// TODO: fix comment
   /// Updates the [weekBarPageController.page], i.e. the active week,
   /// to the week containing the [dayViewPageController.page] (the active day).
   void changeWeekBarPage() async {
-    int newWeekBarPage;
-    if (tabController.index == 0) {
-      newWeekBarPage = weekBarPage(weekOfActiveDay);
-    } else {
-      newWeekBarPage = weekViewPageController.page!.round();
-    }
+    int newWeekBarPage = getWeekPage(weekOfActiveDay);
     int activeWeekBarPage = weekBarPageController.page!.round();
     if (newWeekBarPage != activeWeekBarPage) {
       await weekBarPageController.animateToPage(
@@ -231,7 +183,6 @@ class TimetableModel extends ChangeNotifier {
   ///   3.  Jump to the target page and remove the override date from 
   ///       [dayOverride].
   animateDirectToDayViewPage(DateTime newActiveDay) async {
-
     if (dayViewPageController.page == null) {
       throw AssertionError("dayViewPageController.page is null!");
     }
@@ -253,78 +204,69 @@ class TimetableModel extends ChangeNotifier {
     );
 
     dayOverride.remove(adjacentDayViewPage);
-    dayViewPageController.jumpToPage(dayViewPage(newActiveDay));
+    dayViewPageController.jumpToPage(getDayPage(newActiveDay));
   }
 
   /// Handler for the onTap event of the [DayView]'s weekday items.
   void handleWeekBarWeekdayTap(int page, int weekday) async {
-    if (tabController.index == 0) {
+    if (viewTabController.index == 0) {
     DateTime newActiveDay = weekdayDate(page.toDouble(), weekday);
-    // _persistedActiveDay = newActiveDay;
-
     await animateDirectToDayViewPage(newActiveDay);
     notifyListeners();
     }
   }
 
   void jumpToDay(DateTime day) {
-    dayViewPageController.jumpToPage(dayViewPage(day));
-    if (weekViewPageController.hasClients) weekViewPageController.jumpToPage((weekViewPage(weekOfDay(day))));
-    weekBarPageController.jumpToPage((weekViewPage(weekOfDay(day))));
+    dayViewPageController.jumpToPage(getDayPage(day));
+    if (weekViewPageController.hasClients) {
+      weekViewPageController.jumpToPage((getWeekPage(weekOfDay(day))));
+    }
+    weekBarPageController.jumpToPage((getWeekPage(weekOfDay(day))));
   }
 
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged() {
-    if (tabController.index == 0) {
+    if (viewTabController.index == 0 && !weekBarPageController.isScrolling) {
       changeWeekBarPage();
-      notifyListeners();
-    }
-  }
-
-  /// Handler for the onPageChanged event of the [WeekView]'s [PageView].
-  void handleWeekViewPageChanged() {
-    if (_isWeekViewScrolling) {
-      changeDayViewPage();
       notifyListeners();
     }
   }
 
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   void handleWeekBarPageChanged() {
-    if (_isWeekBarScrolling) {
+    if (viewTabController.index == 0 && weekBarPageController.isScrolling) {
       changeDayViewPage();
-      notifyListeners();
+      notifyListeners();  
     }
   }
 
-  static String weekdayCharacters(int weekday){
-    switch (weekday) {
-      case DateTime.monday: return 'M';
-      case DateTime.tuesday: return 'Tu';
-      case DateTime.wednesday: return 'W';
-      case DateTime.thursday: return 'Th';
-      case DateTime.friday: return 'F';
-      case DateTime.saturday: return 'Sa';
-      case DateTime.sunday: return 'Su';
-      default: return '';
-    }
+  void addListeners() {
+    weekViewPageController.addListener(() {
+      weekBarPageController.matchToOther(weekViewPageController);
+    });
+
+    weekBarPageController.addListener(() {
+      weekViewPageController.matchToOther(weekBarPageController);
+    });
+
+    viewTabController.addListener(() {
+      viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
+      dayViewPageController.syncToOther(weekBarPageController);
+    });
   }
 
-  static String monthString(int month) {
-    switch (month) {
-      case DateTime.january: return 'January';
-      case DateTime.february: return 'February';
-      case DateTime.march: return 'March';
-      case DateTime.april: return 'April';
-      case DateTime.may: return 'May';
-      case DateTime.june: return 'June';
-      case DateTime.july: return 'July';
-      case DateTime.august: return 'August';
-      case DateTime.september: return 'September';
-      case DateTime.october: return 'October';
-      case DateTime.november: return 'November';
-      case DateTime.december: return 'December';
-      default: return '';
+  bool onNotification(UserScrollNotification notification) {
+    if(notification.direction != ScrollDirection.idle) {
+      if (weekViewPageController.hasClients) {
+        (weekViewPageController.position as ScrollPositionWithSingleContext).goIdle();
+      }
+      weekViewPageController.isScrolling = false;
+      weekBarPageController.isScrolling = true;
     }
+    else {
+      weekViewPageController.isScrolling = true;
+      weekBarPageController.isScrolling = false;
+    }
+    return false;
   }
 }

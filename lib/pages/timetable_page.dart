@@ -1,4 +1,5 @@
 
+import 'package:anu_timetable/model/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_view.dart';
@@ -29,8 +30,8 @@ class _TimetablePageState extends State<TimetablePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) =>
-        Consumer<TabController>(
-          builder: (context, tabController, child) => 
+        Consumer<ViewTabController>(
+          builder: (context, viewTabController, child) => 
             Column(
               children: [
                 WeekBar(),
@@ -40,7 +41,7 @@ class _TimetablePageState extends State<TimetablePage> {
                     maxWidth: constraints.maxWidth,
                   ),
                   child: TabBarView(
-                    controller: tabController,
+                    controller: viewTabController,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
                       DayView(),

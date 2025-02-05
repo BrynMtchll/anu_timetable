@@ -7,7 +7,6 @@ import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/widgets/hour_lines.dart';
 import 'package:anu_timetable/widgets/day_lines.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
-import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
 class WeekView extends StatefulWidget {
@@ -17,49 +16,19 @@ class WeekView extends StatefulWidget {
   State<WeekView> createState() => _WeekViewState();
 }
 
-class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<WeekView>{
-  late LinkedScrollControllerGroup _controllers;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllers = LinkedScrollControllerGroup();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-
+class _WeekViewState extends State<WeekView>{
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        Size pageSize = Size(constraints.maxWidth - TimetableLayout.leftMargin, TimetableLayout.height);
-        Size marginSize = Size(TimetableLayout.leftMargin, TimetableLayout.height);
-        return Consumer2<TimetableModel, CurrentDay>(
-          builder: (context, timetableModel, currentDay, child) { 
-          bool pageIsCurrent = timetableModel.activeWeekIsCurrent(currentDay);
-          
+        return Consumer3<TimetableModel, CurrentDay, WeekViewScrollController>(
+          builder: (context, timetableModel, currentDay, weekViewScrollController, child) { 
           return SingleChildScrollView(
+              controller: weekViewScrollController,
               child:  Row(
                 children: [
-                  Stack(
-                    children: [
-                      HourLineLabels(size: marginSize, pageIsCurrent: pageIsCurrent),
-                      if (pageIsCurrent) LiveTimeIndicatorLabel(size: marginSize)
-                    ],
-                  ),
-                  _WeekPageView(
-                    size: pageSize, 
-                    timetableModel: timetableModel, 
-                    currentDay: currentDay,
-                  )
+                  _LeftMargin(size: TimetableLayout.marginSize),
+                  _WeekPageView(size: TimetableLayout.innerSize)
                 ]
               )
             );
@@ -70,19 +39,31 @@ class _WeekViewState extends State<WeekView> with AutomaticKeepAliveClientMixin<
   }
 }
 
+class _LeftMargin extends StatelessWidget {
+  final Size size;
+
+  const _LeftMargin({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<TimetableModel, CurrentDay>(
+      builder: (context, timetableModel, currentDay, child) { 
+        bool pageIsCurrent = timetableModel.activeWeekIsCurrent(currentDay);  
+        return Stack(
+          children: [
+            HourLineLabels(size: size, pageIsCurrent: pageIsCurrent),
+            if (pageIsCurrent) LiveTimeIndicatorLabel(size: size)
+          ],
+        );
+      }
+    );
+  }
+}
+
 class _WeekPageView extends StatelessWidget {
   final Size size;
 
-  final TimetableModel timetableModel;
-  final CurrentDay currentDay;
-
-
-  const _WeekPageView({
-    super.key, 
-    required this.size, 
-    required this.timetableModel, 
-    required this.currentDay
-  });
+  const _WeekPageView({required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -94,20 +75,19 @@ class _WeekPageView extends StatelessWidget {
         child: PageView.builder(
           clipBehavior: Clip.none,
           controller: Provider.of<WeekViewPageController>(context, listen: false),
-          onPageChanged: (page) {
-            Provider.of<TimetableModel>(context, listen: false)
-              .handleWeekViewPageChanged();
-          },
-          itemBuilder: (context, page) {
-            bool pageIsCurrent = timetableModel.weekIsCurrent(page, currentDay);
-            return Stack(
-              children: [
-                HourLines(size: size, pageIsCurrent: pageIsCurrent),
-                DayLines(size: size),
-                if (pageIsCurrent) LiveTimeIndicator(size: size)
-              ],
-            );
-          }
+          itemBuilder: (context, page) =>
+            Consumer2<TimetableModel, CurrentDay>(
+              builder: (context, timetableModel, currentDay, child) { 
+                bool pageIsCurrent = timetableModel.weekIsCurrent(page, currentDay);
+                return Stack(
+                  children: [
+                    HourLines(size: size, pageIsCurrent: pageIsCurrent),
+                    DayLines(size: size),
+                    if (pageIsCurrent) LiveTimeIndicator(size: size)
+                  ],
+                );
+              }
+            )
         )
       )
     );

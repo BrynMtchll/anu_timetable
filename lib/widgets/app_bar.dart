@@ -1,3 +1,4 @@
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:provider/provider.dart';
@@ -34,10 +35,9 @@ class _CalendarDialog extends StatelessWidget {
   final TimetableModel timetableModel;
 
   const _CalendarDialog({
-    super.key,
     required this.currentDay, 
     required this.timetableModel
-    });
+  });
 
   CalendarDatePicker2Config _configCalendarDatePicker2(colorScheme, currentDay) =>
     CalendarDatePicker2Config(
@@ -70,7 +70,7 @@ class _CalendarDialog extends StatelessWidget {
             ),
             child: CalendarDatePicker2(
               onValueChanged: (value) {
-                if (!value.isEmpty) {
+                if (value.isNotEmpty) {
                   timetableModel.jumpToDay(value[0]);
                 }
                 Navigator.pop(context);
@@ -84,8 +84,6 @@ class _CalendarDialog extends StatelessWidget {
 }
 
 class _PickerButton extends StatelessWidget {
-  const _PickerButton({super.key});
-
   void _onPressed(context, currentDay, timetableModel) async {
     await showDialog(
       context: context,
@@ -125,8 +123,6 @@ class _PickerButton extends StatelessWidget {
 }
 
 class _PickerButtonText extends StatelessWidget {
-  const _PickerButtonText({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Consumer<TimetableModel>(
@@ -135,7 +131,7 @@ class _PickerButtonText extends StatelessWidget {
           fontWeight: FontWeight.w400,
           fontSize: 14,
         ),
-        TimetableModel.monthString(timetableModel.weekOfActiveDay.month)
+        TimetableLayout.monthString(timetableModel.weekOfActiveDay.month)
       )
     );
   }

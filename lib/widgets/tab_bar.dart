@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,6 @@ class MyTabBar extends StatelessWidget {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      // color: Colors.red,
       alignment: Alignment.center,
       child: 
         SizedBox(
@@ -22,7 +22,7 @@ class MyTabBar extends StatelessWidget {
               border: Border.all(width: 0.3),
             ),
             margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-            child: Consumer<TabController>(
+            child: Consumer<ViewTabController>(
               builder: (context, tabController, child) => 
               TabBar(
                 splashFactory: NoSplash.splashFactory,

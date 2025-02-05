@@ -47,7 +47,7 @@ class _WeekBarState extends State<WeekBar>{
             },
             itemBuilder: (context, page) {
               EdgeInsets padding = 
-                Provider.of<TabController>(context).index == 1 ? 
+                Provider.of<ViewTabController>(context).index == 1 ? 
                 EdgeInsets.only(left: TimetableLayout.leftMargin) : 
                 EdgeInsets.all(0);
                 
@@ -94,15 +94,15 @@ class _Weekday extends StatelessWidget {
 
   Color _weekdayItemColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    if (Provider.of<TabController>(context).index != 0) return colorScheme.surface;
-    DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
+    if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surface;
+    DateTime weekdayDate = TimetableModel.weekdayDate(page.toDouble(), weekday);
     return weekdayDate == timetableModel.activeDay ? colorScheme.inverseSurface : colorScheme.surface;
   }
 
   Color? _weekdayItemTextColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
     if (Provider.of<TabController>(context).index != 0) return null;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    DateTime weekdayDate = timetableModel.weekdayDate(page.toDouble(), weekday);
+    DateTime weekdayDate = TimetableModel.weekdayDate(page.toDouble(), weekday);
     return weekdayDate == timetableModel.activeDay ? colorScheme.onPrimary : colorScheme.onSurface;
   }
 
@@ -127,7 +127,7 @@ class _Weekday extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
-                    TimetableModel.weekdayCharacters(weekday)
+                    TimetableLayout.weekdayCharacters(weekday)
                   ),
                 ),
               ),
@@ -150,7 +150,7 @@ class _Weekday extends StatelessWidget {
                       // color: _weekdayItemTextColor(timetableModel, page, weekday),
                       fontSize: 14,
                     ),
-                    timetableModel.weekdayDate(page.toDouble(), weekday).day.toString()
+                    TimetableModel.weekdayDate(page.toDouble(), weekday).day.toString()
                   )
                 ),
               )
