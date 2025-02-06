@@ -76,9 +76,9 @@ class _WeekPageView extends StatelessWidget {
           clipBehavior: Clip.none,
           controller: Provider.of<WeekViewPageController>(context, listen: false),
           itemBuilder: (context, page) =>
-            Consumer2<TimetableModel, CurrentDay>(
-              builder: (context, timetableModel, currentDay, child) { 
-                bool pageIsCurrent = timetableModel.weekIsCurrent(page, currentDay);
+            Consumer<CurrentDay>(
+              builder: (context, currentDay, child) { 
+                bool pageIsCurrent = TimetableModel.weekIsCurrent(page, currentDay);
                 return Stack(
                   children: [
                     HourLines(size: size, pageIsCurrent: pageIsCurrent),

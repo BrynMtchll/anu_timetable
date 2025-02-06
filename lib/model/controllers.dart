@@ -41,7 +41,15 @@ class DayViewPageController extends PageController with PageLinker{
 
   @override
   bool isScrolling = true;
-  
+
+  /// When animating the [page], by default intermediate 
+  /// pages are animated. [pageOverride] is used so that the target page can be 
+  /// animated to as though it were the adjacent page and not have [page] 
+  /// mistakenly return the adjacent page instead of the target page.
+  int? pageOverride;
+
+  @override get page => pageOverride != null ? pageOverride!.toDouble() : super.page;
+
   DayViewPageController({
     super.initialPage,
     super.keepPage,
@@ -55,6 +63,27 @@ class DayViewPageController extends PageController with PageLinker{
       int newDayViewPage = TimetableModel.convertToDayPage(weekBarPageController.page!, page!);
       jumpToPage(newDayViewPage);
     }
+  }
+
+  /// Workaround to animate directly to a non adjacent day as though it were adjacent.
+  ///   1.  Set [pageOverride] to the new page,
+  ///   2.  animate to the adjacent page of the same side,
+  ///   3.  jump to the target page,
+  ///   4.  set [pageOverride] to null.
+  void animateDirectToPage(int newPage) async {
+    int adjacentPage = page!.round();
+    newPage > page! ? adjacentPage++ : adjacentPage--;
+
+    pageOverride = newPage;
+    notifyListeners();
+
+    await animateToPage(
+      adjacentPage,
+      curve: Curves.easeInOut,
+      duration: Duration(milliseconds: 350),
+    );
+    pageOverride = null;
+    jumpToPage(newPage);
   }
 }
 

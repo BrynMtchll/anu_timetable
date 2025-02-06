@@ -65,9 +65,9 @@ class _DayItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<TimetableModel, CurrentDay>(
-      builder: (context, timetableModel, currentDay, child) { 
-        bool pageIsCurrent = timetableModel.dayIsCurrent(page, currentDay);
+    return Consumer<CurrentDay>(
+      builder: (context, currentDay, child) { 
+        bool pageIsCurrent = TimetableModel.dayIsCurrent(page, currentDay);
         return Stack(
           children: [
             HourLineLabels(size: TimetableLayout.marginSize, pageIsCurrent: pageIsCurrent),
