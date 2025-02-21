@@ -5,21 +5,21 @@ import 'dart:async';
 /// Holds the current day, updated on change. This is checked every 
 /// second (but listeners are only notified upon change).
 class CurrentDay extends ChangeNotifier {
-  late DateTime value = _roundDay(DateTime.now());
+  late DateTime value = roundDay(DateTime.now());
 
   CurrentDay() {
     Timer.periodic(Duration(seconds: 1), _onTick);
   }
 
   void _onTick(Timer? timer) {
-    DateTime newValue = _roundDay(DateTime.now());
+    DateTime newValue = roundDay(DateTime.now());
     if (newValue != value) {
       value = newValue;
       notifyListeners();
     }
   }
 
-  static DateTime _roundDay(DateTime day) {
+  static DateTime roundDay(DateTime day) {
     return DateTime(day.year, day.month, day.day);
   }
 

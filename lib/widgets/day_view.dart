@@ -1,5 +1,6 @@
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/util/clippers.dart';
+import 'package:anu_timetable/widgets/event_generator.dart';
 import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,10 +25,8 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
     super.build(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        return Consumer<DayViewScrollController>(
-          builder: (context, dayViewScrollController, child) => 
-            SingleChildScrollView(
-              controller: dayViewScrollController,
+            return SingleChildScrollView(
+              controller: Provider.of<DayViewScrollController>(context, listen: false),
               child: ClipRect(
                 clipper: HorizontalClipper(),
                 child: SizedBox(
@@ -35,7 +34,6 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
                   child: _DayPageView()
                 )
               )
-            )
         );
       }
     );
@@ -68,6 +66,7 @@ class _DayItem extends StatelessWidget {
     return Consumer<CurrentDay>(
       builder: (context, currentDay, child) { 
         bool pageIsCurrent = TimetableModel.dayIsCurrent(page, currentDay);
+        DateTime day = TimetableModel.day(page.toDouble());
         return Stack(
           children: [
             HourLineLabels(size: TimetableLayout.marginSize, pageIsCurrent: pageIsCurrent),
@@ -75,6 +74,10 @@ class _DayItem extends StatelessWidget {
             Positioned(
               left: TimetableLayout.leftMargin,
               child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent),
+            ),
+            Positioned(
+              left: TimetableLayout.leftMargin,
+              child: EventGenerator(size: TimetableLayout.innerSize, day: day),
             ),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin, 

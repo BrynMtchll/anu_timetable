@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:flutter/material.dart';
 
 class TimetableLayout {
@@ -25,6 +26,8 @@ class TimetableLayout {
 
   static final Size size = Size(screenWidth, height);
 
+  static final double minuteHeight = hourHeight / 60;
+
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
     return view.physicalSize / view.devicePixelRatio;
@@ -34,6 +37,9 @@ class TimetableLayout {
     return screenSize.width;
   }
 
+  static double vertOffset(int totalMinutes) {
+    return minuteHeight * totalMinutes + vertPadding;
+  }
 
   static String weekdayCharacters(int weekday){
     switch (weekday) {

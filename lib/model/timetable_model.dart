@@ -168,10 +168,11 @@ class TimetableModel extends ChangeNotifier {
 
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   void handleWeekBarPageChanged() {
-    if (viewTabController.index == 0 && weekBarPageController.isScrolling) {
+    if (weekBarPageController.isScrolling) {
       changeDayViewPage();
-      notifyListeners();  
     }
+    notifyListeners();  
+
   }
 
   void addListeners() {
