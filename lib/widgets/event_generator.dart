@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:anu_timetable/model/events.dart';
@@ -16,23 +17,79 @@ import 'package:collection/collection.dart';
 // add bounding conditions to connected nodes not in path and remove path nodes 
 // repeat
 
+class BoundList extends ListBase<double> {
+  late List<double> l = [];
+  late List<bool> fixed = [];
+
+  BoundList(int length, double value) {
+    l = List.filled(length, value);
+    fixed = List.filled(length, false);
+  }
+
+  @override
+  set length(int newLength) { 
+    l.length = newLength; 
+    fixed.length = newLength;
+  }
+  @override
+  int get length => l.length;
+  @override
+  double operator [](int index) => l[index];
+  @override
+  void operator []=(int index, double value) { l[index] = value; }
+
+  bool exists(int index) => l[index] >= 0;
+}
+
 class Section implements Comparable {
-  final int l;
-  final int r;
+  final int start;
+  final int end;
   bool canMergeLeft;
   bool canMergeRight;
   late int length;
   late double density;
   final double width;
+  Section? left;
+  Section? right;
 
-  Section(this.width, this.l, this.r, this.canMergeLeft, this.canMergeRight) {
-    length = r - l;
+  Section({ 
+    required this.width,
+    required this.start,
+    required this.end,
+    required this.canMergeLeft,
+    required this.canMergeRight,
+    this.left,
+    this.right
+  }) {
+    length = end - start;
     density = length / width;
   }
 
   @override
   int compareTo(other) {
     return (density * 1000).toInt();
+  }
+
+  bool shouldMergeLeft() =>
+    left != null && canMergeLeft && (!canMergeRight || (canMergeRight && left!.compareTo(right) < 0));
+    
+  bool shouldMergeRight() =>
+    right != null && canMergeRight && (!canMergeLeft || (canMergeLeft && right!.compareTo(left) < 0));
+
+  static Section merge(Section a, Section b) {
+    Section newSect = Section(
+      width: a.width + b.width, 
+      start: a.start, 
+      end: b.end, 
+      canMergeLeft: a.canMergeLeft, 
+      canMergeRight: b.canMergeRight, 
+      left: a.left, 
+      right: b.right
+    );
+    a.left?.right = newSect;
+    b.right?.left = newSect;
+
+    return newSect;
   }
 }
 
@@ -46,22 +103,16 @@ class EventGenerator extends StatelessWidget {
   final DateTime day;
   const EventGenerator({super.key, required this.size, required this.day});
 
-  bool _eventsOverlap(Event a, Event b) {
-    //starttime a before endtime b
-    // and starttime b before endtime a
-
-    return a.startTime.compareTo(b.endTime) < 0
-      && b.startTime.compareTo(a.endTime) < 0;
-  }
+  bool _eventsOverlap(Event a, Event b) => 
+    a.startTime.compareTo(b.endTime) < 0 && b.startTime.compareTo(a.endTime) < 0;
 
   List<EventTileLayout> _arrangeEvents(List<Event> events) {
     events.sort((a, b) => a.startTime.compareTo(b.startTime));
     final int numEvents = events.length;
-    List<List<int>> adjList = List.empty(growable: true);
-    List<List<int>> invAdjList = List.empty(growable: true);
-    List<List<int>> eventColumns = List.empty(growable: true);
-    // print("hey");
-    List<EventTileLayout> eventTileLayouts = List.empty(growable: true);
+    List<List<int>> adjList = [];
+    List<List<int>> invAdjList = [];
+    List<List<int>> eventColumns = [];
+    List<EventTileLayout> eventTileLayouts = [];
     for (int i = 0; i < numEvents; i++) {
       adjList.add([]);
       invAdjList.add([]);
@@ -69,65 +120,36 @@ class EventGenerator extends StatelessWidget {
     }
 
     _columnEvents(events, eventColumns);
-    
-    // print("COLUMNNNSSS");
-    // for (int i = 0; i < eventColumns.length; i++) {
-    //   print("COLUMN $i");
-    //   for (final event in eventColumns[i]) {
-    //     print(event);
-    //   }
-    // }
     _constructDag(events, eventColumns, adjList, invAdjList);
-
-    // print("ADJAJCJASSS");
-    // for (int i = 0; i < eventColumns.length; i++) {
-    //   for (final event in eventColumns[i]) {
-    //     print("EVENT $event");
-    //     print(adjList[event]);
-    //     // for (int adj in adjList[event]) {
-    //     //   print(adj);
-    //     // }
-    //   }
-    // }
     _fixEvents(events, eventColumns, adjList, invAdjList, eventTileLayouts);
     return eventTileLayouts;
   }
 
   void _fixEvents(List<Event> events, List<List<int>> eventColumns, List<List<int>> adjList, List<List<int>> invAdjList, List<EventTileLayout> eventTileLayouts) {
     List<bool> fixed = List.filled(events.length, false);
-    List<double> leftBound = List.filled(events.length, -1);
-    List<double> rightBound = List.filled(events.length, -1);
-
+    BoundList leftBound = BoundList(events.length, -1);
+    BoundList rightBound = BoundList(events.length, -1);
     int numFixed = 0;
+
     while (numFixed < events.length) {
-      int longest = 0;
       List<int> longestFrom = List.filled(events.length, 1);
       List<bool> visited = List.filled(events.length, false);
-
-      //TODO store pair to avoid double looping
-      List<int> path = List.empty(growable: true);
-      for (final column in eventColumns) {
-        for (final start in column) {
-          longest = max(longest, _searchLongestPaths(start, adjList, longestFrom, visited, fixed));
-        }
-      }
+      List<int> path = [];
+      ({int length, int event}) longest = (length: 0, event: 0);
 
       for (final column in eventColumns) {
-        print("COLUMN");
         for (final event in column) {
-          print("event: $event longestfrom ${longestFrom[event]}");
-        }
-      }
-      outerLoop:
-      for (final column in eventColumns) {
-        for (final start in column) {
-          if (longest == longestFrom[start]) {
-            _pathOfLongest(start, adjList, longestFrom, path);
-            break outerLoop;
+          int result = _searchLongestPaths(event, adjList, longestFrom, visited, fixed);
+          if (result > longest.length) {
+            longest = (length: result, event: event);
           }
         }
       }
-      print("PATH: ${path}");
+
+      _pathOfLongest(longest.event, adjList, longestFrom, path);
+      
+      leftBound.fixed = List.filled(events.length, false);
+      rightBound.fixed = List.filled(events.length, false);
       _fixPath(events, path, eventTileLayouts, leftBound, rightBound);
 
       for (final event in path) {
@@ -143,7 +165,6 @@ class EventGenerator extends StatelessWidget {
     }
   }
 
-
   // priority queue of section densities
   // merge right 
   // left bound on right side - merge right
@@ -155,145 +176,100 @@ class EventGenerator extends StatelessWidget {
   // right bound less than or equal to left bound - error!
   // if equal then event would have zero width
   // take inside? - higher density - will be merged into outside
-  void _fixPath(List<Event> events, List<int> path, List<EventTileLayout> eventTileLayouts, List<double> leftBound, List<double> rightBound) {
-    List<bool> fixedlb = List.filled(events.length, false);
-    List<bool> fixedrb = List.filled(events.length, false);
-    print("heyeyyyyy");
-
-    Map<int, Section> right = {};
-    Map<int, Section> left = {};
-
-    List<Section> fixedSections = [];
-
+  void _fixPath(List<Event> events, List<int> path, List<EventTileLayout> eventTileLayouts, BoundList leftBound, BoundList rightBound) {
+    final PriorityQueue<Section> sections = PriorityQueue();
+    final List<Section> fixedSections = [];
+    Section? head;
     //fix!!!
     double totalWidth = 300;
 
-    final PriorityQueue<Section> pq = PriorityQueue();
-
     if (leftBound[path[0]] < 0) leftBound[path[0]] = 0;
     if (rightBound[path[path.length - 1]] < 0) rightBound[path[path.length - 1]] = totalWidth;
-    print(leftBound[path[0]]);
-    print(rightBound[path[path.length - 1]]);
 
-    left[0] = Section(1, 0, 0, false, false);
-    right[path.length - 1] = Section(1, 0, 0, false, false);
-
-    for (int i = 0; i < path.length; i++) {
-      if (rightBound[path[i]] < 0 || leftBound[path[i]] < 0) continue;
-      double width = rightBound[path[i]] - leftBound[path[i]];
-      Section s = Section(width, i, i, false, false);
-      left[i] = s;
-      right[i] = s;
-      pq.add(s);
-      print("adding ${s.l} ${s.r}");
+    void addSection(Section sect) {
+      head?.right = sect;
+      sect.left = head;
+      head = sect;
+      sections.add(sect);
     }
 
-    for (int r = 1, l = 0; r < path.length; r++) {
-      if (rightBound[path[r]] < 0 && leftBound[path[r]] < 0) continue;
+    for (int start = 0, end = 1; end < path.length; end++) {
+      int startEvent = path[start], endEvent = path[end];
+      if (!rightBound.exists(endEvent) && !leftBound.exists(endEvent)) continue;
 
-      double width = 0;
-      bool canMergeLeft = false, canMergeRight = false;
-
-      if (leftBound[path[r]] >= 0) {
-        width = leftBound[path[r]];
-        canMergeRight = true;
-      } else {
-        width = rightBound[path[r]];
+      if (start == end - 1 && rightBound.exists(startEvent) && leftBound.exists(startEvent)) {
+        addSection(Section(
+          width: rightBound[startEvent] - leftBound[startEvent],
+          start: start,
+          end: start, 
+          canMergeLeft: false, 
+          canMergeRight: false));
       }
 
-      if (rightBound[path[l]] >= 0) {
-        width -= rightBound[path[l]];
-        canMergeLeft = true;
-      } else {
-        width -= leftBound[path[l]];
-      }
+      double endPos = (leftBound.exists(endEvent) ? leftBound[endEvent] : rightBound[endEvent]);
+      double startPos = (rightBound.exists(startEvent) ? rightBound[startEvent] : leftBound[startEvent]);
 
-      Section s = Section(width, l, r, canMergeLeft, canMergeRight);
-      left[r] = s;
-      right[l] = s;
-      pq.add(s);
-      print("adding ${s.l} ${s.r}");
-      l = r;
+      addSection(Section(
+        width: endPos - startPos, 
+        start: start, 
+        end: end,
+        canMergeLeft: rightBound.exists(startEvent),
+        canMergeRight: leftBound.exists(endEvent)));
+
+      start = end;
     }
 
-    Section merge(Section a, Section b) =>
-      Section(a.width + b.width, a.l, b.r, a.canMergeLeft, b.canMergeRight);
-    
+    // if left merge, left must be right bound
+    // if not, left is either fixed right bound or left bound
+    // if right merge, right must be left bound
+    // if not, right is eitehr fixed left bound or right bound
 
-    // don't need a pq - just sort a list and iterate through 
-    while (pq.isNotEmpty) {
-      Section s = pq.removeFirst();
-      print("popping ${s.l} ${s.r}");
-      Section ls = left[s.l]!;
-      Section rs = right[s.r]!;
-
-      if (s.canMergeLeft && (!s.canMergeRight || (s.canMergeRight && ls.compareTo(rs) < 0))) {
-        pq.remove(ls);
-        Section newSection = merge(ls, s);
-        left[s.r] = newSection;
-        right[ls.l] = newSection;
-        right.remove(s.l); 
-        left.remove(s.l);
-      }
-      else if (s.canMergeRight && (!s.canMergeLeft || (s.canMergeLeft && rs.compareTo(ls) < 0))) {
-        pq.remove(rs);
-        Section ns = merge(s, rs);
-        right[s.l] = ns;
-        left[rs.r] = ns;
-        left.remove(s.r); 
-        right.remove(s.r);
-      }
-      // if left merge, left must be right bound
-      // if not, left is either fixed right bound or left bound
-      // if right merge, right must be left bound
-      // if not, right is eitehr fixed left bound or right bound
-
-      // left and right bound can both be fixed fir same position
-      else if (!s.canMergeLeft && !s.canMergeRight) {
-        if (s.l == s.r) {
-          fixedlb[path[s.l]] = true;
-          fixedrb[path[s.l]] = true;
+    // left and right bound can both be fixed fir same position
+    void fixSection(Section sect) {
+      if (sect.start == sect.end) {
+          leftBound.fixed[path[sect.start]] = true;
+          rightBound.fixed[path[sect.start]] = true;
         }
         else {
-          if (!fixedrb[path[s.l]] && !fixedlb[path[s.l]]) {
-            fixedlb[path[s.l]] = true;
-          }
-          if (!fixedlb[path[s.r]] && !fixedrb[path[s.r]]) {
-            fixedrb[path[s.r]] = true;
-          }
+          int startEvent = path[sect.start], endEvent = path[sect.end];
+
+          if (!rightBound.fixed[startEvent]) leftBound.fixed[startEvent] = true;
+          if (!leftBound.fixed[endEvent]) rightBound.fixed[endEvent] = true;
         }
-        fixedSections.add(s);
-        left[s.l]!.canMergeRight = false;
-        right[s.r]!.canMergeLeft = false;
-      }
+        fixedSections.add(sect);
+        sect.left?.canMergeRight = false;
+        sect.right?.canMergeLeft = false;
     }
 
+    while (sections.isNotEmpty) {
+      Section sect = sections.removeFirst();
+      if (sect.shouldMergeLeft()) {
+        sections.remove(sect.left!);
+        sections.add(Section.merge(sect.left!, sect));
+      }
+      else if (sect.shouldMergeRight()) {
+        sections.remove(sect.right!);
+        sections.add(Section.merge(sect, sect.right!));
+      }
+      else if (!sect.canMergeLeft && !sect.canMergeRight) {
+        fixSection(sect);
+      }
+    }
+    _assignLayouts(fixedSections, path, eventTileLayouts, leftBound, rightBound);
+  }
+
+  double _sectionOffset(Section s, int leftEvent, BoundList leftBound, BoundList rightBound) {
+    if (s.start == s.end) return leftBound[leftEvent];
+    return leftBound.fixed[leftEvent] ? leftBound[leftEvent] : rightBound[leftEvent];
+  }
+
+  void _assignLayouts(List<Section> fixedSections, List<int> path, List<EventTileLayout> eventTileLayouts, BoundList leftBound, BoundList rightBound) {
     for (final Section s in fixedSections) {
-      print("section: ${s.l} ${s.r}");
-      double sOffset;
-
-      if (s.l == s.r) {
-        sOffset = leftBound[path[s.l]];
-      } else {
-        if (fixedrb[path[s.l]]) {
-          sOffset = rightBound[path[s.l]];
-        } else if (fixedlb[path[s.l]]) {
-          sOffset = leftBound[path[s.l]];
-        }
-        else {
-          throw Error();
-        }
-      }
-
-      // print("path start ${path[section.l]}");
-
       final double eventWidth = s.width / (s.length+1);
-      for (int i = s.l; i <= s.r; i++) {
-        final double eventOffset = eventWidth*i + sOffset;
-        final int event = path[i];
-        eventTileLayouts[event].width = eventWidth;
-        eventTileLayouts[event].left = eventOffset;
-        print("event $event: $eventOffset ${eventWidth}");
+      final double sectionOffset = _sectionOffset(s, path[s.start], leftBound, rightBound);
+      for (int i = s.start; i <= s.end; i++) {
+        eventTileLayouts[path[i]].width = eventWidth;
+        eventTileLayouts[path[i]].left = eventWidth*i + sectionOffset;
       }
     }
   }
