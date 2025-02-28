@@ -24,13 +24,13 @@ class EventTile extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
-            "hey this is the title",
+            "Hi"
           ),
           Text(
             style: TextStyle(
               fontSize: 12,
             ),
-            "It at this building here."
+            "Hey"
           )
         ]
       )
