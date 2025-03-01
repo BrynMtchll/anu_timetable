@@ -12,6 +12,9 @@ class Event {
     required this.endTime,
     this.location,
   });
+
+  bool overlapping(Event other) => 
+    startTime.compareTo(other.endTime) < 0 && other.startTime.compareTo(endTime) < 0;
 }
 
 class EventsModel {
