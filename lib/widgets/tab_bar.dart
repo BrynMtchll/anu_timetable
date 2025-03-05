@@ -8,8 +8,8 @@ class MyTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
-
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Container(
       alignment: Alignment.center,
       child: 
@@ -19,8 +19,7 @@ class MyTabBar extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(width: 0.3),
-            ),
+              border: Border.all(width: 0.3)),
             margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
             child: Consumer<ViewTabController>(
               builder: (context, tabController, child) => 
@@ -33,16 +32,11 @@ class MyTabBar extends StatelessWidget {
                 indicator: BoxDecoration(
                   // color: const Color.fromARGB(58, 147, 148, 149),
                   borderRadius: BorderRadius.circular(2),
-                  border: Border.all(color: colorScheme.onSurface, width: 0.3)
-                ),
+                  border: Border.all(color: colorScheme.onSurface, width: 0.3)),
                 controller: tabController,
                 tabs: [
                   Tab(text: "day"),
                   Tab(text: "week"),
-                ],
-              ),
-          )
-        ))
-    );
+                ])))));
   }
 }

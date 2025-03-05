@@ -34,10 +34,8 @@ class _WeekBarState extends State<WeekBar>{
         height: TimetableLayout.weekBarHeight,
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: colorScheme.onSurface, width: 0.2)
-          ),
-        ),
-        child:  NotificationListener<UserScrollNotification>(
+            bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
+        child: NotificationListener<UserScrollNotification>(
           onNotification: Provider.of<TimetableModel>(context, listen: false).onNotification,
           child: PageView.builder(
             controller: Provider.of<WeekBarPageController>(context, listen: false),
@@ -46,29 +44,20 @@ class _WeekBarState extends State<WeekBar>{
                 .handleWeekBarPageChanged();
             },
             itemBuilder: (context, page) {
-              EdgeInsets padding = 
-                Provider.of<ViewTabController>(context).index == 1 ? 
-                EdgeInsets.only(left: TimetableLayout.leftMargin) : 
-                EdgeInsets.all(0);
-                
               return AnimatedPadding(
                 duration: Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                padding: padding,
-                child: _Week(page: page),
-              );
-            }
-          )
-        )
-      )
-    );
+                padding: Provider.of<ViewTabController>(context).index == 1 ? 
+                  EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                child: _Week(page: page));
+            }))));
   }
 }
 
 
 class _Week extends StatelessWidget {
   final int page;
-  const _Week({super.key, required this.page});
+  const _Week({required this.page});
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +69,7 @@ class _Week extends StatelessWidget {
         children: [
           for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
             _Weekday(page: page, weekday: weekday),
-        ],
-     ))
-    );
+        ])));
   }
 }
 
@@ -90,10 +77,11 @@ class _Week extends StatelessWidget {
 class _Weekday extends StatelessWidget {
   final int page;
   final int weekday;
-  const _Weekday({super.key, required this.page, required this.weekday});
+  const _Weekday({required this.page, required this.weekday});
 
   Color _weekdayItemColor(BuildContext context, TimetableModel timetableModel, int page, int weekday) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surface;
     DateTime weekdayDate = TimetableModel.weekdayDate(page.toDouble(), weekday);
     return weekdayDate == timetableModel.activeDay ? colorScheme.inverseSurface : colorScheme.surface;
@@ -108,7 +96,8 @@ class _Weekday extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Consumer<TimetableModel>(
       builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
         GestureDetector(
@@ -127,10 +116,7 @@ class _Weekday extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
-                    TimetableLayout.weekdayCharacters(weekday)
-                  ),
-                ),
-              ),
+                    TimetableLayout.weekdayCharacters(weekday)))),
               Container(
                 width: 30,
                 height: 30,
@@ -138,9 +124,7 @@ class _Weekday extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: _weekdayItemColor(context, timetableModel, page, weekday), 
-                    width: 0.5
-                  ),
-                ),
+                    width: 0.5)),
                 child: Align(
                   alignment: Alignment.center,
                   child:  Text(
@@ -148,15 +132,8 @@ class _Weekday extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                       color: colorScheme.onSurface,
                       // color: _weekdayItemTextColor(timetableModel, page, weekday),
-                      fontSize: 14,
-                    ),
-                    TimetableModel.weekdayDate(page.toDouble(), weekday).day.toString()
-                  )
-                ),
-              )
-            ],
-          )
-        )
-    );
+                      fontSize: 14),
+                    TimetableModel.weekdayDate(page.toDouble(), weekday).day.toString())))
+            ])));
   }
 }

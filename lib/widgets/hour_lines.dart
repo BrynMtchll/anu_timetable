@@ -26,12 +26,8 @@ class HourLines extends StatelessWidget {
             painter: _HourLinePainter(
               currentMinute: currentMinute,
               pageIsCurrent: pageIsCurrent,
-              context: context,
-            )
-          )
-        );
-      }
-    );
+              context: context)));
+      });
   }
 }
 
@@ -54,16 +50,9 @@ class _HourLinePainter extends CustomPainter {
    for (int hour = 0; hour < 25; hour++) {
       final vertOffset = _getVertOffset(hour);
       canvas.drawLine(
-        Offset(
-          0,
-          vertOffset
-        ), 
-        Offset(
-          size.width, 
-          vertOffset
-        ), 
-        PaintFactory.linePaint(context),
-      );
+        Offset(0, vertOffset), 
+        Offset(size.width, vertOffset), 
+        PaintFactory.linePaint(context));
     }
   }
 
@@ -95,12 +84,8 @@ class HourLineLabels extends StatelessWidget {
           painter: _HourLineLabelPainter(
             currentMinute: currentMinute,
             pageIsCurrent: pageIsCurrent,
-            context: context,
-          )
-          )
-        );
-      }
-    );
+            context: context)));
+      });
   }
 }
 
@@ -120,26 +105,21 @@ class _HourLineLabelPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    TextPainter textPainter = TextPainter(
+    final TextPainter textPainter = TextPainter(
       textAlign: TextAlign.end,
-      textDirection: TextDirection.ltr,
-    );
-
-    RRect backgroundRect = RRect.fromLTRBR(0, 0, size.width, size.height, Radius.zero);
+      textDirection: TextDirection.ltr);
+    final RRect backgroundRect = RRect.fromLTRBR(0, 0, size.width, size.height, Radius.zero);
     canvas.drawRRect(backgroundRect, PaintFactory.backgroundPaint(context));
 
     for (int hour = 0; hour < 25; hour++) {
+      // don't draw the hour label if it overlaps with the live time indicator label.
       if (currentMinute.differenceFromHour(hour) <= 15 && pageIsCurrent) continue;
-
       textPainter.text = _text(hour);
-
-      double textPaddingRight = 10.0;
+      final double textPaddingRight = 10.0;
       textPainter.layout(
         minWidth: TimetableLayout.leftMargin - textPaddingRight,
-        maxWidth: TimetableLayout.leftMargin - textPaddingRight,
-      );
+        maxWidth: TimetableLayout.leftMargin - textPaddingRight);
       final vertOffset = _getVertOffset(hour) - (textPainter.height / 2);
-    
       textPainter.paint(canvas, Offset(0, vertOffset));
     }
     canvas.drawLine(Offset(size.width, -400), Offset(size.width, size.height + 400), PaintFactory.linePaint(context));
@@ -150,16 +130,8 @@ class _HourLineLabelPainter extends CustomPainter {
   }
 
   TextSpan _text(int hour) {
-    String number;
-    String unit;
-
-    hour % 12 == 0 ?
-      number = 12.toString() :
-      number = (hour % 12).toString();
-    
-    hour >= 12 ?
-      unit = "pm":
-      unit = "am";
+    final String number = hour % 12 == 0 ? 12.toString() : (hour % 12).toString();
+    final String unit = hour >= 12 ? "pm" : "am";
 
     return TextSpan(
       children: <TextSpan>[
@@ -168,18 +140,13 @@ class _HourLineLabelPainter extends CustomPainter {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
-            fontSize: 13,
-          )
-        ),
+            fontSize: 13)),
         TextSpan(
           style: TextStyle(
             fontSize: 11,
-            color: colorScheme.onSurface,
-          ),
-          text: unit,
-        )
-      ]
-    );
+            color: colorScheme.onSurface),
+          text: unit)
+      ]);
   }
 }
 

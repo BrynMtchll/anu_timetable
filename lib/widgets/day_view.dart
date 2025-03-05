@@ -31,12 +31,8 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
                 clipper: HorizontalClipper(),
                 child: SizedBox(
                   height: TimetableLayout.height,
-                  child: _DayPageView()
-                )
-              )
-        );
-      }
-    );
+                  child: _DayPageView())));
+      });
   }
 }
 
@@ -51,8 +47,7 @@ class _DayPageView extends StatelessWidget {
       onPageChanged: (page) {
         Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
       },
-      itemBuilder: (context, page) => _DayItem(page: page)
-    );
+      itemBuilder: (context, page) => _DayItem(page: page));
   }
 }
 
@@ -73,19 +68,14 @@ class _DayItem extends StatelessWidget {
             if (pageIsCurrent) LiveTimeIndicatorLabel(size: TimetableLayout.marginSize),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent),
-            ),
+              child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent)),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child: EventGenerator(size: TimetableLayout.innerSize, day: day),
-            ),
+              child: EventGenerator(size: TimetableLayout.innerSize, day: day)),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin, 
-              child: LiveTimeIndicator(size: TimetableLayout.innerSize),
-            ),
-          ],
-        );
-      }
-    );
+              child: LiveTimeIndicator(size: TimetableLayout.innerSize)),
+          ]);
+      });
   }
 }

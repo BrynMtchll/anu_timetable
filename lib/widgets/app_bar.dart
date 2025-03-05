@@ -92,9 +92,7 @@ class _PickerButton extends StatelessWidget {
       builder:(context) => 
         _CalendarDialog(
           currentDay: currentDay, 
-          timetableModel: timetableModel
-        )
-    );
+          timetableModel: timetableModel));
   }
 
   @override
@@ -112,13 +110,8 @@ class _PickerButton extends StatelessWidget {
                 Icon(
                   Icons.arrow_drop_down,
                   color: colorScheme.onSurface,
-                  size: 20
-                )
-              ],
-            )
-          )
-        )
-    );
+                  size: 20)
+              ]))));
   }
 }
 
@@ -129,10 +122,8 @@ class _PickerButtonText extends StatelessWidget {
       builder: (context, timetableModel, child) => Text(
         style: TextStyle(
           fontWeight: FontWeight.w400,
-          fontSize: 14,
-        ),
+          fontSize: 14),
         TimetableLayout.monthString(timetableModel.weekOfActiveDay.month)
-      )
-    );
+      ));
   }
 }

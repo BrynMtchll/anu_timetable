@@ -16,12 +16,7 @@ class MyBottomNavigationBar extends StatelessWidget {
       height: 100,
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            width: 0.5,
-            color: colorScheme.onSurface
-          )
-        )
-      ),
+          top: BorderSide(width: 0.5, color: colorScheme.onSurface))),
       child: NavigationBar(
         elevation: 0,
         backgroundColor: colorScheme.surface,
@@ -36,19 +31,13 @@ class MyBottomNavigationBar extends StatelessWidget {
             label: 'Home'
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.calendar_view_week_outlined,
-            ), 
+            icon: Icon(Icons.calendar_view_week_outlined), 
             selectedIcon: Icon(Icons.calendar_view_week),
-            label: 'Timetable'
-          ),
+            label: 'Timetable'),
           NavigationDestination(
             icon: Icon(Icons.chat_bubble_outline), 
             selectedIcon: Icon(Icons.chat_bubble), 
-            label: 'Messages'
-          ),
-        ]
-      )
-    );
+            label: 'Messages'),
+        ]));
   }
 }

@@ -29,13 +29,9 @@ class _WeekViewState extends State<WeekView>{
                 children: [
                   _LeftMargin(size: TimetableLayout.marginSize),
                   _WeekPageView(size: TimetableLayout.innerSize)
-                ]
-              )
-            );
-          }
-        );
-      }
-    );
+                ]));
+          });
+      });
   }
 }
 
@@ -53,10 +49,8 @@ class _LeftMargin extends StatelessWidget {
           children: [
             HourLineLabels(size: size, pageIsCurrent: pageIsCurrent),
             if (pageIsCurrent) LiveTimeIndicatorLabel(size: size)
-          ],
-        );
-      }
-    );
+          ]);
+      });
   }
 }
 
@@ -84,12 +78,7 @@ class _WeekPageView extends StatelessWidget {
                     HourLines(size: size, pageIsCurrent: pageIsCurrent),
                     DayLines(size: size),
                     if (pageIsCurrent) LiveTimeIndicator(size: size)
-                  ],
-                );
-              }
-            )
-        )
-      )
-    );
+                  ]);
+              }))));
   }
 }

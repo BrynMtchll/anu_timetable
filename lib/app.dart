@@ -17,46 +17,36 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with SingleTickerProviderStateMixin{
-  int currentPageIndex = 0;
+  late int currentPageIndex = 0;
 
   late int dayViewInitialPage = TimetableModel.getDayPage(DateTime.now());
-  late DayViewPageController dayViewPageController;
-
   late int weekViewInitialPage = TimetableModel.getWeekPage(DateTime.now());
-  late WeekViewPageController weekViewPageController;
-
   late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(DateTime.now()));
+
+  late DayViewPageController dayViewPageController;
+  late WeekViewPageController weekViewPageController;
   late WeekBarPageController weekBarPageController;
+
+  late DayViewScrollController dayViewScrollController;
+  late WeekViewScrollController weekViewScrollController;
 
   late ViewTabController viewTabController;
 
-  late DayViewScrollController dayViewScrollController;
-
-  late WeekViewScrollController weekViewScrollController;
 
   @override
   void initState() {
     super.initState();
-    dayViewPageController = DayViewPageController(
-      initialPage: dayViewInitialPage,
-    );
-    
+
+    dayViewPageController = DayViewPageController(initialPage: dayViewInitialPage);
     weekViewPageController = WeekViewPageController(
       initialPage: weekViewInitialPage,
-      onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController),
-    );
-    weekBarPageController = WeekBarPageController(
-      initialPage: weekBarInitialPage,
-    );
-
+      onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController));
+    weekBarPageController = WeekBarPageController(initialPage: weekBarInitialPage);
     viewTabController = ViewTabController(length: 2, vsync: this);
-
     dayViewScrollController = DayViewScrollController(
-      onAttach: (_) => dayViewScrollController.matchToOther(weekViewScrollController),
-    );
+      onAttach: (_) => dayViewScrollController.matchToOther(weekViewScrollController));
     weekViewScrollController = WeekViewScrollController(
-      onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController),
-    );
+      onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController));
   }
 
   @override
@@ -98,8 +88,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             weekBarPageController: weekBarPageController,
             viewTabController: viewTabController,
             dayViewScrollController: dayViewScrollController,
-            weekViewScrollController: weekViewScrollController,
-          ), 
+            weekViewScrollController: weekViewScrollController), 
           update: (
             _, 
             dayViewPageController, 
@@ -108,8 +97,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             viewTabController, 
             dayViewScrollController,
             weekViewScrollController,
-            timetableModel
-          ) {
+            timetableModel) {
             if (timetableModel == null) throw ArgumentError.notNull('timetableModel');   
             timetableModel.dayViewPageController = dayViewPageController;
             timetableModel.weekViewPageController = weekViewPageController;
@@ -118,15 +106,13 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             timetableModel.dayViewScrollController = dayViewScrollController;
             timetableModel.weekViewScrollController = weekViewScrollController;
             return timetableModel;
-          }
-        )
+          })
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-        ),
+          useMaterial3: true),
         home: Scaffold(
           appBar: MyAppBar(),
           bottomNavigationBar: MyBottomNavigationBar(
@@ -135,15 +121,11 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
               setState(() {
                 currentPageIndex = index;
               });
-            }
-          ),
+            }),
           body: <Widget>[
             const HomePage(),
-             TimetablePage(),
+            TimetablePage(),
             const MessagesPage()
-          ][currentPageIndex]
-        )
-      ) 
-    );
+          ][currentPageIndex])));
   }
 }

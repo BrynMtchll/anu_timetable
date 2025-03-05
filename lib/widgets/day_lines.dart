@@ -17,12 +17,8 @@ class DayLines extends StatelessWidget {
       builder: (BuildContext context, CurrentMinute currentMinute, Widget? child) {
         return CustomPaint(
           size: size,
-          painter: DayLinePainter(
-            context: context,
-          )
-        );
-      }
-    );
+          painter: DayLinePainter(context: context));
+      });
   }
 }
 
@@ -43,8 +39,7 @@ class DayLinePainter extends CustomPainter {
       canvas.drawLine(
         Offset(i * dayWidth, -400), 
         Offset(i * dayWidth, size.height + 400), 
-        PaintFactory.linePaint(context),
-      );
+        PaintFactory.linePaint(context));
     }
   }
 

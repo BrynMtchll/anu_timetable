@@ -14,9 +14,7 @@ class HomePage extends StatelessWidget {
           _upcomingClasses(),
           SizedBox(height: 30),
           _freinds()
-        ],
-      )
-    );
+        ]));
   }
 
   Column _freinds() {
@@ -29,13 +27,10 @@ class HomePage extends StatelessWidget {
                 Text(
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                  "Friends"
-                ),
+                    fontSize: 20),
+                  "Friends"),
                 Text("plus icon")
-              ],
-            ),
+              ]),
             SizedBox(height: 5),
             Column(
               children: [
@@ -43,42 +38,31 @@ class HomePage extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.green,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(5))),
                 SizedBox(height: 5),
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.green,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(5))),
                 SizedBox(height: 5),
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.green,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                )
-              ],
-            ),
+                    borderRadius: BorderRadius.circular(5)))
+              ]),
             SizedBox(height: 10),
             Container(
               height: 40,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(5),
-                color: Colors.grey[20]
-              ),
+                color: Colors.grey[20]),
               child: Align(
                 alignment: Alignment.center,
-                child: Text("See All Friends")
-              )
-            )
-          ],
-        );
+                child: Text("See All Friends")))
+          ]);
   }
 
   Column _upcomingClasses() {
@@ -88,10 +72,8 @@ class HomePage extends StatelessWidget {
             Text(
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 20
-              ),
-              "Upcoming Classes"
-            ),
+                fontSize: 20),
+              "Upcoming Classes"),
             SizedBox(height: 5),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -100,29 +82,21 @@ class HomePage extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.blue,
-                    borderRadius: BorderRadius.circular(5)
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(5))),
                 SizedBox(height: 5),
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.blue,
-                    borderRadius: BorderRadius.circular(5)
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(5))),
                 SizedBox(height: 5),
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
                     color: Colors.blue,
-                    borderRadius: BorderRadius.circular(5)
-                  ),
-                )
-              ],
-            )
-          ]
-        );
+                    borderRadius: BorderRadius.circular(5)))
+              ])
+          ]);
   }
 
   Row _profile() {
@@ -133,9 +107,7 @@ class HomePage extends StatelessWidget {
               width: 50,
               decoration: BoxDecoration(
                 color: Colors.red,
-                borderRadius: BorderRadius.circular(30)
-              ),
-            ),
+                borderRadius: BorderRadius.circular(30))),
             Padding(
               padding: EdgeInsets.only(left: 10),
               child: Column(
@@ -144,16 +116,10 @@ class HomePage extends StatelessWidget {
                   Text(
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                    "Brynly Mitchell"
-                  ),
-
+                      fontSize: 18),
+                    "Brynly Mitchell"),
                   Text("u7088495@anu.edu.au"),
-                ]
-              )
-            )
-          ],
-        );
+                ]))
+          ]);
   }
 }

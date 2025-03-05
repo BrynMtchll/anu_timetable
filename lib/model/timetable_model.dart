@@ -77,7 +77,6 @@ class TimetableModel extends ChangeNotifier {
   /// naming [DateTime.weekday] to represent the weekday index.
   static DateTime weekdayDate(double weekBarPage, int weekday) => 
     week(weekBarPage).add(Duration(days: weekday - 1));
-  
 
   static int convertToDayPage(double weekPage, double dayPage) {
     int weekday = day(dayPage).weekday;
@@ -171,19 +170,16 @@ class TimetableModel extends ChangeNotifier {
     if (weekBarPageController.isScrolling) {
       changeDayViewPage();
     }
-    notifyListeners();  
-
+    notifyListeners();
   }
 
   void addListeners() {
     weekViewPageController.addListener(() {
       weekBarPageController.matchToOther(weekViewPageController);
     });
-
     weekBarPageController.addListener(() {
       weekViewPageController.matchToOther(weekBarPageController);
     });
-
     viewTabController.addListener(() {
       viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
       dayViewPageController.syncToOther(weekBarPageController);

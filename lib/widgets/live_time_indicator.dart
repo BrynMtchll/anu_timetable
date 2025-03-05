@@ -24,10 +24,8 @@ class LiveTimeIndicator extends StatelessWidget {
             currentSecond: currentSecond,
             context: context,
             weekViewActive: weekViewActive,
-          ),
-        );
-      }
-    );
+          ));
+      });
   }
 }
 
@@ -58,28 +56,26 @@ class _LiveTimePainter extends CustomPainter {
     }
   }
 
-  /// paints the 
   void _paintForWeekView(canvas, size, vertOffset, paint) {
-    int currentWeekday = currentSecond.value.weekday;
+    //paint the live time time indicator line across the current day.
+    final int currentWeekday = currentSecond.value.weekday;
+    final double dayWidth = size.width / 7;
+    final Offset currp1 = Offset((currentWeekday - 1) * dayWidth, vertOffset);
+    final Offset currp2 = Offset(currentWeekday * dayWidth, vertOffset);
+    canvas.drawLine(currp1, currp2, paint);
 
-    double dayWidth = size.width / 7;
-    
-      paint.strokeWidth = PaintFactory.liveLineStrokeWidth/2;
-      Offset p1 = Offset(0, vertOffset);
-      Offset p2 = Offset(size.width, vertOffset);
-      canvas.drawLine(p1, p2, paint);
-
-      paint.strokeWidth = PaintFactory.liveLineStrokeWidth;
-      Offset currp1 = Offset((currentWeekday - 1) * dayWidth, vertOffset);
-      Offset currp2 = Offset(currentWeekday * dayWidth, vertOffset);
-      canvas.drawLine(currp1, currp2, paint);
-    
+    // paint the live time indicator line across the whole week 
+    // half the thickness as for across the current day.
+    final Offset p1 = Offset(0, vertOffset);
+    final Offset p2 = Offset(size.width, vertOffset);
+    paint.strokeWidth = PaintFactory.liveLineStrokeWidth/2;
+    canvas.drawLine(p1, p2, paint);
   }
 
   void _paintForDayView(canvas, size, vertOffset, paint) {
-    Offset p1 = Offset(0, vertOffset);
-      Offset p2 = Offset(size.width, vertOffset);
-      canvas.drawLine(p1, p2, paint);
+    final Offset p1 = Offset(0, vertOffset);
+    final Offset p2 = Offset(size.width, vertOffset);
+    canvas.drawLine(p1, p2, paint);
   }
 
   @override
@@ -99,21 +95,16 @@ class LiveTimeIndicatorLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CurrentSecond>(
       builder: (BuildContext context, CurrentSecond currentSecond, Widget? child) {
-
         return CustomPaint(
           size: size,
           painter: _LiveTimeLabelPainter(
             currentSecond: currentSecond,
-            context: context,
-          ),
-        );
-      }
-    );
+            context: context));
+      });
   }
 }
 
 class _LiveTimeLabelPainter extends CustomPainter {
-
   final CurrentSecond currentSecond;
   final BuildContext context;
   late ColorScheme colorScheme;
@@ -127,31 +118,23 @@ class _LiveTimeLabelPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double vertOffset = _liveTimeVertOffset(size, currentSecond);
-
-    double textPaddingRight = 10.0;
-    TextPainter textPainter = TextPainter(
+    final double textPaddingRight = 10.0;
+    final TextPainter textPainter = TextPainter(
       text: _liveTimeLabelText(),
       textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    )
+      textDirection: TextDirection.ltr)
       ..layout(
         minWidth: 0,
-        maxWidth: size.width,
-      );
-
-    double horzOffset = TimetableLayout.leftMargin - textPainter.width - textPaddingRight;
-
-    Paint paint = Paint()
-      ..color = colorScheme.primary;
-
-    RRect rect = RRect.fromLTRBR(
+        maxWidth: size.width);
+    final double vertOffset = _liveTimeVertOffset(size, currentSecond);
+    final double horzOffset = TimetableLayout.leftMargin - textPainter.width - textPaddingRight;
+    final Paint paint = Paint()..color = colorScheme.primary;
+    final RRect rect = RRect.fromLTRBR(
         horzOffset - (textPaddingRight / 2), 
         vertOffset - 10, 
         horzOffset + textPainter.width + (textPaddingRight / 2), 
         vertOffset + 10, 
-        Radius.circular(5.0)
-      );
+        Radius.circular(5.0));
     canvas.drawRRect(rect, paint);
     textPainter.paint(canvas, Offset(horzOffset, vertOffset - (textPainter.height / 2)));
   }
@@ -162,9 +145,7 @@ class _LiveTimeLabelPainter extends CustomPainter {
       style: TextStyle(
         fontWeight: FontWeight.bold,
         color: colorScheme.onInverseSurface,
-        fontSize: 11,
-      )
-    );
+        fontSize: 11));
   }
 
   @override

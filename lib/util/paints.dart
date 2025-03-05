@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class PaintFactory {
-
   static const liveLineStrokeWidth = 1.5;
 
   static Paint linePaint(context) => 
