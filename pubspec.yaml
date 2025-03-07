@@ -40,6 +40,7 @@ dependencies:
   linked_scroll_controller: ^0.2.0
   calendar_date_picker2: ^1.1.8
   collection: ^1.19.1
+  checks: ^0.3.0
 
 dev_dependencies:
   flutter_test:

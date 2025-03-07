@@ -18,7 +18,9 @@ class Section implements Comparable {
   late int length;
   late double density;
   final double width;
+  // null for the first section of a path.
   Section? left;
+  // null For the last section of a path.
   Section? right;
 
   Section({ 
@@ -39,9 +41,21 @@ class Section implements Comparable {
     return (density * 1000).toInt();
   }
 
+  /// A section should merge left if it can merge left but no right, or it can merge left 
+  /// and right but [left] has a lower density than [right].
+  ///
+  /// A section [canMergeLeft] if a section if [left] is not null, 
+  /// i.e. it is not the leftmost section, if [left] is not already fixed, and if the shared bound
+  /// between it and [left] is a right bound. 
   bool shouldMergeLeft() =>
     left != null && canMergeLeft && (!canMergeRight || (canMergeRight && left!.compareTo(right) < 0));
-    
+
+  /// A section should merge right if it can merge right but no left, or it can merge right 
+  /// and left but [right] has a lower density than [left].
+  ///
+  /// A section [canMergeRight] if a section if [right] is not null, 
+  /// i.e. it is not the leftmost section, if [right] is not already fixed, and if the shared bound
+  /// between it and [right] is a left bound. 
   bool shouldMergeRight() =>
     right != null && canMergeRight && (!canMergeLeft || (canMergeLeft && right!.compareTo(left) < 0));
 
@@ -77,7 +91,7 @@ class EventTileArranger {
     events.sort((a, b) => a.startTime.compareTo(b.startTime));
 
     List<List<int>> columns = assignColumns();
-    var (adjList, invAdjList) = constructGraph(columns);
+    var (adjList, invAdjList) = buildGraph(columns);
     return fixLayouts(columns, adjList, invAdjList);
   }
 
@@ -125,25 +139,20 @@ class EventTileArranger {
     return overlapCounts;
   }
 
-  /// Assigns events to columns, which denote their relative position
-  /// to other events. 
-  /// Returns a 2d list representation of the columns.
+  /// Assigns events to columns, which denote their relative position to other events. 
+  /// Returns a list of the columns.
   /// 
-  /// Events that overlap with a greater number of other events impose more 
-  /// constraints on the overall arrangement than those with less. Such events 
-  /// resultantly a greater effect of gridlocking the arrangement as they're
-  /// positioned more centrally in relation to other events, producing a 
-  /// suboptimal arrangement. 
-  /// As such, events with most overlaps are assigned to the outermost 
-  /// columns, and those with the least at the centremost. 
+  /// The constraints an event has on the arrangement is proportional to the 
+  /// number of overlaps an event has and how centrally it is placed.
+  /// So, events with the most overlaps are assigned to the outermost columns.
   /// 
-  /// Events are processed in order of their number of overlaps. Each is 
-  /// assigned to the first column that doesn't contain any overlapping
-  /// events, starting from either the left or the right side.
+  /// In the order of the overlap count, found by [countOverlaps], each event is 
+  /// assigned to the outermost column that doesn't contain any other overlapping
+  /// events, using [findFirstFreeColumn]. If none is found, a new innermost column
+  /// is added (within [findFirstFreeColumn]). 
   /// 
-  /// The left and right sides are maintained seperately so that they 
-  /// can be efficiently grown inwards as necessary. They are 
-  /// then joined and returned once all events have been added.
+  /// The left and right column groups are maintained seperately so that this 
+  /// can be done efficiently. They are joined and returned once all events have been added.
   List<List<int>> assignColumns() {
     List<({int count, int event})> overlapCounts = countOverlaps();
     List<List<int>> columns = [];
@@ -159,44 +168,21 @@ class EventTileArranger {
         rightColumns[rightCol].add(event);
       }
     }
-
-    // Append the columns built out from the right side onto the left side.
+    // Append the right side columns to the left side columns.
     for (int i = rightColumns.length - 1; i >= 0; i--) {
       columns.add(rightColumns[i]);
     }
     return columns;
   }
 
-  // connect all overlapping exactly once, directly or indirectly
-  // check reachable - add to left adjacent column, dfs from first columns 
-
-  /// Constructs a DAG (Directed Acyclic Graph) representation of the columned events going 
-  /// left to right.
-  /// Returns the adjacency list and the inverse adjacency list for this graph.
-  /// 
-  /// All overlaping event pairs are minimally connected; an edge is added between an event 
-  /// pair if they are overlapping and not already connected.
-  /// Subgraphs are disconnected wherever there is a span of time which no events lie over. 
-  /// The graph is directed from left to right. An inverse graph is also constructed for managing
-  /// constraints in [fixLayouts].
-  /// 
-  /// For each event, the events that are to the left and overlapping are iterated through and connected.
-  /// Edges are added between overlapping event pairs in the order of the proximity of their columns,
-  /// starting with those nearest, in order to minimise duplicate paths.
-  (List<List<int>> adjList, List<List<int>> invAdjList) constructGraph(List<List<int>> columns) {
-    List<List<int>> adjList = [];
-    List<List<int>> invAdjList = [];
-    // List for each event of events overlapping and to the left of that event.
+  /// For each event, constructs a list of overlapping events with that event
+  /// that are in a column to its left.
+  /// Returns the collection of these lists.
+  List<List<int>> collectLeftOverlaps(List<List<int>> columns) {
     List<List<int>> leftOverlaps = [];
-    // List for each event of events connected to that event.
-    List<List<bool>> connected = [];
     for (int i = 0; i < events.length; i++) {
-      adjList.add([]);
-      invAdjList.add([]);
       leftOverlaps.add([]);
-      connected.add(List.filled(events.length, false));
     }
-
     // Construct leftOverlaps so that the events are sorted in order of column proximity. 
     for (int i = 0; i < columns.length; i++) {
       for (int event in columns[i]) {
@@ -208,6 +194,38 @@ class EventTileArranger {
           }
         }
       }
+    }
+    return leftOverlaps;
+  }
+
+  /// Constructs a DAG (Directed Acyclic Graph) representation of the columned events going 
+  /// left to right.
+  /// Returns the adjacency list and the inverse adjacency list for this graph.
+  /// 
+  /// All overlaping event pairs are minimally connected; an edge is added between an event 
+  /// pair if they are overlapping and not already connected.
+  /// 
+  /// Subgraphs are disconnected wherever there is a span of time which no events lie over.
+  ///  
+  /// The graph is directed from left to right. An inverse graph is also constructed for managing
+  /// constraints in [fixLayouts].
+  /// 
+  /// For each event, the events that are to the left and overlapping, as obtained from 
+  /// [collectLeftOverlaps], are iterated through and connected.
+  /// 
+  /// Edges are added between overlapping event pairs in the order of the proximity of their columns,
+  /// starting with those nearest, in order to minimise duplicate paths.
+  (List<List<int>> adjList, List<List<int>> invAdjList) buildGraph(List<List<int>> columns) {
+    List<List<int>> adjList = [];
+    List<List<int>> invAdjList = [];
+    List<List<int>> leftOverlaps = collectLeftOverlaps(columns);
+    // List for each event of events connected, i.e. reachable through the graph, to that event.
+    List<List<bool>> connected = [];
+
+    for (int i = 0; i < events.length; i++) {
+      adjList.add([]);
+      invAdjList.add([]);
+      connected.add(List.filled(events.length, false));
     }
     // For each event, connect each overlapping event on it's left to it.
     for (int i = 1; i < columns.length; i++) {
@@ -230,51 +248,59 @@ class EventTileArranger {
     return (adjList, invAdjList);
   }
 
-  /// Recursively traces the longest path from [curr] as denoted by [longestFrom]
+  /// Recursively traces the longest path from [curr] as denoted by [maxLengthFrom]
   /// and appends it to [path].
-  void buildPathOfLongest(int curr, List<List<int>> adjList, List<int> longestFrom, List<int> path) {
+  void traceLongestPath(int curr, List<List<int>> adjList, List<int> maxLengthFrom, List<int> path) {
     path.add(curr);
     for (int adj in adjList[curr]) {
-      if (longestFrom[adj] == longestFrom[curr] - 1) {
-        buildPathOfLongest(adj, adjList, longestFrom, path);
+      if (maxLengthFrom[adj] == maxLengthFrom[curr] - 1) {
+        traceLongestPath(adj, adjList, maxLengthFrom, path);
         break;
       }
     }
   }
 
-  /// Determines the length of the longest path from each node (event) and stores it in [longestFrom].
+  /// Determines the length of the longest path from each node (event) and stores it in [maxLengthFrom].
   /// Returns the length of the longest path from [curr].
-  int searchLongestPaths(int curr, List<List<int>> adjList, List<int> longestFrom, List<bool> visited, List<bool> fixed) {
+  int findMaxLengthFrom(int curr, List<List<int>> adjList, List<int> maxLengthFrom, List<bool> visited, List<bool> fixed) {
     if (fixed[curr]) {
-      longestFrom[curr] = -1;
+      maxLengthFrom[curr] = -1;
       return -1;
     }
-    if (visited[curr]) return longestFrom[curr];
+    if (visited[curr]) return maxLengthFrom[curr];
     visited[curr] = true;
 
     for (int adj in adjList[curr]) {
-      longestFrom[curr] = max(longestFrom[curr], searchLongestPaths(adj, adjList, longestFrom, visited, fixed) + 1);
+      maxLengthFrom[curr] = max(maxLengthFrom[curr], findMaxLengthFrom(adj, adjList, maxLengthFrom, visited, fixed) + 1);
     }
-    return longestFrom[curr];
+    return maxLengthFrom[curr];
   }
 
   /// Finds and returns the longest path in the graph of so far unfixed events.
+  /// 
+  /// The root with the max path length starting from it is found using [findMaxLengthFrom],
+  /// which also stores the max path length from each node it visits in maxLengthFrom.
+  /// [traceLongestPath] then traces the longest path using maxLengthFrom.
   List<int> getLongestPath(List<List<int>> columns, List<List<int>> adjList, List<bool> fixed) {
-    List<int> longestFrom = List.filled(events.length, 1);
+    List<int> maxLengthFrom = List.filled(events.length, 1);
     List<bool> visited = List.filled(events.length, false);
-    ({int length, int startEvent}) longest = (length: 0, startEvent: 0);
+    ({int length, int root}) longest = (length: 0, root: 0);
 
+    // Consider all unfixed roots.
+    // By starting the scan from the leftmost column it's maintained that
+    // if an event has not been visited then it is a root. 
     for (final column in columns) {
-      for (final start in column) {
-        final longestFromEvent = searchLongestPaths(start, adjList, longestFrom, visited, fixed);
-        if (longestFromEvent > longest.length) {
-          longest = (length: longestFromEvent, startEvent: start);
+      for (final root in column) {
+        // This is also checked in findMaxLengthFrom but checking here saves possibly redundant steps.
+        if (visited[root]) continue;
+        final maxLengthFromEvent = findMaxLengthFrom(root, adjList, maxLengthFrom, visited, fixed);
+        if (maxLengthFromEvent > longest.length) {
+          longest = (length: maxLengthFromEvent, root: root);
         }
       }
     }
-    
     List<int> path = [];
-    buildPathOfLongest(longest.startEvent, adjList, longestFrom, path);
+    traceLongestPath(longest.root, adjList, maxLengthFrom, path);
     return path;
   }
 
@@ -283,12 +309,33 @@ class EventTileArranger {
   // right bound on left side - merge left
   // left bound on left side or right bound on right side - fixed
 
-  // back edge for right bound
-  // left and right bound on same event
-  // right bound less than or equal to left bound - error!
-  // if equal then event would have zero width
-
-  // DONE
+  /// Creates the initial sections of the path. This is the first step in
+  /// fixing the [path].
+  /// Returns a [PriorityQueue] of the created sections. 
+  /// 
+  /// The [path] is divided into [Section]s according to the constraints imposed
+  /// by already fixed events, given in [bounds]. 
+  /// 
+  /// A section is created for every pair of neighbouring bounds. 
+  /// Sections are contiguous across bounds and non-overlapping.
+  /// Sections also minimally span 1 node and collectively encompass the whole path.
+  /// 
+  /// Both a left and right bound may exist on a single node. In this case,
+  /// the left bound will be the right edge of the left section, 
+  /// the right bound will be the left edge of the right a section,
+  /// and a section will be created between those bounds spanning just that node.
+  ///
+  /// EXAMPLE
+  /// ```
+  ///           L        L R    L        R    R    L 
+  /// bounds:   |        | |    |        |    |    |    
+  /// nodes:    01   02   03   04   05   06   07   08
+  /// sections: |--------|-|----|---------|----|----|
+  ///                A    B   C      D       E    F
+  /// ```
+  /// Sections are merged out of order in [mergeSections]. 
+  /// So that a section may be merged into its neighbours, a linked list is implicitly
+  /// maintained via [Section.left] and [Section.right].
   PriorityQueue<Section> createSections(List<int> path, Bounds bounds) {
     Section? head;
     PriorityQueue<Section> sections = PriorityQueue();
@@ -299,10 +346,10 @@ class EventTileArranger {
       head = sect;
       sections.add(sect);
     }
-
     for (int start = 0, end = 1; end < path.length; end++) {
       final startEvent = path[start], endEvent = path[end];
 
+      // case where both a left and right bound exist for a single node. 
       if (start == end - 1 && boundExists(bounds.right[startEvent]) && boundExists(bounds.left[startEvent])) {
         addSection(Section(
           width: bounds.right[startEvent] - bounds.left[startEvent],
@@ -348,7 +395,22 @@ class EventTileArranger {
     sect.right?.canMergeLeft = false;
   }
 
-  // DONE
+  /// Merges [sections] into one another so that [Section.density] is minimised, 
+  /// i.e. width is optimally distributed between the [path] nodes. 
+  /// Returns the merged sections. 
+  /// 
+  /// [Section.density] denotes the ratio between the number of nodes and the 
+  /// available width of the section. The [sections] are ordered by their densiities
+  /// from highest to lowest.
+  /// 
+  /// Each section in [sections], starting with that with the highest density, is removed
+  /// and merged with a neighbouring section if possible and preffered, as given by 
+  /// [Section.shouldMergeLeft] and [Section.shouldMergeRight]. The neighbour to be merged 
+  /// with is also removed from [sections] and the new merged section is inserted. 
+  /// If neither side can be merged with, then the section is fixed via [fixSection], meaning it cannot be 
+  /// merged into by its neighbours. 
+  /// 
+  /// Once all sections are fixed, the list of fixed sections are returned. 
   List<Section> mergeSections(PriorityQueue<Section> sections, List<int> path, BindsPath bindsPath) {
     final List<Section> fixedSections = [];
 
@@ -401,6 +463,11 @@ class EventTileArranger {
   }
 
   // DONE
+
+  /// Once an event has been fixed, [EventTileLayout.left] becomes a right bound 
+  /// to events left adjacent to it, as found in [invAdjList], and it's right position 
+  /// ([EventTileLayout.left] + [EventTileLayout.width]) becomes a left bound to events right 
+  /// adjacent to it, as found in [adjList].
   List<EventTileLayout> fixLayouts(List<List<int>> columns, List<List<int>> adjList, List<List<int>> invAdjList) {
     final List<EventTileLayout> eventTileLayouts = [];
     final List<bool> fixed = List.filled(events.length, false);
