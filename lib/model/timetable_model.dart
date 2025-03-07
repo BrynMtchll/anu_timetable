@@ -17,15 +17,12 @@ class TimetableModel extends ChangeNotifier {
   /// They're controllers are managed here so as to decouple them 
   /// from one another. 
   late DayViewPageController dayViewPageController;
-
   late WeekViewPageController weekViewPageController;
-
   late WeekBarPageController weekBarPageController;
 
   late ViewTabController viewTabController;
 
   late DayViewScrollController dayViewScrollController;
-
   late WeekViewScrollController weekViewScrollController;
 
   late DateTime _persistedActiveDay = CurrentDay().value;

@@ -5,7 +5,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 typedef Bounds = ({List<double> left, List<double> right});
-typedef BindsPath = ({List<bool> left, List<bool> right});
 typedef EventTileLayout = ({double left, double width});
 
 /// a section of a path in the graph derived from the visual ordering of event tiles.
@@ -13,11 +12,12 @@ typedef EventTileLayout = ({double left, double width});
 class Section implements Comparable {
   final int start;
   final int end;
-  bool canMergeLeft;
-  bool canMergeRight;
+  bool canCoalesceLeft;
+  bool canCoalesceRight;
   late int length;
   late double density;
   final double width;
+  double startPos;
   // null for the first section of a path.
   Section? left;
   // null For the last section of a path.
@@ -25,10 +25,11 @@ class Section implements Comparable {
 
   Section({ 
     required this.width,
+    required this.startPos,
     required this.start,
     required this.end,
-    required this.canMergeLeft,
-    required this.canMergeRight,
+    required this.canCoalesceLeft,
+    required this.canCoalesceRight,
     this.left,
     this.right
   }) {
@@ -41,32 +42,35 @@ class Section implements Comparable {
     return (density * 1000).toInt();
   }
 
-  /// A section should merge left if it can merge left but no right, or it can merge left 
+  /// A section should coalesce left if it can coalesce left but no right, or it can coalesce left 
   /// and right but [left] has a lower density than [right].
   ///
-  /// A section [canMergeLeft] if a section if [left] is not null, 
-  /// i.e. it is not the leftmost section, if [left] is not already fixed, and if the shared bound
-  /// between it and [left] is a right bound. 
-  bool shouldMergeLeft() =>
-    left != null && canMergeLeft && (!canMergeRight || (canMergeRight && left!.compareTo(right) < 0));
+  /// A section [canCoalesceLeft] if:
+  ///   1. [left] is not null, i.e. it is not the leftmost section, 
+  ///   2. [left] is not already fixed,
+  ///   3. the shared bound between it and [left] is a right bound. 
+  bool shouldCoalsceLeft() =>
+    left != null && canCoalesceLeft && (!canCoalesceRight || (canCoalesceRight && left!.compareTo(right) < 0));
 
-  /// A section should merge right if it can merge right but no left, or it can merge right 
+  /// A section should coalesce right if it can coalesce right but not left, or it can coalesce right 
   /// and left but [right] has a lower density than [left].
   ///
-  /// A section [canMergeRight] if a section if [right] is not null, 
-  /// i.e. it is not the leftmost section, if [right] is not already fixed, and if the shared bound
-  /// between it and [right] is a left bound. 
-  bool shouldMergeRight() =>
-    right != null && canMergeRight && (!canMergeLeft || (canMergeLeft && right!.compareTo(left) < 0));
+  /// A section [canCoalesceRight] if 
+  ///   1. [right] is not null, i.e. it is not the leftmost section, 
+  ///   2. [right] is not already fixed, 
+  ///   3. the shared bound between it and [right] is a left bound. 
+  bool shouldCoalesceRight() =>
+    right != null && canCoalesceRight && (!canCoalesceLeft || (canCoalesceLeft && right!.compareTo(left) < 0));
 
-  static Section merge(Section a, Section b) {
+  static Section coalesce(Section a, Section b) {
     Section newSect = Section(
       width: a.width + b.width, 
-      start: a.start, 
-      end: b.end, 
-      canMergeLeft: a.canMergeLeft, 
-      canMergeRight: b.canMergeRight, 
-      left: a.left, 
+      startPos: a.startPos,
+      start: a.start,
+      end: b.end,
+      canCoalesceLeft: a.canCoalesceLeft,
+      canCoalesceRight: b.canCoalesceRight,
+      left: a.left,
       right: b.right
     );
     a.left?.right = newSect;
@@ -304,11 +308,6 @@ class EventTileArranger {
     return path;
   }
 
-  // priority queue of section densities
-  // left bound on right side - merge right
-  // right bound on left side - merge left
-  // left bound on left side or right bound on right side - fixed
-
   /// Creates the initial sections of the path. This is the first step in
   /// fixing the [path].
   /// Returns a [PriorityQueue] of the created sections. 
@@ -320,10 +319,11 @@ class EventTileArranger {
   /// Sections are contiguous across bounds and non-overlapping.
   /// Sections also minimally span 1 node and collectively encompass the whole path.
   /// 
-  /// Both a left and right bound may exist on a single node. In this case,
-  /// the left bound will be the right edge of the left section, 
-  /// the right bound will be the left edge of the right a section,
-  /// and a section will be created between those bounds spanning just that node.
+  /// Both a left and right bound may exist on a single node. 
+  /// In this case,
+  ///   - The left bound will be the end of the left section
+  ///   - The right bound will be the start of the right a section
+  ///   - A section will be created between those bounds spanning just that node
   ///
   /// EXAMPLE
   /// ```
@@ -333,9 +333,15 @@ class EventTileArranger {
   /// sections: |--------|-|----|---------|----|----|
   ///                A    B   C      D       E    F
   /// ```
-  /// Sections are merged out of order in [mergeSections]. 
-  /// So that a section may be merged into its neighbours, a linked list is implicitly
+  /// Sections are coalesced out of order in [coalesceSections]. 
+  /// So that a section may be coalesced into its neighbours, a linked list is implicitly
   /// maintained via [Section.left] and [Section.right].
+  /// 
+  /// Initial coalescability:
+  ///   - left bound on right side: __can__ merge right
+  ///   - right bound on right side: __cannot__ merge right
+  ///   - right bound on left side: __can__ merge left
+  ///   - left bound on left side: __cannot__ merge left
   PriorityQueue<Section> createSections(List<int> path, Bounds bounds) {
     Section? head;
     PriorityQueue<Section> sections = PriorityQueue();
@@ -353,79 +359,60 @@ class EventTileArranger {
       if (start == end - 1 && boundExists(bounds.right[startEvent]) && boundExists(bounds.left[startEvent])) {
         addSection(Section(
           width: bounds.right[startEvent] - bounds.left[startEvent],
+          startPos: bounds.left[startEvent],
           start: start,
-          end: start, 
-          canMergeLeft: false, 
-          canMergeRight: false));
+          end: start,
+          canCoalesceLeft: false,
+          canCoalesceRight: false));
       }
       if (boundExists(bounds.right[endEvent]) || boundExists(bounds.left[endEvent])) {
         final endPos = boundExists(bounds.left[endEvent]) ? bounds.left[endEvent] : bounds.right[endEvent];
         final startPos = boundExists(bounds.right[startEvent]) ? bounds.right[startEvent] : bounds.left[startEvent];
         addSection(Section(
-          width: endPos - startPos, 
-          start: start, 
+          width: endPos - startPos,
+          startPos: startPos,
+          start: start,
           end: end,
-          canMergeLeft: boundExists(bounds.right[startEvent]),
-          canMergeRight: boundExists(bounds.left[endEvent])));
+          canCoalesceLeft: boundExists(bounds.right[startEvent]),
+          canCoalesceRight: boundExists(bounds.left[endEvent])));
         start = end;
       }
     }
     return sections;
   }
 
-  // if left merge, left must be right bound
-  // if not, left is either fixed right bound or left bound
-  // if right merge, right must be left bound
-  // if not, right is eitehr fixed left bound or right bound
-
-  // left and right bound can both be fixed fir same position
-  // DONE
-  void fixSection(Section sect, List<int> path, BindsPath bindsPath) {
-    final startEvent = path[sect.start], endEvent = path[sect.end];
-
-    if (sect.start == sect.end) {
-        bindsPath.left[startEvent] = true;
-        bindsPath.right[startEvent] = true;
-    }
-    else {
-      if (!bindsPath.right[startEvent]) bindsPath.left[startEvent] = true;
-      if (!bindsPath.left[endEvent]) bindsPath.right[endEvent] = true;
-    }
-    sect.left?.canMergeRight = false;
-    sect.right?.canMergeLeft = false;
-  }
-
-  /// Merges [sections] into one another so that [Section.density] is minimised, 
-  /// i.e. width is optimally distributed between the [path] nodes. 
-  /// Returns the merged sections. 
+  /// Coalesces [sections] into one another so that [Section.density] is minimised, 
+  /// i.e. available width is optimally distributed between the [path] nodes. 
+  /// Returns the fully coalesced sections. 
   /// 
   /// [Section.density] denotes the ratio between the number of nodes and the 
-  /// available width of the section. The [sections] are ordered by their densiities
-  /// from highest to lowest.
+  /// available width of the section. 
   /// 
-  /// Each section in [sections], starting with that with the highest density, is removed
-  /// and merged with a neighbouring section if possible and preffered, as given by 
-  /// [Section.shouldMergeLeft] and [Section.shouldMergeRight]. The neighbour to be merged 
-  /// with is also removed from [sections] and the new merged section is inserted. 
-  /// If neither side can be merged with, then the section is fixed via [fixSection], meaning it cannot be 
-  /// merged into by its neighbours. 
+  /// The [sections] are ordered by their densiities from highest to lowest.
+  /// 
+  /// Until all sections cannot coalesce further, the highest density coalesceable section is 
+  /// coalesced into one of its coalesceable neighbours according to [Section.shouldCoalsceLeft] 
+  /// and [Section.shouldCoalesceRight].
+  /// If neither side can be coalesced with, then the section is made fixed, i.e. no 
+  /// longer coalesceable.
   /// 
   /// Once all sections are fixed, the list of fixed sections are returned. 
-  List<Section> mergeSections(PriorityQueue<Section> sections, List<int> path, BindsPath bindsPath) {
+  List<Section> coalesceSections(PriorityQueue<Section> sections, List<int> path) {
     final List<Section> fixedSections = [];
 
     while (sections.isNotEmpty) {
       Section sect = sections.removeFirst();
-      if (sect.shouldMergeLeft()) {
+      if (sect.shouldCoalsceLeft()) {
         sections.remove(sect.left!);
-        sections.add(Section.merge(sect.left!, sect));
+        sections.add(Section.coalesce(sect.left!, sect));
       }
-      else if (sect.shouldMergeRight()) {
+      else if (sect.shouldCoalesceRight()) {
         sections.remove(sect.right!);
-        sections.add(Section.merge(sect, sect.right!));
+        sections.add(Section.coalesce(sect, sect.right!));
       }
-      else if (!sect.canMergeLeft && !sect.canMergeRight) {
-        fixSection(sect, path, bindsPath);
+      else if (!sect.canCoalesceLeft && !sect.canCoalesceRight) {
+        sect.left?.canCoalesceRight = false;
+        sect.right?.canCoalesceLeft = false;
         fixedSections.add(sect);
       }
     }
@@ -433,19 +420,12 @@ class EventTileArranger {
   }
 
   // DONE
-  double getSectionOffset(Section sect, int leftEvent, Bounds bounds, BindsPath bindsPath) {
-    if (sect.start == sect.end) return bounds.left[leftEvent];
-    return bindsPath.left[leftEvent] ? bounds.left[leftEvent] : bounds.right[leftEvent];
-  }
-
-  // DONE
-  void fixPathLayouts(List<Section> fixedSections, List<int> path, List<EventTileLayout> eventTileLayouts, Bounds bounds, BindsPath bindsPath) {
+  void fixPathLayouts(List<Section> fixedSections, List<int> path, List<EventTileLayout> eventTileLayouts, Bounds bounds) {
     for (final Section sect in fixedSections) {
       final eventWidth = sect.width / (sect.length+1);
-      final sectOffset = getSectionOffset(sect, path[sect.start], bounds, bindsPath);
 
       for (int i = sect.start; i <= sect.end; i++) {
-        eventTileLayouts[path[i]] = (width: eventWidth, left: eventWidth*i + sectOffset);
+        eventTileLayouts[path[i]] = (width: eventWidth, left: eventWidth*i + sect.startPos);
       }
     }
   }
@@ -465,7 +445,7 @@ class EventTileArranger {
   // DONE
 
   /// Once an event has been fixed, [EventTileLayout.left] becomes a right bound 
-  /// to events left adjacent to it, as found in [invAdjList], and it's right position 
+  /// to events left adjacent to it, as found in [invAdjList], and 
   /// ([EventTileLayout.left] + [EventTileLayout.width]) becomes a left bound to events right 
   /// adjacent to it, as found in [adjList].
   List<EventTileLayout> fixLayouts(List<List<int>> columns, List<List<int>> adjList, List<List<int>> invAdjList) {
@@ -478,14 +458,13 @@ class EventTileArranger {
     }
 
     while (numFixed < events.length) {
-      final BindsPath bindsPath = (left: List.filled(events.length, false), right: List.filled(events.length, false));
       final List<int> path = getLongestPath(columns, adjList, fixed);
       if (!boundExists(bounds.left[path.first])) bounds.left[path.first] = max(bounds.left[path.first], 0);
       if (!boundExists(bounds.right[path.last])) bounds.right[path.last] = size.width;
 
       final PriorityQueue<Section> sections = createSections(path, bounds);
-      final List<Section> fixedSections = mergeSections(sections, path, bindsPath);
-      fixPathLayouts(fixedSections, path, eventTileLayouts, bounds, bindsPath);
+      final List<Section> fixedSections = coalesceSections(sections, path);
+      fixPathLayouts(fixedSections, path, eventTileLayouts, bounds);
       setBoundsForPath(eventTileLayouts, path, adjList, invAdjList, bounds);
       for (final event in path) {
         fixed[event] = true;
