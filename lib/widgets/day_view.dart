@@ -1,6 +1,6 @@
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/util/clippers.dart';
-import 'package:anu_timetable/widgets/event_generator.dart';
+import 'package:anu_timetable/widgets/event_tile_generator.dart';
 import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -71,7 +71,7 @@ class _DayItem extends StatelessWidget {
               child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent)),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child: EventGenerator(size: TimetableLayout.innerSize, day: day)),
+              child: EventTileGenerator(size: TimetableLayout.innerSize, day: day)),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin, 
               child: LiveTimeIndicator(size: TimetableLayout.innerSize)),

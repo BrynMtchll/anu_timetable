@@ -1,9 +1,10 @@
+import 'package:anu_timetable/model/event_tile_arranger.dart';
 import 'package:flutter/material.dart';
 
 class EventTile extends StatelessWidget {
-  final Size size;
-
-  const EventTile({super.key, required this.size});
+  final EventTileData eventTileData;
+  
+  const EventTile({super.key, required this.eventTileData});
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +13,8 @@ class EventTile extends StatelessWidget {
         border: Border.all(width: 0.5),
         borderRadius: BorderRadius.all(Radius.circular(8)),
         color: ColorScheme.of(context).surfaceContainer),
-      width: size.width,
-      height: size.height,
+      width: eventTileData.width,
+      height: eventTileData.height,
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
