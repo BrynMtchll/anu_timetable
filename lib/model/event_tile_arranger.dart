@@ -5,6 +5,7 @@ import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:calendar_view/calendar_view.dart';
 
 typedef Bounds = ({List<double> left, List<double> right});
+enum BoundType {left, right}
 
 class EventTileData {
   final Event event;
@@ -24,13 +25,19 @@ class EventTileData {
     return event.overlapping(other.event);
   }
 }
-enum BoundType {left, right}
-/// a section of a path in the graph derived from the visual ordering of event tiles.
-/// 
+
 class Section {
   final int pathStart;
   final int pathEnd;
+  /// A section [canCoalesceLeft] if:
+  ///   1. [left] is not null, i.e. it is not the leftmost section, 
+  ///   2. [left] is not fixed,
+  ///   3. the shared bound between it and [left] is a right bound. 
   bool get canCoalesceLeft => left != null && !left!.fixed && leftBoundType == BoundType.right;
+  /// A section [canCoalesceRight] if 
+  ///   1. [right] is not null, i.e. it is not the leftmost section, 
+  ///   2. [right] is not fixed, 
+  ///   3. the shared bound between it and [right] is a left bound. 
   bool get canCoalesceRight =>  right != null && !right!.fixed && rightBoundType == BoundType.left;
   bool fixed;
   BoundType leftBoundType;
@@ -41,7 +48,7 @@ class Section {
   double leftPos;
   // null for the first section of a path.
   Section? left;
-  // null For the last section of a path.
+  // null for the last section of a path.
   Section? right;
 
   Section({ 
@@ -58,43 +65,6 @@ class Section {
     length = pathEnd - pathStart;
     density = length / width;
   }
-
-  /// A section should coalesce left if it can coalesce left but no right, or it can coalesce left 
-  /// and right but [left] has a lower density than [right].
-  ///
-  /// A section [canCoalesceLeft] if:
-  ///   1. [left] is not null, i.e. it is not the leftmost section, 
-  ///   2. [left] is not already fixed,
-  ///   3. the shared bound between it and [left] is a right bound. 
-  bool shouldCoalsceLeft() =>
-    canCoalesceLeft && (!canCoalesceRight || (canCoalesceRight && left!.density > right!.density));
-
-  /// A section should coalesce right if it can coalesce right but not left, or it can coalesce right 
-  /// and left but [right] has a lower density than [left].
-  ///
-  /// A section [canCoalesceRight] if 
-  ///   1. [right] is not null, i.e. it is not the leftmost section, 
-  ///   2. [right] is not already fixed, 
-  ///   3. the shared bound between it and [right] is a left bound. 
-  bool shouldCoalesceRight() =>
-    canCoalesceRight && (!canCoalesceLeft || (canCoalesceLeft && right!.density > left!.density));
-
-  static Section coalesce(Section a, Section b) {
-    Section newSect = Section(
-      width: a.width + b.width, 
-      leftPos: a.leftPos,
-      pathStart: a.pathStart,
-      pathEnd: b.pathEnd,
-      leftBoundType: a.leftBoundType,
-      rightBoundType: b.rightBoundType,
-      left: a.left,
-      right: b.right
-    );
-    a.left?.right = newSect;
-    b.right?.left = newSect;
-
-    return newSect;
-  }
 }
 
 /// Arranges a set of event tiles so that their widths are holistically
@@ -107,7 +77,7 @@ void arrangeEventTiles(List<EventTileData> eventTilesData, double availableWidth
 
   List<List<int>> columns = assignColumns(eventTilesData);
   var (adjList, invAdjList) = buildGraph(eventTilesData, columns);
-  fix(eventTilesData.length, availableWidth, columns, adjList, invAdjList);
+  fix(eventTilesData, availableWidth, columns, adjList, invAdjList);
 }
 
 bool boundExists(double bound) => bound >= 0;
@@ -396,6 +366,8 @@ Section createSections(List<int> path, Bounds bounds) {
   return getHead(tail!);
 }
 
+/// Finds and returns the unfixed section with the greatest [Section.density]. 
+/// If there are no unfixed sections, then null is returned. 
 Section? getHighestDensityUnfixed(Section head) {
   Section? best;
   Section? curr = head;
@@ -406,29 +378,52 @@ Section? getHighestDensityUnfixed(Section head) {
   return best;
 }
 
-/// Coalesces sections into one another so that [Section.density] is minimised,
+/// Coalesces two sections. 
+/// Returns the newly coalesced Section. 
+Section coalesce(Section a, Section b) {
+  Section newSect = Section(
+    width: a.width + b.width, 
+    leftPos: a.leftPos,
+    pathStart: a.pathStart,
+    pathEnd: b.pathEnd,
+    leftBoundType: a.leftBoundType,
+    rightBoundType: b.rightBoundType,
+    left: a.left,
+    right: b.right
+  );
+  a.left?.right = newSect;
+  b.right?.left = newSect;
+
+  return newSect;
+}
+
+/// Coalesces sections into one another so that overall [Section.density] is minimised,
 /// i.e. available width is optimally distributed between the [path] nodes.
-/// Returns the head of the linked list of coalesced sections.
 /// 
-/// [Section.density] denotes the ratio between the number of nodes and the 
+/// [head] is maintained as a reference to the start of the list.
+/// 
+/// [Section.density] is the ratio between the number of nodes and the 
 /// available width of the section. 
 /// 
-/// Until all sections cannot coalesce further, the highest density unfixed section,
-/// found by [getHighestDensityUnfixed], is coalesced into one of its neighbours, 
-/// depending on which can neighbour can be coalesced into and which has the higher density.
-/// If neither side can be coalesced with, then the section is made fixed, i.e. no 
-/// longer coalesceable.
+/// The highest density unfixed section, found by [getHighestDensityUnfixed], 
+/// is coalesced into one of its neighbours if possible. If not, then it is fixed, i.e. finalised. 
+/// This is repeated until there are no unfixed sections remaining. 
 /// 
-/// Once all sections are fixed, the list of fixed sections are returned. 
-Section coalesceSections(Section head, List<int> path) {
+/// coalesce __left__ if [Section.left] can be coalesced with but not [Section.right], or if 
+/// both can be and [Section.left] has a lower density than [Section.right].
+///
+/// coalesce __right__ if the inverse applies.
+/// 
+/// __fix__ the section if neither side can be coalesced with. 
+void coalesceSections(Section head, List<int> path) {
   Section? next = getHighestDensityUnfixed(head);
   while (next != null) {
     if (next.canCoalesceLeft && (!next.canCoalesceRight || (next.canCoalesceRight && next.left!.density > next.right!.density))) {
-      Section newSect = Section.coalesce(next.left!, next);
+      Section newSect = coalesce(next.left!, next);
       if (newSect.left == null) head = newSect;
     }
     else if (next.canCoalesceRight && (!next.canCoalesceLeft || (next.canCoalesceLeft && next.right!.density > next.left!.density))) {
-      Section newSect = Section.coalesce(next, next.right!);
+      Section newSect = coalesce(next, next.right!);
       if (newSect.left == null) head = newSect;
     }
     else if (!next.canCoalesceLeft && !next.canCoalesceRight) {
@@ -436,23 +431,18 @@ Section coalesceSections(Section head, List<int> path) {
     }
     next = getHighestDensityUnfixed(head);
   }
-  return head;
 }
 
-// DONE
 void fixPath(List<EventTileData> eventTilesData, Section head, List<int> path, List<List<int>> adjList, List<List<int>> invAdjList, Bounds bounds) {
   Section? curr = head;
-
   while (curr != null) {
     final width = curr.width / (curr.length+1);
-
     for (int i = curr.pathStart; i <= curr.pathEnd; i++) {
       final event = path[i];
       final left = width*i + curr.leftPos;
 
       eventTilesData[event].left = width*i + curr.leftPos;
       eventTilesData[event].width = width;
-
       for (final adj in adjList[event]) {
         bounds.left[adj] = width + left;
       }
@@ -464,14 +454,12 @@ void fixPath(List<EventTileData> eventTilesData, Section head, List<int> path, L
   }
 }
 
-// DONE
-
 /// Once an event has been fixed, [EventTileData.left] becomes a right bound 
 /// to events left adjacent to it, as found in [invAdjList], and 
 /// ([EventTileData.left] + [EventTileData.width]) becomes a left bound to events right 
 /// adjacent to it, as found in [adjList].
-List<EventTileData> fix(int numEvents, double availableWidth, List<List<int>> columns, List<List<int>> adjList, List<List<int>> invAdjList) {
-  final List<EventTileData> eventTileData = [];
+void fix(List<EventTileData> eventTilesData, double availableWidth, List<List<int>> columns, List<List<int>> adjList, List<List<int>> invAdjList) {
+  final numEvents = eventTilesData.length;
   final List<bool> fixed = List.filled(numEvents, false);
   final Bounds bounds = (left: List.filled(numEvents, -1), right: List.filled(numEvents, -1));
   int numFixed = 0;
@@ -482,12 +470,11 @@ List<EventTileData> fix(int numEvents, double availableWidth, List<List<int>> co
     if (!boundExists(bounds.right[path.last])) bounds.right[path.last] = availableWidth;
 
     Section head = createSections(path, bounds);
-    head = coalesceSections(head, path);
-    fixPath(eventTileData, head, path, adjList, invAdjList, bounds);
+    coalesceSections(head, path);
+    fixPath(eventTilesData, head, path, adjList, invAdjList, bounds);
     for (final event in path) {
       fixed[event] = true;
     }
     numFixed += path.length;
   }
-  return eventTileData;
 }

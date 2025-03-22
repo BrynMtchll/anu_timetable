@@ -22,6 +22,7 @@ class EventsModel {
 
   List<Event> getEventsOnDay(DateTime day) {
     // print(_events[day]![0].startTime);
+    populateEventsForToday();
     return _events.containsKey(day) ? _events[day]! : List.empty();
   }
 
