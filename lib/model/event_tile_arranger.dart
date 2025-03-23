@@ -14,6 +14,7 @@ class EventTileData {
   late double bottom;
   late double width;
   late double height;
+  late int overlapCount = 0;
 
   EventTileData({required this.event}) {
     top = TimetableLayout.vertOffset(event.startTime.getTotalMinutes);
@@ -72,15 +73,13 @@ class Section {
 /// Returns a list containing the left offset and width for each event tile
 /// (the height and top offset of the tiles are already defined by the event
 /// duration and start time).
+/// 
+/// 
 void arrangeEventTiles(List<EventTileData> eventTilesData, double availableWidth) {
-  eventTilesData.sort((a, b) => a.event.startTime.compareTo(b.event.startTime));
-
   List<List<int>> columns = assignColumns(eventTilesData);
   var (adjList, invAdjList) = buildGraph(eventTilesData, columns);
   fix(eventTilesData, availableWidth, columns, adjList, invAdjList);
 }
-
-bool boundExists(double bound) => bound >= 0;
 
 /// Finds the first column in the given set of columns that doesn't 
 /// contain any events that overlap with the given event. 
@@ -99,30 +98,21 @@ int findFirstFreeColumn(List<EventTileData> eventTilesData, List<List<int>> colu
     }
     if (spaceAvailable) return i;
   } 
-  columns.add([]);
-  return columns.length-1;
+  return columns.length;
 }
 
 /// Counts the number of events that overlap with each.
 /// Returns a sorted list of pairs of the event and the count for that 
 /// event.
-List<({int count, int event})> countOverlaps(List<EventTileData> eventTilesData) {
-  List<({int count, int event})> overlapCounts = [];
-
-  for (int i = 0; i < eventTilesData.length; i++) {
-    overlapCounts.add((count: 0, event: i));
-  }
+void countOverlaps(List<EventTileData> eventTilesData) {
   for (int i = 0; i < eventTilesData.length; i++) {
     for (int j = 0; j < i; j++) {
       if (eventTilesData[i].overlapping(eventTilesData[j])) {
-        overlapCounts[i] = (count: overlapCounts[i].count + 1, event: i);
-        overlapCounts[j] = (count: overlapCounts[j].count + 1, event: j);
+        eventTilesData[i].overlapCount++;
+        eventTilesData[j].overlapCount++;
       }
     }
   }
-  // Sort events by the number of overlaps in descending order.
-  overlapCounts.sort((a, b) => b.count.compareTo(a.count));
-  return overlapCounts;
 }
 
 /// Assigns events to columns, which denote their relative position to other events. 
@@ -140,17 +130,19 @@ List<({int count, int event})> countOverlaps(List<EventTileData> eventTilesData)
 /// The left and right column groups are maintained seperately so that this 
 /// can be done efficiently. They are joined and returned once all events have been added.
 List<List<int>> assignColumns(List<EventTileData> eventTilesData) {
-  List<({int count, int event})> overlapCounts = countOverlaps(eventTilesData);
   List<List<int>> columns = [];
   List<List<int>> rightColumns = [];
+  countOverlaps(eventTilesData);
+  eventTilesData.sort((a, b) => b.overlapCount.compareTo(a.overlapCount));
 
-  for (int i = 0; i < eventTilesData.length; i++) {
-    final event = overlapCounts[i].event;
+  for (int event = 0; event < eventTilesData.length; event++) {
     final leftCol = findFirstFreeColumn(eventTilesData, columns, event);
     final rightCol = findFirstFreeColumn(eventTilesData, rightColumns, event);
     if (leftCol <= rightCol) {
+      if (leftCol == columns.length) columns.add([]);
       columns[leftCol].add(event);
     } else {
+      if (rightCol == rightColumns.length) rightColumns.add([]);
       rightColumns[rightCol].add(event);
     }
   }
@@ -336,9 +328,9 @@ Section createSections(List<int> path, Bounds bounds) {
   for (int start = 0, end = 0; end < path.length; end++) {
     final startEvent = path[start], endEvent = path[end];
     Section newSect;
-    final rightBoundOnLeftSide = bounds.right[startEvent] >= 0;
-    final leftBoundOnRightSide = bounds.left[endEvent] >= 0;
-    final rightBoundOnRightSide = bounds.right[endEvent] >= 0;
+    final rightBoundOnLeftSide = bounds.right[startEvent] != -1;
+    final leftBoundOnRightSide = bounds.left[endEvent] != -1;
+    final rightBoundOnRightSide = bounds.right[endEvent] != -1;
 
     if (start == end && rightBoundOnLeftSide && leftBoundOnRightSide) {
       newSect = Section(
@@ -466,8 +458,9 @@ void fix(List<EventTileData> eventTilesData, double availableWidth, List<List<in
 
   while (numFixed < numEvents) {
     final List<int> path = getLongestPath(numEvents, columns, adjList, fixed);
-    if (!boundExists(bounds.left[path.first])) bounds.left[path.first] = max(bounds.left[path.first], 0);
-    if (!boundExists(bounds.right[path.last])) bounds.right[path.last] = availableWidth;
+    
+    if (bounds.left[path.first] == -1) bounds.left[path.first] = 0;
+    if (bounds.right[path.last] == -1) bounds.right[path.last] = availableWidth;
 
     Section head = createSections(path, bounds);
     coalesceSections(head, path);
