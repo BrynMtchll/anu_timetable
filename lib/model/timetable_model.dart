@@ -1,8 +1,9 @@
 import 'package:anu_timetable/model/controllers.dart';
-import 'package:flutter/material.dart';
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/widgets/week_view.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class TimetableModel extends ChangeNotifier {

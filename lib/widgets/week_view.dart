@@ -42,9 +42,10 @@ class _LeftMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<TimetableModel, CurrentDay>(
-      builder: (context, timetableModel, currentDay, child) { 
+    return Consumer3<TimetableModel, CurrentDay, WeekViewPageController>(
+      builder: (context, timetableModel, currentDay, weekViewPageController, child) { 
         bool pageIsCurrent = timetableModel.activeWeekIsCurrent(currentDay);  
+        print(pageIsCurrent);
         return Stack(
           children: [
             HourLineLabels(size: size, pageIsCurrent: pageIsCurrent),

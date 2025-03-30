@@ -30,7 +30,6 @@ class LiveTimeIndicator extends StatelessWidget {
 }
 
 class _LiveTimePainter extends CustomPainter {
-
   final CurrentSecond currentSecond;
   final BuildContext context;
   late ColorScheme colorScheme;
@@ -62,6 +61,7 @@ class _LiveTimePainter extends CustomPainter {
     final double dayWidth = size.width / 7;
     final Offset currp1 = Offset((currentWeekday - 1) * dayWidth, vertOffset);
     final Offset currp2 = Offset(currentWeekday * dayWidth, vertOffset);
+    paint.strokeWidth = PaintFactory.liveLineStrokeWidth*1.5;
     canvas.drawLine(currp1, currp2, paint);
 
     // paint the live time indicator line across the whole week 
@@ -152,9 +152,9 @@ class _LiveTimeLabelPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) =>
     oldDelegate is _LiveTimeLabelPainter;
 }
-  /// Returns the vertical position representing of the current time
-  /// respective to the [TimetableLayout] dimensions.
 
+/// Returns the vertical position representing of the current time
+/// respective to the [TimetableLayout] dimensions.
 double _liveTimeVertOffset(Size size, CurrentSecond currentSecond) {
   double dayOffset = currentSecond.getFractionOfDay() * TimetableLayout.dayHeight;
   return dayOffset + TimetableLayout.vertPadding;

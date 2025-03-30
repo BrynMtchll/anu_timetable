@@ -74,7 +74,9 @@ class Section {
 /// (the height and top offset of the tiles are already defined by the event
 /// duration and start time).
 /// 
-/// 
+/// The constraints an event has on the arrangement is proportional to the 
+/// number of overlaps an event has and how centrally it is placed.
+/// So, events with the most overlaps are assigned to the outermost columns.
 void arrangeEventTiles(List<EventTileData> eventTilesData, double availableWidth) {
   List<List<int>> columns = assignColumns(eventTilesData);
   var (adjList, invAdjList) = buildGraph(eventTilesData, columns);
@@ -115,27 +117,27 @@ void countOverlaps(List<EventTileData> eventTilesData) {
   }
 }
 
-/// Assigns events to columns, which denote their relative position to other events. 
+/// Assigns events to columns, which denote their relative position to other events,
+/// given the list [eventTilesData] sorted in descending order of [EventTileData.overlapCount].
 /// Returns a list of the columns.
 /// 
-/// The constraints an event has on the arrangement is proportional to the 
-/// number of overlaps an event has and how centrally it is placed.
-/// So, events with the most overlaps are assigned to the outermost columns.
+/// In descending order of the overlap count, each event is assigned to the outermost column 
+/// on either the left or right side that doesn't contain any overlapping
+/// events, found using [findFirstFreeColumn]. If none is found, a new innermost column
+/// is added. 
 /// 
-/// In the order of the overlap count, found by [countOverlaps], each event is 
-/// assigned to the outermost column that doesn't contain any other overlapping
-/// events, using [findFirstFreeColumn]. If none is found, a new innermost column
-/// is added (within [findFirstFreeColumn]). 
-/// 
-/// The left and right column groups are maintained seperately so that this 
-/// can be done efficiently. They are joined and returned once all events have been added.
+/// The left and right column groups are maintained seperately so that they can be 
+/// efficiently grown. They are joined once all events have been added.
 List<List<int>> assignColumns(List<EventTileData> eventTilesData) {
   List<List<int>> columns = [];
   List<List<int>> rightColumns = [];
-  countOverlaps(eventTilesData);
-  eventTilesData.sort((a, b) => b.overlapCount.compareTo(a.overlapCount));
 
-  for (int event = 0; event < eventTilesData.length; event++) {
+  countOverlaps(eventTilesData);
+  final overlapCountOrder = [for (var i = 0; i < eventTilesData.length; i++) i];
+  overlapCountOrder.sort((a, b) => 
+    eventTilesData[b].overlapCount.compareTo(eventTilesData[a].overlapCount));
+
+  for (final event in overlapCountOrder) {
     final leftCol = findFirstFreeColumn(eventTilesData, columns, event);
     final rightCol = findFirstFreeColumn(eventTilesData, rightColumns, event);
     if (leftCol <= rightCol) {

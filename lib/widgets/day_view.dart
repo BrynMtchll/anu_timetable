@@ -11,7 +11,6 @@ import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 
 class DayView extends StatefulWidget {
   const DayView({super.key});
-
   @override
   State<DayView> createState() => _DayViewState();
 }
@@ -41,25 +40,27 @@ class _DayPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      clipBehavior: Clip.none,
-      controller: Provider.of<DayViewPageController>(context, listen: false),
-      onPageChanged: (page) {
-        Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
-      },
-      itemBuilder: (context, page) => _DayItem(page: page));
+    return Consumer<DayViewPageController>(
+      builder: (context, dayViewPageController, child) {
+        return PageView.builder(
+        clipBehavior: Clip.none,
+        controller: dayViewPageController,
+        onPageChanged: (page) {
+          Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
+        },
+        itemBuilder: (context, page) => _DayItem(page: dayViewPageController.overridePage(page)));
+      });
   }
 }
 
 class _DayItem extends StatelessWidget {
   final int page;
-
   const _DayItem({required this.page});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CurrentDay>(
-      builder: (context, currentDay, child) { 
+    return Consumer3<CurrentDay, TimetableModel, DayViewPageController>(
+      builder: (context, currentDay, timetableModel, dayViewPageController, child) { 
         bool pageIsCurrent = TimetableModel.dayIsCurrent(page, currentDay);
         DateTime day = TimetableModel.day(page.toDouble());
         return Stack(

@@ -47,9 +47,11 @@ class DayViewPageController extends PageController with PageLinker{
   /// animated to as though it were the adjacent page and not have [page] 
   /// mistakenly return the adjacent page instead of the target page.
   int? pageOverride;
+  int? adjacentPage;
 
   @override get page => pageOverride != null ? pageOverride!.toDouble() : super.page;
 
+  int overridePage(int page) => page == adjacentPage ? pageOverride! : page;
   DayViewPageController({
     super.initialPage,
     super.keepPage,
@@ -71,19 +73,22 @@ class DayViewPageController extends PageController with PageLinker{
   ///   3.  jump to the target page,
   ///   4.  set [pageOverride] to null.
   void animateDirectToPage(int newPage) async {
-    int adjacentPage = page!.round();
-    newPage > page! ? adjacentPage++ : adjacentPage--;
-
+    int currPage = page!.round();
+    adjacentPage = newPage > page! ? currPage +1 : currPage -1;
     pageOverride = newPage;
     notifyListeners();
 
     await animateToPage(
-      adjacentPage,
+      adjacentPage!,
       curve: Curves.easeInOut,
       duration: Duration(milliseconds: 350),
     );
     pageOverride = null;
+    adjacentPage = null;
+
+    notifyListeners();
     jumpToPage(newPage);
+
   }
 }
 

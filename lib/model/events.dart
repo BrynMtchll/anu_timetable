@@ -45,6 +45,5 @@ class EventsModel {
     }
 
     _events[todayStart] = todaysEvents;
-    print(_events);
   }
 }
