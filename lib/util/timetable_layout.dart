@@ -1,6 +1,4 @@
 import 'dart:ui';
-
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:flutter/material.dart';
 
 class TimetableLayout {
@@ -35,6 +33,13 @@ class TimetableLayout {
 
   static double get screenWidth {
     return screenSize.width;
+  }
+
+  /// The number of distinct weeks that the month spans, including partial.
+  static int monthRows(DateTime month) {
+    int days = DateUtils.getDaysInMonth(month.year, month.month);
+    int weekday = month.weekday;
+    return ((days + weekday - 1) / 7).ceil();
   }
 
   static double vertOffset(int totalMinutes) {

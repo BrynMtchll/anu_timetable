@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 class EventTile extends StatelessWidget {
   final EventTileData eventTileData;
-  
   const EventTile({super.key, required this.eventTileData});
 
   @override

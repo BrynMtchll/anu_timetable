@@ -7,10 +7,9 @@ mixin PageLinker on PageController {
   bool get isScrolling;
 
   void matchToOther(PageLinker otherController) {
-    if (isScrolling || !hasClients) return;
+    if (isScrolling || !otherController.isScrolling || !hasClients) return;
 
     double viewportRatio = viewportFraction / otherController.viewportFraction;
-    
     double widthRatio = pageWidth / otherController.pageWidth;
     double newPosition = otherController.offset * viewportRatio * widthRatio;
 
@@ -62,7 +61,8 @@ class DayViewPageController extends PageController with PageLinker{
 
   void syncToOther(PageController weekBarPageController) {
     if (position.hasContentDimensions && weekBarPageController.position.hasContentDimensions) {
-      int newDayViewPage = TimetableModel.convertToDayPage(weekBarPageController.page!, page!);
+      int newDayViewPage = TimetableModel.getDayPage(
+        TimetableModel.dayOfWeek(weekBarPageController.page!,  TimetableModel.day(page!).weekday));
       jumpToPage(newDayViewPage);
     }
   }
@@ -88,7 +88,6 @@ class DayViewPageController extends PageController with PageLinker{
 
     notifyListeners();
     jumpToPage(newPage);
-
   }
 }
 
@@ -97,7 +96,7 @@ class WeekViewPageController extends PageController with PageLinker {
   final double pageWidth = TimetableLayout.screenWidth - TimetableLayout.leftMargin;
 
   @override
-  bool isScrolling = true;
+  bool isScrolling = false;
 
   WeekViewPageController({
     super.initialPage,
@@ -108,7 +107,7 @@ class WeekViewPageController extends PageController with PageLinker {
   });
 }
 
-class WeekBarPageController extends PageController with PageLinker{
+class WeekBarPageController extends PageController with PageLinker {
   @override
   final double pageWidth = TimetableLayout.screenWidth;
 
@@ -124,7 +123,39 @@ class WeekBarPageController extends PageController with PageLinker{
   });
 }
 
-class ViewTabController extends TabController{
+class MonthBarPageController extends PageController {
+  bool isScrolling = false;
+  bool _show = false;
+  late double height = TimetableLayout.weekBarHeight;
+  
+  MonthBarPageController({
+    super.initialPage,
+    super.keepPage,
+    super.viewportFraction = 1.0,
+    super.onAttach,
+    super.onDetach,
+  }) {
+    // print("hi");
+    addListener(updateHeight);
+  }
+  bool get show => _show;
+
+  set show(bool newval) {
+    _show = newval;
+    notifyListeners();
+  }
+
+  void updateHeight() {
+    if (!hasClients || !show) {
+      height = TimetableLayout.weekBarHeight;
+      return;
+    }
+    int rows = TimetableLayout.monthRows(TimetableModel.month(page!));
+    height = 30 + rows * 30;
+  }
+}
+
+class ViewTabController extends TabController {
   ViewTabController({
     super.animationDuration,
     super.initialIndex,
