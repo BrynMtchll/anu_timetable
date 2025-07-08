@@ -40,12 +40,16 @@ class _TimetablePageState extends State<TimetablePage> {
               children: [
                 Stack(children: [
                   WeekBar(),
-                  Visibility(
+                  AnimatedOpacity(
+                    opacity: monthBarPageController.shrunk ? 0 : 1, 
+                    duration: Duration(milliseconds: 100),
+                    child: Visibility(
                     maintainState: true,
                     maintainAnimation: true,
-                    visible: monthBarPageController.show,
+                    visible: monthBarPageController.visible,
                     child: MonthBar()
-                  )]),
+                  ))]),
+                  
                 AnimatedContainer(
                     duration: Duration(milliseconds: 200),
                     curve: Curves.easeInOut,

@@ -6,6 +6,7 @@ import 'package:anu_timetable/util/timetable_layout.dart';
 
 class MonthBar extends StatefulWidget {
   const MonthBar({super.key});
+
   @override
   State<MonthBar> createState() => _MonthBarState();
 }
@@ -15,6 +16,7 @@ class _MonthBarState extends State<MonthBar>{
   void initState() {
     super.initState();
   }
+
   @override
   void dispose() {
     super.dispose();
@@ -23,6 +25,9 @@ class _MonthBarState extends State<MonthBar>{
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    ViewTabController viewTabController = Provider.of<ViewTabController>(context, listen: false);
+
     return Consumer<MonthBarPageController>(
       builder: (BuildContext context, MonthBarPageController monthBarPageController, Widget? child) { 
         return Align(
@@ -36,37 +41,108 @@ class _MonthBarState extends State<MonthBar>{
               border: Border(
                 bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
             child: NotificationListener<UserScrollNotification>(
-              onNotification: Provider.of<TimetableModel>(context, listen: false).onMonthBarNotification,
+              onNotification: timetableModel.onMonthBarNotification,
               child: PageView.builder(
-                controller: Provider.of<MonthBarPageController>(context, listen: false),
+                controller: monthBarPageController,
                 onPageChanged: (page) {
-                  Provider.of<TimetableModel>(context, listen: false)
-                    .handleMonthBarPageChanged();
+                  timetableModel.handleMonthBarPageChanged();
                 },
-                itemBuilder: (context, page) {
-                  return(_Month(month: TimetableModel.month(page.toDouble())));
-                }))));
+                itemBuilder: (context, page) =>
+                  AnimatedPadding(
+                    duration: Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    padding: viewTabController.index == 1 ? 
+                      EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                    child: _Month(
+                      month: TimetableModel.month(page.toDouble()), 
+                      monthBarPageController: monthBarPageController))))));
       });
   }
 }
 
-class _Month extends StatelessWidget {
+class _Month extends StatefulWidget {
   final DateTime month;
-  const _Month({required this.month});
-  
+  final MonthBarPageController monthBarPageController;
+
+  const _Month({required this.month, required this.monthBarPageController});
+
+  @override
+  State<_Month> createState() => _MonthState();
+}
+
+class _MonthState extends State<_Month> with TickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    DateTime firstWeekOfMonth = TimetableModel.weekOfDay(month);
-    return OverflowBox( 
-        maxHeight: double.infinity,
-        alignment: Alignment.topCenter,
-        minHeight: 0,
-        child: Column(
+    DateTime firstWeekOfMonth = TimetableModel.weekOfDay(widget.month);
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    int rows = TimetableLayout.monthRows(widget.month);
+    int rowOfActiveDay = TimetableLayout.rowOfActiveDay(timetableModel.activeDay, widget.month);
+
+    widget.monthBarPageController.open ? _controller.animateTo(1) :  _controller.animateTo(0);
+
+    Animation<double> vOffset = Tween<double>(
+      begin: (TimetableLayout.barDayHeight - rowOfActiveDay * TimetableLayout.barDayHeight),
+      end: 0,
+    ).animate(CurvedAnimation(
+      parent: _controller, 
+      curve: Interval(
+        0.0,
+        1,
+        curve: Curves.linear,
+    )));
+
+    Animation<double> opacity(int r, int rows) {
+      return Tween<double> (
+        begin: r != (rowOfActiveDay- 1) ? 0 : 1,
+        end: 1,
+      ).animate(
+        CurvedAnimation(parent: _controller, curve: Interval(
+          0.5 - ((r / rows) /2), 
+          1- ((r / rows) /2),
+          curve: Curves.linear,
+        ))
+      );
+    }
+
+    return OverflowBox(
+      maxHeight: double.infinity,
+      alignment: Alignment.topCenter,
+      minHeight: 0,
+      child: Column(
         children: [
           _WeekdayLabels(),
-          for (int r = 0; r < TimetableLayout.monthRows(month); r++) _Week(
-            month: month,
-            week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, firstWeekOfMonth.day + r*7))
+          AnimatedBuilder(
+            animation: _controller,
+          builder: (context, child) {
+            return ClipRect(
+              child: Transform.translate(
+                offset: Offset(0, vOffset.value),
+                child: Column(
+                  children: [
+                    for (int r = 0; r < rows; r++) Opacity(
+                      opacity: opacity(r, rows).value,
+                      child: _Week(
+                        month: widget.month,
+                        week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, firstWeekOfMonth.day + r*7)))
+                  ])));
+          })
         ]));
   }
 }
@@ -78,7 +154,8 @@ class _WeekdayLabels extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    return Align(
+    return Container(
+      color: colorScheme.surface,
       alignment: Alignment.center,
       child: IntrinsicHeight(child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -86,7 +163,7 @@ class _WeekdayLabels extends StatelessWidget {
         children: [
           for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
             Container(
-              width: 30, // matching weekbar
+              width: TimetableLayout.barDayHeight,
               padding: EdgeInsets.all(2),
               child: Align(
                 alignment: Alignment.center,
@@ -144,8 +221,8 @@ class _Weekday extends StatelessWidget {
             timetableModel.handleMonthBarDayTap(day);
           },
           child: Container(
-            width: 30,
-            height: 30,
+            width: TimetableLayout.barDayHeight,
+            height: TimetableLayout.barDayHeight,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(

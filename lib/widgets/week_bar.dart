@@ -47,7 +47,7 @@ class _WeekBarState extends State<WeekBar>{
               return AnimatedPadding(
                 duration: Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                padding: Provider.of<ViewTabController>(context).index == 1 ? 
+                padding: Provider.of<ViewTabController>(context, listen: false).index == 1 ? 
                   EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                 child: _Week(week: TimetableModel.week(page.toDouble())));
             }))));

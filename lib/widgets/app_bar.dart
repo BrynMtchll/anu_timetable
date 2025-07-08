@@ -33,7 +33,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
 class _PickerButton extends StatelessWidget {
   void _onPressed(context, currentDay, timetableModel) async {
     MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
-    monthBarPageController.show = !monthBarPageController.show;
+    monthBarPageController.toggle(!monthBarPageController.open);
   }
 
   @override
@@ -64,6 +64,6 @@ class _PickerButtonText extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.w400,
           fontSize: 14),
-        TimetableLayout.monthString(timetableModel.weekOfActiveDay.month)));
+        TimetableLayout.monthString(timetableModel.activeDay.month)));
   }
 }
