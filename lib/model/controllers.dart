@@ -125,11 +125,6 @@ class WeekBarPageController extends PageController with PageLinker {
 
 class MonthBarPageController extends PageController {
   bool isScrolling = false;
-  bool visible = false;
-  bool _shrinking = false;
-  bool open = false;
-  bool shrunk = true;
-  late double height = TimetableLayout.weekBarHeight;
   
   MonthBarPageController({
     super.initialPage,
@@ -137,43 +132,7 @@ class MonthBarPageController extends PageController {
     super.viewportFraction = 1.0,
     super.onAttach,
     super.onDetach,
-  }) {
-    addListener(updateHeight);
-  }
-
-  void toggle(bool val) {
-    if (val) {
-      visible = true;
-      open = true;
-      shrunk = false;
-      notifyListeners();
-    }
-    else {
-      _shrinking = true;
-      open = false;
-      notifyListeners();
-      Future.delayed(const Duration(milliseconds: 200)).then((_) {
-        shrunk = true;
-        _shrinking = false;
-        notifyListeners();
-      });
-      Future.delayed(const Duration(milliseconds: 300)).then((_) {
-        visible = false;
-        notifyListeners();
-      });
-    }
-  }
-
-  void updateHeight() {
-    if (!hasClients || shrunk) return;
-    if (_shrinking) {
-      height = TimetableLayout.weekBarHeight;
-    }
-    else {
-      int rows = TimetableLayout.monthRows(TimetableModel.month(page!));
-      height = 30 + rows * 30;
-    }
-  }
+  });
 }
 
 class ViewTabController extends TabController {

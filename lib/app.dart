@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider(create: (context) => CurrentDay()),
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
+        ChangeNotifierProvider(create: (context) => MonthBarAnimationNotifier(DateTime.now())),
         ChangeNotifierProvider.value(value: dayViewPageController),
         ChangeNotifierProvider.value(value: weekViewPageController),
         ChangeNotifierProvider.value(value: weekBarPageController),
@@ -94,7 +96,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             dayViewScrollController: dayViewScrollController,
             weekViewScrollController: weekViewScrollController), 
           update: (
-            _, 
+            _,
             dayViewPageController,
             weekViewPageController,
             weekBarPageController,

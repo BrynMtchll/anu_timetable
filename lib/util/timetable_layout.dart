@@ -9,7 +9,7 @@ class TimetableLayout {
   static final double tabBarHeight = 45;
 
   static final double weekBarHeight = 70;
-  
+
   static final double barDayHeight = 30;
 
   /// An even segment for each of the 24 hours of the day,
@@ -47,9 +47,12 @@ class TimetableLayout {
   static int rowOfActiveDay(DateTime activeDay, DateTime month) =>
     ((activeDay.day + month.weekday - 1)/ 7).ceil();
 
+  static double monthBarHeight(DateTime activeMonth) => 
+    barDayHeight + monthRows(activeMonth) * barDayHeight;
+
   static double vertOffset(int totalMinutes) {
     return minuteHeight * totalMinutes + vertPadding;
-  }
+    }
 
   static String weekdayCharacters(int weekday){
     switch (weekday) {

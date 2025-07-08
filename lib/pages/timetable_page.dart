@@ -1,4 +1,5 @@
 
+import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
@@ -30,8 +31,8 @@ class _TimetablePageState extends State<TimetablePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) =>
-        Consumer2<ViewTabController, MonthBarPageController>(
-          builder: (context, viewTabController, monthBarPageController, child) => 
+        Consumer2<ViewTabController, MonthBarAnimationNotifier>(
+          builder: (context, viewTabController, monthBarAnimationNotifier, child) => 
           OverflowBox( 
                   maxHeight: double.infinity,
                   alignment: Alignment.topCenter,
@@ -41,19 +42,19 @@ class _TimetablePageState extends State<TimetablePage> {
                 Stack(children: [
                   WeekBar(),
                   AnimatedOpacity(
-                    opacity: monthBarPageController.shrunk ? 0 : 1, 
+                    opacity: monthBarAnimationNotifier.shrunk ? 0 : 1, 
                     duration: Duration(milliseconds: 100),
                     child: Visibility(
                     maintainState: true,
                     maintainAnimation: true,
-                    visible: monthBarPageController.visible,
+                    visible: monthBarAnimationNotifier.visible,
                     child: MonthBar()
                   ))]),
                   
                 AnimatedContainer(
                     duration: Duration(milliseconds: 200),
                     curve: Curves.easeInOut,
-                    height: constraints.maxHeight - monthBarPageController.height,
+                    height: constraints.maxHeight - monthBarAnimationNotifier.displayHeight,
                     width: constraints.maxWidth,
                   child: TabBarView(
                     controller: viewTabController,

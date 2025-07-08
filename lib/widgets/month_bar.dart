@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,15 +28,16 @@ class _MonthBarState extends State<MonthBar>{
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
     ViewTabController viewTabController = Provider.of<ViewTabController>(context, listen: false);
-
-    return Consumer<MonthBarPageController>(
-      builder: (BuildContext context, MonthBarPageController monthBarPageController, Widget? child) { 
+    MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
+    
+    return Consumer<MonthBarAnimationNotifier>(
+      builder: (BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, Widget? child) { 
         return Align(
           alignment: Alignment.topRight,
           child: AnimatedContainer(
             duration: Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            height: monthBarPageController.height,
+            height: monthBarAnimationNotifier.displayHeight,
             decoration: BoxDecoration(
               color: colorScheme.surface,
               border: Border(
@@ -45,6 +47,8 @@ class _MonthBarState extends State<MonthBar>{
               child: PageView.builder(
                 controller: monthBarPageController,
                 onPageChanged: (page) {
+                  monthBarAnimationNotifier.height = TimetableLayout.monthBarHeight(
+                    TimetableModel.month(page.toDouble()));
                   timetableModel.handleMonthBarPageChanged();
                 },
                 itemBuilder: (context, page) =>
@@ -55,16 +59,16 @@ class _MonthBarState extends State<MonthBar>{
                       EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                     child: _Month(
                       month: TimetableModel.month(page.toDouble()), 
-                      monthBarPageController: monthBarPageController))))));
+                      monthBarAnimationNotifier: monthBarAnimationNotifier))))));
       });
   }
 }
 
 class _Month extends StatefulWidget {
   final DateTime month;
-  final MonthBarPageController monthBarPageController;
+  final MonthBarAnimationNotifier monthBarAnimationNotifier;
 
-  const _Month({required this.month, required this.monthBarPageController});
+  const _Month({required this.month, required this.monthBarAnimationNotifier});
 
   @override
   State<_Month> createState() => _MonthState();
@@ -95,7 +99,7 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
     int rows = TimetableLayout.monthRows(widget.month);
     int rowOfActiveDay = TimetableLayout.rowOfActiveDay(timetableModel.activeDay, widget.month);
 
-    widget.monthBarPageController.open ? _controller.animateTo(1) :  _controller.animateTo(0);
+    widget.monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
 
     Animation<double> vOffset = Tween<double>(
       begin: (TimetableLayout.barDayHeight - rowOfActiveDay * TimetableLayout.barDayHeight),
@@ -114,8 +118,8 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
         end: 1,
       ).animate(
         CurvedAnimation(parent: _controller, curve: Interval(
-          0.5 - ((r / rows) /2), 
-          1- ((r / rows) /2),
+          0.25 - ((r / rows) /4), 
+          1- ((r / rows) /4),
           curve: Curves.linear,
         ))
       );

@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
@@ -15,25 +16,22 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
       leadingWidth: 104,
       leading: Container(
         alignment: Alignment.centerLeft,
-        child: _PickerButton(),
-      ),
+        child: _PickerButton()),
       titleSpacing: 0,
       centerTitle: true,
       title: MyTabBar(),
       actions: [
         SizedBox(width: 104),
-      ],
-    );
+      ]);
   }
-  
   @override
   Size get preferredSize => Size.fromHeight(50);
 }
 
 class _PickerButton extends StatelessWidget {
   void _onPressed(context, currentDay, timetableModel) async {
-    MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
-    monthBarPageController.toggle(!monthBarPageController.open);
+    MonthBarAnimationNotifier monthBarAnimationNotifier = Provider.of<MonthBarAnimationNotifier>(context, listen: false);
+    monthBarAnimationNotifier.flip(!monthBarAnimationNotifier.open);
   }
 
   @override
