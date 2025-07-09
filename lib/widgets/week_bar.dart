@@ -30,6 +30,7 @@ class _WeekBarState extends State<WeekBar>{
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       alignment: Alignment.topRight,
+      color: colorScheme.surfaceContainerLow,
       child: Container(
         height: TimetableLayout.weekBarHeight,
         decoration: BoxDecoration(
@@ -79,12 +80,12 @@ class _Weekday extends StatelessWidget {
 
   Color _weekdayItemColor(BuildContext context, TimetableModel timetableModel) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surface;
-    return day == timetableModel.activeDay ? colorScheme.inverseSurface : colorScheme.surface;
+    if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surfaceContainerLow;
+    return day == timetableModel.activeDay ? colorScheme.surfaceContainerHighest : colorScheme.surfaceContainerLow;
   }
 
   Color? _weekdayItemTextColor(BuildContext context, TimetableModel timetableModel) {
-    if (Provider.of<TabController>(context).index != 0) return null;
+    if (Provider.of<ViewTabController>(context).index != 0) return null;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return day == timetableModel.activeDay ? colorScheme.onPrimary : colorScheme.onSurface;
   }
@@ -92,42 +93,41 @@ class _Weekday extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Consumer<TimetableModel>(
-      builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
-        GestureDetector(
-          onTap: () {
-            timetableModel.handleWeekBarDayTap(day);
-          },
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(2),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    style: TextStyle(
-                      color: colorScheme.secondary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                    ),
-                    TimetableLayout.weekdayCharacters(day.weekday)))),
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context);
+    return GestureDetector(
+      onTap: () {
+        timetableModel.handleWeekBarDayTap(day);
+      },
+      child: Column(
+        children: [
+          SizedBox(
+            height: TimetableLayout.weekdayLabelSize,
+            width: TimetableLayout.weekdayLabelSize,
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                style: TextStyle(
+                  color: colorScheme.secondary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+                TimetableLayout.weekdayCharacters(day.weekday)))),
+          Consumer<TimetableModel>(
+            builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
               Container(
-                width: 30,
-                height: 30,
+                width: TimetableLayout.barDayHeight,
+                height: TimetableLayout.barDayHeight,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: _weekdayItemColor(context, timetableModel), 
-                    width: 0.5)),
+                  borderRadius: BorderRadius.circular(20),
+                  color: _weekdayItemColor(context, timetableModel)),
                 child: Align(
                   alignment: Alignment.center,
                   child:  Text(
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
-                      color: colorScheme.onSurface,
-                      // color: _weekdayItemTextColor(timetableModel, page, weekday),
+                      color: day == timetableModel.activeDay ? colorScheme.onSurface : colorScheme.onSurface,
                       fontSize: 14),
-                    day.day.toString())))
-            ])));
+                    day.day.toString()))))
+          ]));
   }
 }

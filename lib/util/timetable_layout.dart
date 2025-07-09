@@ -6,11 +6,13 @@ class TimetableLayout {
 
   static final double height = 1700;
 
-  static final double tabBarHeight = 45;
+  static final double tabBarHeight = 30;
 
-  static final double weekBarHeight = 70;
+  static final double weekBarHeight = 60;
 
   static final double barDayHeight = 30;
+
+  static final double weekdayLabelSize = 20;
 
   /// An even segment for each of the 24 hours of the day,
   /// plus a half hour top and bottom for padding.

@@ -1,56 +1,51 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/widgets/tab_bar.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
-  const MyAppBar({super.key});
+  final int currentPageIndex;
+  const MyAppBar({super.key, required this.currentPageIndex});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
-      leadingWidth: 104,
-      leading: Container(
-        alignment: Alignment.centerLeft,
-        child: _PickerButton()),
+      leadingWidth: 110,
+      leading: currentPageIndex == 1 ? _PickerButton() : null,
+      backgroundColor: colorScheme.surfaceContainerLow,
       titleSpacing: 0,
       centerTitle: true,
-      title: MyTabBar(),
+      title: currentPageIndex == 1 ? MyTabBar() : null,
       actions: [
-        SizedBox(width: 104),
+        SizedBox(width: 110),
       ]);
   }
   @override
-  Size get preferredSize => Size.fromHeight(50);
+  Size get preferredSize => Size.fromHeight(40);
 }
 
 class _PickerButton extends StatelessWidget {
-  void _onPressed(context, currentDay, timetableModel) async {
-    MonthBarAnimationNotifier monthBarAnimationNotifier = Provider.of<MonthBarAnimationNotifier>(context, listen: false);
-    monthBarAnimationNotifier.flip(!monthBarAnimationNotifier.open);
-  }
-
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Consumer2<CurrentDay, TimetableModel>(
-      builder: (context, currentDay, timetableModel, child) => 
-        GestureDetector(
-          onTap: () => _onPressed(context, currentDay, timetableModel),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            child: Row(
-              children: [
-                _PickerButtonText(),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: colorScheme.onSurface,
-                  size: 20)
-              ]))));
+    MonthBarAnimationNotifier monthBarAnimationNotifier = Provider.of<MonthBarAnimationNotifier>(context, listen: false);
+    return GestureDetector(
+      onTap: () {
+        monthBarAnimationNotifier.toggleOpen(!monthBarAnimationNotifier.open);
+      },
+      child: Padding(
+        padding: EdgeInsetsGeometry.only(left: 20),
+        child: Row(
+          children: [
+            _PickerButtonText(),
+            Icon(
+              Icons.arrow_drop_down,
+              color: colorScheme.onSurface,
+              size: 20)
+          ])));
   }
 }
 
@@ -61,7 +56,7 @@ class _PickerButtonText extends StatelessWidget {
       builder: (context, timetableModel, child) => Text(
         style: TextStyle(
           fontWeight: FontWeight.w400,
-          fontSize: 14),
+          fontSize: 13),
         TimetableLayout.monthString(timetableModel.activeDay.month)));
   }
 }

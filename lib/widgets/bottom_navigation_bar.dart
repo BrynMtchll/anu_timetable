@@ -16,10 +16,10 @@ class MyBottomNavigationBar extends StatelessWidget {
       height: 100,
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(width: 0.5, color: colorScheme.onSurface))),
+          top: BorderSide(width: 0.2, color: colorScheme.onSurface))),
       child: NavigationBar(
         elevation: 0,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.surfaceContainerLow,
         selectedIndex: currentPageIndex,
         indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -28,8 +28,7 @@ class MyBottomNavigationBar extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.home_outlined), 
             selectedIcon: Icon(Icons.home),
-            label: 'Home'
-          ),
+            label: 'Home'),
           NavigationDestination(
             icon: Icon(Icons.calendar_view_week_outlined), 
             selectedIcon: Icon(Icons.calendar_view_week),

@@ -21,6 +21,7 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     super.build(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -28,7 +29,8 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
               controller: Provider.of<DayViewScrollController>(context, listen: false),
               child: ClipRect(
                 clipper: HorizontalClipper(),
-                child: SizedBox(
+                child: Container(
+                  color: colorScheme.surface,
                   height: TimetableLayout.height,
                   child: _DayPageView())));
       });
@@ -37,7 +39,6 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
 
 class _DayPageView extends StatelessWidget {
   const _DayPageView();
-
   @override
   Widget build(BuildContext context) {
     return Consumer<DayViewPageController>(

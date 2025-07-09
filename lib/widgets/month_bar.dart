@@ -35,11 +35,11 @@ class _MonthBarState extends State<MonthBar>{
         return Align(
           alignment: Alignment.topRight,
           child: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
+            duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
             curve: Curves.easeInOut,
             height: monthBarAnimationNotifier.displayHeight,
             decoration: BoxDecoration(
-              color: colorScheme.surface,
+              color: colorScheme.surfaceContainerLow,
               border: Border(
                 bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
             child: NotificationListener<UserScrollNotification>(
@@ -82,7 +82,7 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 200),
+      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
     );
   }
 
@@ -109,7 +109,7 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
       curve: Interval(
         0.0,
         1,
-        curve: Curves.linear,
+        curve: Curves.easeInOut,
     )));
 
     Animation<double> opacity(int r, int rows) {
@@ -120,7 +120,7 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
         CurvedAnimation(parent: _controller, curve: Interval(
           0.25 - ((r / rows) /4), 
           1- ((r / rows) /4),
-          curve: Curves.linear,
+          curve: Curves.easeInOut,
         ))
       );
     }
@@ -159,16 +159,16 @@ class _WeekdayLabels extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      color: colorScheme.surface,
+      color: colorScheme.surfaceContainerLow,
       alignment: Alignment.center,
       child: IntrinsicHeight(child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
-            Container(
-              width: TimetableLayout.barDayHeight,
-              padding: EdgeInsets.all(2),
+            SizedBox(
+              width: TimetableLayout.weekdayLabelSize,
+              height: TimetableLayout.weekdayLabelSize,
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -211,7 +211,7 @@ class _Weekday extends StatelessWidget {
 
     // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surface;
     // DateTime weekdayDate = TimetableModel.weekdayDate(page.toDouble(), weekday);
-    return day == timetableModel.activeDay  && day.month == month.month ? colorScheme.inverseSurface : colorScheme.surface;
+    return day == timetableModel.activeDay  && day.month == month.month ? colorScheme.surfaceContainerHighest : colorScheme.surfaceContainerLow;
   }
 
   @override
@@ -228,10 +228,8 @@ class _Weekday extends StatelessWidget {
             width: TimetableLayout.barDayHeight,
             height: TimetableLayout.barDayHeight,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _weekdayItemColor(context, timetableModel), 
-                width: 0.5)),
+              borderRadius: BorderRadius.circular(20),
+              color: _weekdayItemColor(context, timetableModel)),
             child: Align(
               alignment: Alignment.center,
               child:  Text(

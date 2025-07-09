@@ -8,6 +8,7 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
   bool shrunk = true;
   late double displayHeight = TimetableLayout.weekBarHeight;
   late double _height;
+  static const int duration = 300;
 
   MonthBarAnimationNotifier(DateTime currentDay) {
     _height = TimetableLayout.monthBarHeight(currentDay);
@@ -21,7 +22,7 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
     }
   }
   
-  void flip(bool val) {
+  void toggleOpen(bool val) {
     if (val) {
       visible = true;
       open = true;
@@ -33,11 +34,11 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
       open = false;
       displayHeight = TimetableLayout.weekBarHeight;
       notifyListeners();
-      Future.delayed(const Duration(milliseconds: 200)).then((_) {
+      Future.delayed(const Duration(milliseconds: duration)).then((_) {
         shrunk = true;
         notifyListeners();
       });
-      Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      Future.delayed(const Duration(milliseconds: duration + 100)).then((_) {
         visible = false;
         notifyListeners();
       });

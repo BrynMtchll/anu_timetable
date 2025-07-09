@@ -6,7 +6,6 @@ import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_view.dart';
 import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:provider/provider.dart';
 
 class TimetablePage extends StatefulWidget {
@@ -43,6 +42,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   WeekBar(),
                   AnimatedOpacity(
                     opacity: monthBarAnimationNotifier.shrunk ? 0 : 1, 
+                    curve: Curves.easeOut,
                     duration: Duration(milliseconds: 100),
                     child: Visibility(
                     maintainState: true,
@@ -50,9 +50,8 @@ class _TimetablePageState extends State<TimetablePage> {
                     visible: monthBarAnimationNotifier.visible,
                     child: MonthBar()
                   ))]),
-                  
                 AnimatedContainer(
-                    duration: Duration(milliseconds: 200),
+                    duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
                     curve: Curves.easeInOut,
                     height: constraints.maxHeight - monthBarAnimationNotifier.displayHeight,
                     width: constraints.maxWidth,

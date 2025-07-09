@@ -119,10 +119,13 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 58, 60, 183),
+            inverseSurface: const Color.fromARGB(255, 86, 86, 86),
+            brightness: Brightness.dark),
           useMaterial3: true),
         home: Scaffold(
-          appBar: MyAppBar(),
+          appBar: MyAppBar(currentPageIndex: currentPageIndex),
           bottomNavigationBar: MyBottomNavigationBar(
             currentPageIndex: currentPageIndex, 
             onPageChanged: (int index) {
