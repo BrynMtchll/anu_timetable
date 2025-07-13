@@ -61,14 +61,14 @@ class _LiveTimePainter extends CustomPainter {
     final double dayWidth = size.width / 7;
     final Offset currp1 = Offset((currentWeekday - 1) * dayWidth, vertOffset);
     final Offset currp2 = Offset(currentWeekday * dayWidth, vertOffset);
-    paint.strokeWidth = PaintFactory.liveLineStrokeWidth*1.5;
+    paint.strokeWidth = TimetableLayout.liveLineStrokeWidth*1.5;
     canvas.drawLine(currp1, currp2, paint);
 
     // paint the live time indicator line across the whole week 
     // half the thickness as for across the current day.
     final Offset p1 = Offset(0, vertOffset);
     final Offset p2 = Offset(size.width, vertOffset);
-    paint.strokeWidth = PaintFactory.liveLineStrokeWidth/2;
+    paint.strokeWidth = TimetableLayout.liveLineStrokeWidth/2;
     canvas.drawLine(p1, p2, paint);
   }
 

@@ -70,6 +70,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
         ChangeNotifierProvider(create: (context) => MonthBarAnimationNotifier(DateTime.now())),
+        ChangeNotifierProvider(create: (context) => SelectBarWeekdayNotifier()),
         ChangeNotifierProvider.value(value: dayViewPageController),
         ChangeNotifierProvider.value(value: weekViewPageController),
         ChangeNotifierProvider.value(value: weekBarPageController),
@@ -120,8 +121,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         title: 'Flutter Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 58, 60, 183),
-            inverseSurface: const Color.fromARGB(255, 86, 86, 86),
+            seedColor: const Color.fromARGB(255, 48, 48, 153),
             brightness: Brightness.dark),
           useMaterial3: true),
         home: Scaffold(

@@ -45,3 +45,10 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
     }
   }
 }
+
+class SelectBarWeekdayNotifier extends ChangeNotifier{
+  SelectBarWeekdayNotifier();
+  void notify() {
+    notifyListeners();
+  }
+}

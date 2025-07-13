@@ -1,17 +1,16 @@
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 
 class PaintFactory {
-  static const liveLineStrokeWidth = 1.5;
-
   static Paint linePaint(context) => 
     Paint()
       ..color = Theme.of(context).colorScheme.onSurface
-      ..strokeWidth = 0.2;
+      ..strokeWidth = TimetableLayout.lineStrokeWidth;
 
   static Paint liveLinePaint(context) =>
     Paint()
       ..color = Theme.of(context).colorScheme.primary
-      ..strokeWidth = liveLineStrokeWidth;
+      ..strokeWidth = TimetableLayout.liveLineStrokeWidth;
 
   static Paint backgroundPaint(context) => 
     Paint()

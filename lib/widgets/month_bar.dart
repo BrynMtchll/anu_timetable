@@ -1,5 +1,6 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
@@ -13,16 +14,6 @@ class MonthBar extends StatefulWidget {
 }
 
 class _MonthBarState extends State<MonthBar>{
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -131,54 +122,23 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
       minHeight: 0,
       child: Column(
         children: [
-          _WeekdayLabels(),
+          WeekdayLabels(),
           AnimatedBuilder(
             animation: _controller,
-          builder: (context, child) {
-            return ClipRect(
-              child: Transform.translate(
-                offset: Offset(0, vOffset.value),
-                child: Column(
-                  children: [
-                    for (int r = 0; r < rows; r++) Opacity(
-                      opacity: opacity(r, rows).value,
-                      child: _Week(
-                        month: widget.month,
-                        week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, firstWeekOfMonth.day + r*7)))
-                  ])));
+            builder: (context, child) {
+              return ClipRect(
+                child: Transform.translate(
+                  offset: Offset(0, vOffset.value),
+                  child: Column(
+                    children: [
+                      for (int r = 0; r < rows; r++) Opacity(
+                        opacity: opacity(r, rows).value,
+                        child: _Week(
+                          month: widget.month,
+                          week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, firstWeekOfMonth.day + r*7)))
+                    ])));
           })
         ]));
-  }
-}
-
-class _WeekdayLabels extends StatelessWidget {
-  const _WeekdayLabels();
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      color: colorScheme.surfaceContainerLow,
-      alignment: Alignment.center,
-      child: IntrinsicHeight(child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
-            SizedBox(
-              width: TimetableLayout.weekdayLabelSize,
-              height: TimetableLayout.weekdayLabelSize,
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  style: TextStyle(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                  TimetableLayout.weekdayCharacters(weekday)))),
-        ])));
   }
 }
 
@@ -206,17 +166,14 @@ class _Weekday extends StatelessWidget {
   final DateTime day;
   const _Weekday({required this.month, required this.day});
 
-  Color _weekdayItemColor(BuildContext context, TimetableModel timetableModel) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surface;
-    // DateTime weekdayDate = TimetableModel.weekdayDate(page.toDouble(), weekday);
-    return day == timetableModel.activeDay  && day.month == month.month ? colorScheme.surfaceContainerHighest : colorScheme.surfaceContainerLow;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    if (day.month != month.month) {
+      return SizedBox(
+        width: TimetableLayout.barDayHeight,
+        height: TimetableLayout.barDayHeight
+      );
+    }
 
     return Consumer<TimetableModel>(
       builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
@@ -224,20 +181,6 @@ class _Weekday extends StatelessWidget {
           onTap: () {
             timetableModel.handleMonthBarDayTap(day);
           },
-          child: Container(
-            width: TimetableLayout.barDayHeight,
-            height: TimetableLayout.barDayHeight,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: _weekdayItemColor(context, timetableModel)),
-            child: Align(
-              alignment: Alignment.center,
-              child:  Text(
-                style: TextStyle(
-                  fontWeight: FontWeight.w400,
-                  color: colorScheme.onSurface,
-                  // color: _weekdayItemTextColor(timetableModel, page, weekday),
-                  fontSize: 14),
-                  day.month == month.month ? day.day.toString() : "")))));
+          child: BarDayItem(day: day)));
   }
 }

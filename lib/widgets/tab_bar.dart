@@ -18,7 +18,7 @@ class MyTabBar extends StatelessWidget {
           width: 180,
           child: Container(
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
+              color: colorScheme.surfaceBright,
               borderRadius: BorderRadius.circular(10)),
             child: Consumer<ViewTabController>(
               builder: (context, tabController, child) => 

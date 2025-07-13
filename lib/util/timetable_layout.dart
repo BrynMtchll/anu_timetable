@@ -1,34 +1,40 @@
 import 'dart:ui';
+import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class TimetableLayout {
-  static final double leftMargin = 50;
+  static const double leftMargin = 50;
 
-  static final double height = 1700;
+  static const double height = 1700;
 
-  static final double tabBarHeight = 30;
+  static const double tabBarHeight = 30;
 
-  static final double weekBarHeight = 60;
+  static const double weekBarHeight = 60;
 
-  static final double barDayHeight = 30;
+  static const double barDayHeight = 30;
 
-  static final double weekdayLabelSize = 20;
+  static const double weekdayLabelSize = 20;
 
   /// An even segment for each of the 24 hours of the day,
   /// plus a half hour top and bottom for padding.
-  static final double hourHeight = height / 25;
+  static const double hourHeight = height / 25;
 
-  static final double vertPadding = hourHeight / 2;
+  static const double vertPadding = hourHeight / 2;
 
-  static final double dayHeight = height - 2 * vertPadding;
+  static const double dayHeight = height - 2 * vertPadding;
 
   static final Size innerSize = Size(screenWidth - leftMargin, height);
 
-  static final Size marginSize = Size(leftMargin, height);
+  static const Size marginSize = Size(leftMargin, height);
 
   static final Size size = Size(screenWidth, height);
 
-  static final double minuteHeight = hourHeight / 60;
+  static const double minuteHeight = hourHeight / 60;
+
+  static const double lineStrokeWidth = 0.2;
+  static const double liveLineStrokeWidth = 1.5;
 
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
@@ -54,7 +60,16 @@ class TimetableLayout {
 
   static double vertOffset(int totalMinutes) {
     return minuteHeight * totalMinutes + vertPadding;
-    }
+  }
+
+  static Color weekdayBackgroundColor(BuildContext context, ColorScheme colorScheme, TimetableModel timetableModel, DateTime day) {
+    // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surfaceContainerLow;
+    return day == timetableModel.activeDay ? colorScheme.inverseSurface : colorScheme.surfaceContainerLow;
+  }
+  static Color weekdayTextColor(BuildContext context, ColorScheme colorScheme, TimetableModel timetableModel, DateTime day) {
+    // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.onSurface;
+    return day == timetableModel.activeDay ? colorScheme.onInverseSurface : colorScheme.onSurface;
+  }
 
   static String weekdayCharacters(int weekday){
     switch (weekday) {

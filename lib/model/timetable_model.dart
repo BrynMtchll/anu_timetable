@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
@@ -30,16 +31,17 @@ class TimetableModel extends ChangeNotifier {
   late DateTime _persistedActiveDay = CurrentDay().value;
 
   TimetableModel({
-    required this.dayViewPageController, 
-    required this.weekViewPageController, 
+    required this.dayViewPageController,
+    required this.weekViewPageController,
     required this.weekBarPageController,
     required this.monthBarPageController,
     required this.viewTabController,
-    required this.dayViewScrollController, 
+    required this.dayViewScrollController,
     required this.weekViewScrollController,
   }) {
     addListeners();
   }
+
   /// Returns the day corrosponding to [dayViewPageController.page].
   /// [WeekBar] requires [activeDay] before [DayViewPageController] is attached
   /// to the [PageView] of [DayView].
@@ -206,13 +208,14 @@ class TimetableModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Handler for the onTap event of the [DayView]'s weekday items.
+  /// Handler for the onTap event of the [WeekBar]'s weekday items.
   void handleWeekBarDayTap(DateTime day) {
     syncDayViewPage(day);
     syncMonthBarPage(getMonthPage(monthOfDay(day)));
+    notifyListeners();
   }
 
-  /// Handler for the onTap event of the [DayView]'s weekday items.
+  /// Handler for the onTap event of the [MonthBar]'s weekday items.
   void handleMonthBarDayTap(DateTime day) {
     syncDayViewPage(day);
     syncWeekBarPage(getWeekPage(day));
