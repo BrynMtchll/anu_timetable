@@ -1,6 +1,8 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
+import 'package:anu_timetable/widgets/month_list.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
@@ -9,7 +11,6 @@ import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
-import 'package:anu_timetable/util/change_notifier_provider.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -21,10 +22,14 @@ class App extends StatefulWidget {
 class _AppState extends State<App> with SingleTickerProviderStateMixin{
   late int currentPageIndex = 0;
 
-  late int dayViewInitialPage = TimetableModel.getDayPage(DateTime.now());
-  late int weekViewInitialPage = TimetableModel.getWeekPage(DateTime.now());
-  late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(DateTime.now()));
-  late int monthBarInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(DateTime.now()));
+  final DateTime currentDate = DateTime.now();
+
+  late int dayViewInitialPage = TimetableModel.getDayPage(currentDate);
+  late int weekViewInitialPage = TimetableModel.getWeekPage(currentDate);
+  late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(currentDate));
+  late int monthBarInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(currentDate));
+
+  late double monthListInitialOffset = TimetableLayout.monthListMonthOffset(currentDate);
 
   late DayViewPageController dayViewPageController;
   late WeekViewPageController weekViewPageController;
@@ -32,6 +37,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   late MonthBarPageController monthBarPageController;
   late DayViewScrollController dayViewScrollController;
   late WeekViewScrollController weekViewScrollController;
+  late MonthListScrollController monthListScrollController;
   late ViewTabController viewTabController;
 
   @override
@@ -49,6 +55,13 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
       onAttach: (_) => dayViewScrollController.matchToOther(weekViewScrollController));
     weekViewScrollController = WeekViewScrollController(
       onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController));
+
+    monthListScrollController = MonthListScrollController(initialScrollOffset: monthListInitialOffset);
+
+    viewTabController.addListener(() {
+      viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
+      dayViewPageController.syncToOther(weekBarPageController);
+    });
   }
 
   @override
@@ -71,21 +84,20 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
         ChangeNotifierProvider(create: (context) => MonthBarAnimationNotifier(DateTime.now())),
         ChangeNotifierProvider(create: (context) => SelectBarWeekdayNotifier()),
+        ChangeNotifierProvider.value(value: viewTabController),
+        ChangeNotifierProvider.value(value: dayViewScrollController),
+        ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider.value(value: dayViewPageController),
         ChangeNotifierProvider.value(value: weekViewPageController),
         ChangeNotifierProvider.value(value: weekBarPageController),
         ChangeNotifierProvider.value(value: monthBarPageController),
-        ChangeNotifierProvider.value(value: viewTabController),
-        ChangeNotifierProvider.value(value: dayViewScrollController),
-        ChangeNotifierProvider.value(value: weekViewScrollController),
-        ChangeNotifierProxyProvider7<
+        ChangeNotifierProvider.value(value: monthListScrollController),
+        ChangeNotifierProxyProvider5<
           DayViewPageController,
           WeekViewPageController,
           WeekBarPageController,
           MonthBarPageController,
-          ViewTabController,
-          DayViewScrollController,
-          WeekViewScrollController,
+          MonthListScrollController,
           TimetableModel
         >(
           create: (context) => TimetableModel(
@@ -93,27 +105,21 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             weekViewPageController: weekViewPageController, 
             weekBarPageController: weekBarPageController,
             monthBarPageController: monthBarPageController,
-            viewTabController: viewTabController,
-            dayViewScrollController: dayViewScrollController,
-            weekViewScrollController: weekViewScrollController), 
+            monthListScrollController: monthListScrollController), 
           update: (
             _,
             dayViewPageController,
             weekViewPageController,
             weekBarPageController,
             monthBarPageController,
-            viewTabController,
-            dayViewScrollController,
-            weekViewScrollController,
+            monthListScrollController,
             timetableModel) {
             if (timetableModel == null) throw ArgumentError.notNull('timetableModel');
             timetableModel.dayViewPageController = dayViewPageController;
             timetableModel.weekViewPageController = weekViewPageController;
             timetableModel.weekBarPageController = weekBarPageController;
             timetableModel.monthBarPageController = monthBarPageController;
-            timetableModel.viewTabController = viewTabController;
-            timetableModel.dayViewScrollController = dayViewScrollController;
-            timetableModel.weekViewScrollController = weekViewScrollController;
+            timetableModel.monthListScrollController = monthListScrollController;
             return timetableModel;
           })
       ],

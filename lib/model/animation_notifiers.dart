@@ -21,6 +21,8 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  double get height => _height;
   
   void toggleOpen(bool val) {
     if (val) {

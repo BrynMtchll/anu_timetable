@@ -1,6 +1,7 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
+import 'package:anu_timetable/widgets/month_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
@@ -33,24 +34,38 @@ class _MonthBarState extends State<MonthBar>{
               color: colorScheme.surfaceContainerLow,
               border: Border(
                 bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
-            child: NotificationListener<UserScrollNotification>(
-              onNotification: timetableModel.onMonthBarNotification,
-              child: PageView.builder(
-                controller: monthBarPageController,
-                onPageChanged: (page) {
-                  monthBarAnimationNotifier.height = TimetableLayout.monthBarHeight(
-                    TimetableModel.month(page.toDouble()));
-                  timetableModel.handleMonthBarPageChanged();
-                },
-                itemBuilder: (context, page) =>
-                  AnimatedPadding(
-                    duration: Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
-                    padding: viewTabController.index == 1 ? 
-                      EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
-                    child: _Month(
-                      month: TimetableModel.month(page.toDouble()), 
-                      monthBarAnimationNotifier: monthBarAnimationNotifier))))));
+            child: OverflowBox(
+              maxHeight: double.infinity,
+              alignment: Alignment.topCenter,
+              minHeight: monthBarAnimationNotifier.height,
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+                      height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
+                      child: NotificationListener<UserScrollNotification>(
+                        onNotification: timetableModel.onMonthBarNotification,
+                        child: PageView.builder(
+                          controller: monthBarPageController,
+                          onPageChanged: (page) {
+                            monthBarAnimationNotifier.height = TimetableLayout.monthBarHeight(
+                              TimetableModel.month(page.toDouble()));
+                            timetableModel.handleMonthBarPageChanged();
+                          },
+                          itemBuilder: (context, page) =>
+                            AnimatedPadding(
+                              duration: Duration(milliseconds: 200),
+                              curve: Curves.easeInOut,
+                              padding: viewTabController.index == 1 ? 
+                                EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                              child: _Month(
+                                month: TimetableModel.month(page.toDouble()), 
+                                monthBarAnimationNotifier: monthBarAnimationNotifier))))),
+                    AnimatedOpacity(
+                      opacity: monthBarAnimationNotifier.open ? 1 : 0,
+                      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+                      child: MonthList(monthBarAnimationNotifier: monthBarAnimationNotifier)),
+                  ]))));
       });
   }
 }
@@ -125,8 +140,8 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
           WeekdayLabels(),
           AnimatedBuilder(
             animation: _controller,
-            builder: (context, child) {
-              return ClipRect(
+            builder: (context, child) => 
+              ClipRect(
                 child: Transform.translate(
                   offset: Offset(0, vOffset.value),
                   child: Column(
@@ -136,9 +151,8 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
                         child: _Week(
                           month: widget.month,
                           week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, firstWeekOfMonth.day + r*7)))
-                    ])));
-          })
-        ]));
+                    ]))))
+      ]));
   }
 }
 
@@ -174,13 +188,11 @@ class _Weekday extends StatelessWidget {
         height: TimetableLayout.barDayHeight
       );
     }
-
-    return Consumer<TimetableModel>(
-      builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
-        GestureDetector(
-          onTap: () {
-            timetableModel.handleMonthBarDayTap(day);
-          },
-          child: BarDayItem(day: day)));
+    final TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    return GestureDetector(
+      onTap: () {
+        timetableModel.handleMonthBarDayTap(day);
+      },
+      child: BarDayItem(day: day));
   }
 }

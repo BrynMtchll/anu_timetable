@@ -1,8 +1,6 @@
 import 'dart:ui';
-import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class TimetableLayout {
   static const double leftMargin = 50;
@@ -36,6 +34,19 @@ class TimetableLayout {
   static const double lineStrokeWidth = 0.2;
   static const double liveLineStrokeWidth = 1.5;
 
+  static const double monthListHeight = 35;
+  static const double monthListMonthWidth = 70;
+  static const double monthListYearWidth 
+    = monthListMonthWidth * 12 + monthListYearLabelWidth + monthListMonthGap * 12;
+  static const double monthListMonthGap = 5;
+  static const double monthListYearLabelWidth = 40;
+
+  static double monthListMonthOffset(DateTime day) {
+    double yearOffset = (day.year - TimetableModel.hashDate.year) * monthListYearWidth;
+    double monthOffset = (day.month-1) * monthListMonthWidth + monthListYearLabelWidth + monthListMonthGap * (day.month-1);
+    return yearOffset + monthOffset;
+  }
+
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
     return view.physicalSize / view.devicePixelRatio;
@@ -47,6 +58,7 @@ class TimetableLayout {
 
   /// The number of distinct weeks that the month spans, including partial.
   static int monthRows(DateTime month) {
+    month = TimetableModel.monthOfDay(month);
     int days = DateUtils.getDaysInMonth(month.year, month.month);
     int weekday = month.weekday;
     return ((days + weekday - 1) / 7).ceil();
@@ -55,8 +67,11 @@ class TimetableLayout {
   static int rowOfActiveDay(DateTime activeDay, DateTime month) =>
     ((activeDay.day + month.weekday - 1)/ 7).ceil();
 
-  static double monthBarHeight(DateTime activeMonth) => 
-    barDayHeight + monthRows(activeMonth) * barDayHeight;
+  static double monthBarHeight(DateTime activeMonth) {
+    return monthListHeight + weekdayLabelSize + monthRows(activeMonth) * barDayHeight;}
+    
+  static double monthBarMonthHeight(double monthBarHeight) => 
+    monthBarHeight - monthListHeight;
 
   static double vertOffset(int totalMinutes) {
     return minuteHeight * totalMinutes + vertPadding;

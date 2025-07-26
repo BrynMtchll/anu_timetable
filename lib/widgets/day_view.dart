@@ -43,13 +43,15 @@ class _DayPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<DayViewPageController>(
       builder: (context, dayViewPageController, child) {
-        return PageView.builder(
-        clipBehavior: Clip.none,
-        controller: dayViewPageController,
-        onPageChanged: (page) {
-          Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
-        },
-        itemBuilder: (context, page) => _DayItem(page: dayViewPageController.overridePage(page)));
+        return NotificationListener<UserScrollNotification>(
+          onNotification: Provider.of<TimetableModel>(context, listen: false).onDayViewNotification,
+          child: PageView.builder(
+            clipBehavior: Clip.none,
+            controller: dayViewPageController,
+            onPageChanged: (page) {
+              Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
+            },
+            itemBuilder: (context, page) => _DayItem(page: dayViewPageController.overridePage(page))));
       });
   }
 }

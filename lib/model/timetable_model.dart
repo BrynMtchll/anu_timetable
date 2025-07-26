@@ -1,4 +1,3 @@
-import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
@@ -13,7 +12,14 @@ class TimetableModel extends ChangeNotifier {
   /// [WeekBar] pages are mapped to weeks, with the date 
   /// corresponding to the start of the week.
   /// [DayView] pages are mapped to dates one to one.
-  static DateTime hashDate = weekOfDay(DateTime(2025, 0, 0));
+  /// 
+  /// [hashDate] needs to be the start of the week (monday) so that
+  /// the week and day pages align.
+  /// It also needs to be within the first month of the year because
+  /// the [monthBarList] will start from january. 
+  static final DateTime hashDate = weekOfDay(DateTime(2024, 1, 7));
+
+  static final DateTime endDate = DateTime(2035, 1, 1);
 
   /// [WeekBar], [WeekView] and [DayView]'s [PageView]s all affect one another.
   /// They're controllers are managed here so as to decouple them 
@@ -22,22 +28,14 @@ class TimetableModel extends ChangeNotifier {
   late WeekViewPageController weekViewPageController;
   late WeekBarPageController weekBarPageController;
   late MonthBarPageController monthBarPageController;
-
-  late ViewTabController viewTabController;
-
-  late DayViewScrollController dayViewScrollController;
-  late WeekViewScrollController weekViewScrollController;
-
-  late DateTime _persistedActiveDay = CurrentDay().value;
+  late MonthListScrollController monthListScrollController;
 
   TimetableModel({
     required this.dayViewPageController,
     required this.weekViewPageController,
     required this.weekBarPageController,
     required this.monthBarPageController,
-    required this.viewTabController,
-    required this.dayViewScrollController,
-    required this.weekViewScrollController,
+    required this.monthListScrollController,
   }) {
     addListeners();
   }
@@ -45,9 +43,7 @@ class TimetableModel extends ChangeNotifier {
   /// Returns the day corrosponding to [dayViewPageController.page].
   /// [WeekBar] requires [activeDay] before [DayViewPageController] is attached
   /// to the [PageView] of [DayView].
-  DateTime get activeDay => 
-    dayViewPageController.hasClients ? 
-      day(dayViewPageController.page!) : _persistedActiveDay;
+  DateTime get activeDay => day(dayViewPageController.page!);
   
   /// Returns the monday of the week that the active date is in.
   DateTime get weekOfActiveDay {
@@ -128,7 +124,6 @@ class TimetableModel extends ChangeNotifier {
     int newActiveDayPage = getDayPage(newActiveDay);
     int activeDayPage = dayViewPageController.page!.round();
     if (newActiveDayPage != activeDayPage) {
-      _persistedActiveDay = newActiveDay;
       dayViewPageController.animateDirectToPage(newActiveDayPage);
     }
   }
@@ -137,8 +132,8 @@ class TimetableModel extends ChangeNotifier {
     int activeWeekPage = weekBarPageController.page!.round();
     if (newWeekPage != activeWeekPage) {
       await weekBarPageController.animateToPage(
-        newWeekPage, 
-        duration: Duration(milliseconds: 400), 
+        newWeekPage,
+        duration: Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     }
@@ -161,7 +156,7 @@ class TimetableModel extends ChangeNotifier {
     int activeMonthPage = monthBarPageController.page!.round();
     if (newMonthPage != activeMonthPage) {
       await monthBarPageController.animateToPage(
-        newMonthPage, 
+        newMonthPage,
         duration: Duration(milliseconds: 400), 
         curve: Curves.easeInOut,
       );
@@ -170,7 +165,7 @@ class TimetableModel extends ChangeNotifier {
 
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged() {
-    if (viewTabController.index == 0 && !weekBarPageController.isScrolling) {
+    if (dayViewPageController.isScrolling) {
       syncWeekBarPage(dayPageToWeekPage(dayViewPageController.page!));
       syncMonthBarPage(dayPageToMonthPage(dayViewPageController.page!));
       notifyListeners();
@@ -223,16 +218,23 @@ class TimetableModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void handleMonthListMonthTap(int year, int month) {
+    if (year == activeDay.year && month == activeDay.month) return;
+    DateTime day = DateTime(year, month, 1);
+    syncDayViewPage(day);
+    
+    monthBarPageController.jumpToPage(getMonthPage(day));
+    syncWeekBarPage(getWeekPage(day));
+    syncWeekViewPage(getWeekPage(day));
+    notifyListeners();
+  }
+
   void addListeners() {
     weekViewPageController.addListener(() {
       weekBarPageController.matchToOther(weekViewPageController);
     });
     weekBarPageController.addListener(() {
       weekViewPageController.matchToOther(weekBarPageController);
-    });
-    viewTabController.addListener(() {
-      viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
-      dayViewPageController.syncToOther(weekBarPageController);
     });
   }
 
@@ -256,6 +258,11 @@ class TimetableModel extends ChangeNotifier {
 
   bool onMonthBarNotification(UserScrollNotification notification) {
     monthBarPageController.isScrolling = notification.direction != ScrollDirection.idle;
+    return false;
+  }
+
+  bool onDayViewNotification(UserScrollNotification notification) {
+    dayViewPageController.isScrolling = notification.direction != ScrollDirection.idle;
     return false;
   }
 }

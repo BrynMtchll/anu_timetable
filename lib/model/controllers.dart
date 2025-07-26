@@ -39,18 +39,38 @@ class DayViewPageController extends PageController with PageLinker{
   final double pageWidth = TimetableLayout.screenWidth - TimetableLayout.leftMargin;
 
   @override
-  bool isScrolling = true;
+  bool isScrolling = false;
 
   /// When animating the [page], by default intermediate 
-  /// pages are animated. [pageOverride] is used so that the target page can be 
+  /// pages are animated. [_pageOverride] is used so that the target page can be 
   /// animated to as though it were the adjacent page and not have [page] 
   /// mistakenly return the adjacent page instead of the target page.
-  int? pageOverride;
-  int? adjacentPage;
+  int? _pageOverride;
+  int? _adjacentPage;
+  int _persistedPage = TimetableModel.getDayPage(DateTime.now());
 
-  @override get page => pageOverride != null ? pageOverride!.toDouble() : super.page;
+  @override get page {
+    if (!hasClients) {
+      return _persistedPage.toDouble();
+    }
+    else if (_pageOverride != null) {
+      return _pageOverride!.toDouble();
+    }
+    else {
+      return super.page;
+    }
+  }
 
-  int overridePage(int page) => page == adjacentPage ? pageOverride! : page;
+  @override jumpToPage(int newPage) {
+    _persistedPage = newPage;
+    super.jumpToPage(newPage);
+  }
+  @override animateToPage(int newPage, {required Curve curve, required Duration duration}) {
+    _persistedPage = newPage;
+    return super.animateToPage(newPage, curve: curve, duration: duration);
+  }
+
+  int overridePage(int page) => page == _adjacentPage ? _pageOverride! : page;
   DayViewPageController({
     super.initialPage,
     super.keepPage,
@@ -68,23 +88,23 @@ class DayViewPageController extends PageController with PageLinker{
   }
 
   /// Workaround to animate directly to a non adjacent day as though it were adjacent.
-  ///   1.  Set [pageOverride] to the new page,
+  ///   1.  Set [_pageOverride] to the new page,
   ///   2.  animate to the adjacent page of the same side,
   ///   3.  jump to the target page,
-  ///   4.  set [pageOverride] to null.
+  ///   4.  set [_pageOverride] to null.
   void animateDirectToPage(int newPage) async {
     int currPage = page!.round();
-    adjacentPage = newPage > page! ? currPage +1 : currPage -1;
-    pageOverride = newPage;
+    _adjacentPage = newPage > page! ? currPage +1 : currPage -1;
+    _pageOverride = newPage;
     notifyListeners();
 
     await animateToPage(
-      adjacentPage!,
+      _adjacentPage!,
       curve: Curves.easeInOut,
       duration: Duration(milliseconds: 350),
     );
-    pageOverride = null;
-    adjacentPage = null;
+    _pageOverride = null;
+    _adjacentPage = null;
 
     notifyListeners();
     jumpToPage(newPage);
@@ -164,6 +184,16 @@ class WeekViewScrollController extends ScrollController with ScrollLinker{
 
 class DayViewScrollController extends ScrollController with ScrollLinker{
   DayViewScrollController({
+    super.initialScrollOffset,
+    super.keepScrollOffset,
+    super.debugLabel,
+    super.onAttach,
+    super.onDetach,
+  });
+}
+
+class MonthListScrollController extends ScrollController{
+  MonthListScrollController({
     super.initialScrollOffset,
     super.keepScrollOffset,
     super.debugLabel,
