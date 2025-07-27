@@ -29,7 +29,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(currentDate));
   late int monthBarInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(currentDate));
 
-  late double monthListInitialOffset = TimetableLayout.monthListMonthOffset(currentDate);
+  late double monthListInitialOffset = TimetableLayout.monthListMonthRightOffset(currentDate);
 
   late DayViewPageController dayViewPageController;
   late WeekViewPageController weekViewPageController;
@@ -83,7 +83,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
         ChangeNotifierProvider(create: (context) => MonthBarAnimationNotifier(DateTime.now())),
-        ChangeNotifierProvider(create: (context) => SelectBarWeekdayNotifier()),
         ChangeNotifierProvider.value(value: viewTabController),
         ChangeNotifierProvider.value(value: dayViewScrollController),
         ChangeNotifierProvider.value(value: weekViewScrollController),

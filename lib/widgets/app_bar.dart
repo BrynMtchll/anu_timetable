@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
@@ -31,21 +33,25 @@ class _PickerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    MonthBarAnimationNotifier monthBarAnimationNotifier = Provider.of<MonthBarAnimationNotifier>(context, listen: false);
-    return GestureDetector(
-      onTap: () {
-        monthBarAnimationNotifier.toggleOpen(!monthBarAnimationNotifier.open);
-      },
-      child: Padding(
-        padding: EdgeInsetsGeometry.only(left: 20),
-        child: Row(
-          children: [
-            _PickerButtonText(),
-            Icon(
-              Icons.arrow_drop_down,
-              color: colorScheme.onSurface,
-              size: 20)
-          ])));
+    return Consumer<MonthBarAnimationNotifier>(
+      builder: (BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, Widget? child) =>
+        GestureDetector(
+          onTap: () {
+            monthBarAnimationNotifier.open = !monthBarAnimationNotifier.open;
+          },
+          child: Padding(
+            padding: EdgeInsetsGeometry.only(left: 20),
+            child: Row(
+              children: [
+                _PickerButtonText(),
+                AnimatedRotation(
+                  duration: Duration(milliseconds: 200),
+                  turns: monthBarAnimationNotifier.open ? -0.5 : 0,
+                  child: Icon(
+                  Icons.arrow_drop_down,
+                  color: colorScheme.onSurface,
+                  size: 20))
+              ]))));
   }
 }
 

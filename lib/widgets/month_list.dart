@@ -64,7 +64,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
                       height: TimetableLayout.monthListHeight,
                       padding: EdgeInsets.symmetric(vertical: 5),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _YearLabel(year: year),
                           for (int month = 1; month <= 12; month++)
@@ -96,23 +96,24 @@ class _MonthButton extends StatelessWidget {
           onTap: () {
             timetableModel.handleMonthListMonthTap(year, month);
           },
-          child: Container(
-        width: TimetableLayout.monthListMonthWidth,
-        height: TimetableLayout.monthListHeight,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: monthIsActive(timetableModel.activeDay) ? colorScheme.inverseSurface : null,
-          border: Border.all(color: colorScheme.onSurface, width: 0.5),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(
-          style: TextStyle(
-            fontWeight: monthIsActive(timetableModel.activeDay) ? FontWeight.w600 : FontWeight.w400,
-            color: monthIsActive(timetableModel.activeDay) ? colorScheme.onInverseSurface : null,
-            fontSize: 11,
-          ),
-          TimetableLayout.monthString(month),
-        ))));
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            width: TimetableLayout.monthListMonthWidth,
+            height: TimetableLayout.monthListHeight,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: monthIsActive(timetableModel.activeDay) ? colorScheme.inverseSurface : null,
+              border: Border.all(color: colorScheme.onSurface, width: 0.5),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              style: TextStyle(
+                fontWeight: monthIsActive(timetableModel.activeDay) ? FontWeight.w600 : FontWeight.w400,
+                color: monthIsActive(timetableModel.activeDay) ? colorScheme.onInverseSurface : null,
+                fontSize: 11,
+              ),
+              TimetableLayout.monthString(month),
+            ))));
   }
 }
 

@@ -78,13 +78,10 @@ class _Weekday extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    return Consumer<SelectBarWeekdayNotifier>(
-      builder: (BuildContext context, SelectBarWeekdayNotifier selectBarWeekdayNotifier, Widget? child) =>
-        GestureDetector(
-          onTap: () {
-            selectBarWeekdayNotifier.notify();
-            timetableModel.handleWeekBarDayTap(day);
-          },
-          child: BarDayItem(day: day)));
+      return GestureDetector(
+        onTap: () {
+          timetableModel.handleWeekBarDayTap(day);
+        },
+        child: BarDayItem(day: day));
   }
 }

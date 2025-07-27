@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class TimetableLayout {
 
   static const double monthListHeight = 35;
   static const double monthListMonthWidth = 70;
-  static const double monthListYearWidth 
+  static const double monthListYearWidth
     = monthListMonthWidth * 12 + monthListYearLabelWidth + monthListMonthGap * 12;
   static const double monthListMonthGap = 5;
   static const double monthListYearLabelWidth = 40;
@@ -45,6 +46,11 @@ class TimetableLayout {
     double yearOffset = (day.year - TimetableModel.hashDate.year) * monthListYearWidth;
     double monthOffset = (day.month-1) * monthListMonthWidth + monthListYearLabelWidth + monthListMonthGap * (day.month-1);
     return yearOffset + monthOffset;
+  }
+
+  static double monthListMonthRightOffset(DateTime day) {
+    double leftOffset = monthListMonthOffset(day);
+    return  max(0, leftOffset - (screenWidth - monthListMonthWidth - 2*monthListMonthGap) - 1);
   }
 
   static Size get screenSize {
@@ -56,7 +62,7 @@ class TimetableLayout {
     return screenSize.width;
   }
 
-  /// The number of distinct weeks that the month spans, including partial.
+  /// The number of distinct weeks that the month spans, including partial weeks.
   static int monthRows(DateTime month) {
     month = TimetableModel.monthOfDay(month);
     int days = DateUtils.getDaysInMonth(month.year, month.month);
