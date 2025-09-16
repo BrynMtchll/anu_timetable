@@ -64,7 +64,7 @@ class _DayItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer3<CurrentDay, TimetableModel, DayViewPageController>(
       builder: (context, currentDay, timetableModel, dayViewPageController, child) { 
-        bool pageIsCurrent = TimetableModel.dayIsCurrent(page, currentDay);
+        bool pageIsCurrent = TimetableModel.dayIsCurrent(page.toDouble(), currentDay);
         DateTime day = TimetableModel.day(page.toDouble());
         return Stack(
           children: [
@@ -77,7 +77,7 @@ class _DayItem extends StatelessWidget {
               left: TimetableLayout.leftMargin,
               child: EventTileGenerator(size: TimetableLayout.innerSize, day: day)),
             if (pageIsCurrent) Positioned(
-              left: TimetableLayout.leftMargin, 
+              left: TimetableLayout.leftMargin,
               child: LiveTimeIndicator(size: TimetableLayout.innerSize)),
           ]);
       });

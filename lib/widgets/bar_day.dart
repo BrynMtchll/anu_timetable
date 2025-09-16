@@ -16,7 +16,7 @@ class WeekdayLabels extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
+          for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++)
             SizedBox(
               width: TimetableLayout.weekdayLabelSize,
               height: TimetableLayout.weekdayLabelSize,
@@ -26,8 +26,7 @@ class WeekdayLabels extends StatelessWidget {
                   style: TextStyle(
                     color: colorScheme.secondary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
+                    fontSize: 11),
                   TimetableLayout.weekdayCharacters(weekday)))),
         ])));
   }

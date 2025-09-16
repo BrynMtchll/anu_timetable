@@ -61,13 +61,13 @@ class DayViewPageController extends PageController with PageLinker{
     }
   }
 
-  @override jumpToPage(int newPage) {
-    _persistedPage = newPage;
-    super.jumpToPage(newPage);
+  @override jumpToPage(int page) {
+    _persistedPage = page;
+    super.jumpToPage(page);
   }
-  @override animateToPage(int newPage, {required Curve curve, required Duration duration}) {
-    _persistedPage = newPage;
-    return super.animateToPage(newPage, curve: curve, duration: duration);
+  @override animateToPage(int page, {required Curve curve, required Duration duration}) {
+    _persistedPage = page;
+    return super.animateToPage(page, curve: curve, duration: duration);
   }
 
   int overridePage(int page) => page == _adjacentPage ? _pageOverride! : page;
@@ -92,10 +92,10 @@ class DayViewPageController extends PageController with PageLinker{
   ///   2.  animate to the adjacent page of the same side,
   ///   3.  jump to the target page,
   ///   4.  set [_pageOverride] to null.
-  void animateDirectToPage(int newPage) async {
-    int currPage = page!.round();
-    _adjacentPage = newPage > page! ? currPage +1 : currPage -1;
-    _pageOverride = newPage;
+  void animateDirectToPage(int page) async {
+    int currPage = this.page!.round();
+    _adjacentPage = page > this.page! ? currPage +1 : currPage -1;
+    _pageOverride = page;
     notifyListeners();
 
     await animateToPage(
@@ -107,7 +107,7 @@ class DayViewPageController extends PageController with PageLinker{
     _adjacentPage = null;
 
     notifyListeners();
-    jumpToPage(newPage);
+    jumpToPage(page);
   }
 }
 
@@ -119,6 +119,7 @@ class WeekViewPageController extends PageController with PageLinker {
   bool isScrolling = false;
 
   WeekViewPageController({
+    other,
     super.initialPage,
     super.keepPage,
     super.viewportFraction = 1.0,

@@ -1,33 +1,39 @@
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/controllers.dart';
-import 'package:test/test.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:checks/checks.dart';
 
 void main() {
-  late int weekBarInitialPage = TimetableModel.weekBarPage(TimetableModel.weekOfDay(DateTime.now()));
-  late WeekBarPageController weekBarPageController = WeekBarPageController(
-    initialPage: weekBarInitialPage,
-  );
+  late int dayInitialPage = TimetableModel.getDayPage(DateTime.now());
+  late int weekInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(DateTime.now()));
+  late int monthInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(DateTime.now()));
+  late double monthInitialListOffset = TimetableLayout.monthListRightOffset(DateTime.now());
 
-  late int dayViewInitialPage = TimetableModel.dayViewPage(DateTime.now());
   late DayViewPageController dayViewPageController = DayViewPageController(
-    initialPage: dayViewInitialPage,
-  );
-  
-  TimetableModel timetableModel = TimetableModel(weekBarPageController: weekBarPageController, dayViewPageController: dayViewPageController);
+    initialPage: dayInitialPage);
+  late WeekBarPageController weekBarPageController = WeekBarPageController(
+    initialPage: weekInitialPage);
+  late WeekViewPageController weekViewPageController;
+  weekViewPageController = WeekViewPageController(
+    initialPage: weekInitialPage,
+    onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController));
+  late MonthBarPageController monthBarPageController = MonthBarPageController(
+    initialPage: monthInitialPage);
+  late MonthListScrollController monthListScrollController = MonthListScrollController(
+    initialScrollOffset: monthInitialListOffset);
 
-  test("weekBarInitialPage", () {
-    expect(timetableModel.week(weekBarInitialPage.toDouble()).weekday, DateTime.monday);
+  TimetableModel timetableModel = TimetableModel(
+    dayViewPageController: dayViewPageController,
+    weekViewPageController: weekViewPageController,
+    weekBarPageController: weekBarPageController,
+    monthBarPageController: monthBarPageController,
+    monthListScrollController: monthListScrollController);
+
+  group("syncDayView", () {
+    
   });
 
-  test("dayViewInitialPage", () {
-    expect(timetableModel.day(dayViewInitialPage.toDouble()).day, DateTime.now().day);
-  });
-
-  test("dayViewPage()", () {
-    expect(TimetableModel.dayViewPage(DateTime.now()), dayViewInitialPage);
-  });
-
-  test("weekOfDay()", () {
-    expect(TimetableModel.weekOfDay(DateTime.now()).day, DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)).day);
-  });
+  // TODO: SYNCHRONIZATION TESTS
+  // trigger each swipe/tap and check all are synchronized
 }

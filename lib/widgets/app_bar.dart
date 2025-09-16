@@ -1,11 +1,9 @@
-import 'dart:math';
-
 import 'package:anu_timetable/model/animation_notifiers.dart';
+import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
+import 'package:anu_timetable/widgets/tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
-import 'package:anu_timetable/widgets/tab_bar.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
   final int currentPageIndex;

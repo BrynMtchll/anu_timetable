@@ -20,17 +20,14 @@ class _WeekViewState extends State<WeekView>{
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        return Consumer3<TimetableModel, CurrentDay, WeekViewScrollController>(
-          builder: (context, timetableModel, currentDay, weekViewScrollController, child) { 
-          return SingleChildScrollView(
-              controller: weekViewScrollController,
-              child:  Row(
-                children: [
-                  _LeftMargin(size: TimetableLayout.marginSize),
-                  _WeekPageView(size: TimetableLayout.innerSize)
-                ]));
-          });
-      });
+        return SingleChildScrollView(
+            controller: Provider.of<WeekViewScrollController>(context, listen: false),
+            child: Row(
+              children: [
+                _LeftMargin(size: TimetableLayout.marginSize),
+                _WeekPageView(size: TimetableLayout.innerSize)
+              ]));
+        });
   }
 }
 
@@ -73,7 +70,7 @@ class _WeekPageView extends StatelessWidget {
             itemBuilder: (context, page) =>
               Consumer<CurrentDay>(
                 builder: (context, currentDay, child) {
-                  bool pageIsCurrent = TimetableModel.weekIsCurrent(page, currentDay);
+                  bool pageIsCurrent = TimetableModel.weekIsCurrent(page.toDouble(), currentDay);
                   return Stack(
                     children: [
                       HourLines(size: size, pageIsCurrent: pageIsCurrent),

@@ -37,18 +37,21 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
 
     widget.monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
 
-    Animation<double> opacity = Tween<double> (
-        begin: 0,
-        end: 1,
-      ).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Interval(0.65, 0.9, curve: Curves.easeInOut)));
+    Animation<double> opacity = Tween<double> (begin: 0, end: 1)
+      .animate(CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.65, 0.9, curve: Curves.easeInOut)));
 
-    // _scrollController.animateTo(400, duration: Duration(seconds: 2), curve: Curves.linear);
+    Animation<double> vOffset = Tween<double>(begin: -60, end: 0)
+      .animate(CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.4, 1, curve: Curves.easeInOut)));
 
     return AnimatedBuilder(
       animation: _controller,
-      builder: (context, child) => Opacity(
+      builder: (context, child) => Transform.translate( 
+        offset: Offset(0, vOffset.value),
+        child: Opacity(
         opacity: opacity.value,
         child: SizedBox(
           height: TimetableLayout.monthListHeight,
@@ -70,7 +73,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
                           for (int month = 1; month <= 12; month++)
                             _MonthButton(year: year, month: month, colorScheme: colorScheme)
                         ]))
-                ])))));
+                ]))))));
   }
 }
 
@@ -104,16 +107,13 @@ class _MonthButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: monthIsActive(timetableModel.activeDay) ? colorScheme.inverseSurface : null,
               border: Border.all(color: colorScheme.onSurface, width: 0.5),
-              borderRadius: BorderRadius.circular(5),
-            ),
+              borderRadius: BorderRadius.circular(5)),
             child: Text(
               style: TextStyle(
                 fontWeight: monthIsActive(timetableModel.activeDay) ? FontWeight.w600 : FontWeight.w400,
                 color: monthIsActive(timetableModel.activeDay) ? colorScheme.onInverseSurface : null,
-                fontSize: 11,
-              ),
-              TimetableLayout.monthString(month),
-            ))));
+                fontSize: 11),
+              TimetableLayout.monthString(month)))));
   }
 }
 
@@ -134,7 +134,6 @@ class _YearLabel extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.w400,
           fontSize: 12),
-        year.toString()
-    ));
+        year.toString()));
   }
 }

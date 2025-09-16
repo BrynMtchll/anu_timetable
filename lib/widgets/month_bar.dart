@@ -102,35 +102,26 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     DateTime firstWeekOfMonth = TimetableModel.weekOfDay(widget.month);
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    int rows = TimetableLayout.monthRows(widget.month);
-    int rowOfActiveDay = TimetableLayout.rowOfActiveDay(timetableModel.activeDay, widget.month);
+    int weeks = TimetableLayout.monthWeeks(widget.month);
+    int activeWeekIndex = TimetableLayout.monthWeek(timetableModel.activeDay, widget.month);
 
     widget.monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
 
     Animation<double> vOffset = Tween<double>(
-      begin: (TimetableLayout.barDayHeight - rowOfActiveDay * TimetableLayout.barDayHeight),
-      end: 0,
-    ).animate(CurvedAnimation(
-      parent: _controller, 
-      curve: Interval(
-        0.0,
-        1,
-        curve: Curves.easeInOut,
-    )));
+      begin: -(activeWeekIndex - 1) * TimetableLayout.barDayHeight, end: 0)
+      .animate(CurvedAnimation(
+        parent: _controller, 
+        curve: Interval(0.0, 1, curve: Curves.easeInOut)));
 
-    Animation<double> opacity(int r, int rows) {
-      return Tween<double> (
-        begin: r != (rowOfActiveDay- 1) ? 0 : 1,
-        end: 1,
-      ).animate(
-        CurvedAnimation(parent: _controller, curve: Interval(
-          0.25 - ((r / rows) /4), 
-          1- ((r / rows) /4),
-          curve: Curves.easeInOut,
-        ))
-      );
-    }
-
+    Animation<double> opacity(int weekIndex) => Tween<double> (
+      begin: weekIndex != (activeWeekIndex- 1) ? 0 : 1, end: 1)
+      .animate(CurvedAnimation(
+        parent: _controller, 
+        curve: Interval(
+          activeWeekIndex == 1 ? 0.5 - ((weekIndex / weeks) /8) : 0.5 - ((weekIndex / weeks) /4),
+          1 - ((weekIndex / weeks) /8),
+          curve: Curves.easeInOut)));
+    
     return OverflowBox(
       maxHeight: double.infinity,
       alignment: Alignment.topCenter,
@@ -140,17 +131,18 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
           WeekdayLabels(),
           AnimatedBuilder(
             animation: _controller,
-            builder: (context, child) => 
+            builder: (context, child) =>
               ClipRect(
                 child: Transform.translate(
                   offset: Offset(0, vOffset.value),
                   child: Column(
                     children: [
-                      for (int r = 0; r < rows; r++) Opacity(
-                        opacity: opacity(r, rows).value,
+                      for (int i = 0; i < weeks; i++) Opacity(
+                        opacity: opacity(i).value,
                         child: _Week(
                           month: widget.month,
-                          week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, firstWeekOfMonth.day + r*7)))
+                          week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, 
+                            firstWeekOfMonth.day + i*7)))
                     ]))))
       ]));
   }

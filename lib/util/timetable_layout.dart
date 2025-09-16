@@ -42,14 +42,14 @@ class TimetableLayout {
   static const double monthListMonthGap = 5;
   static const double monthListYearLabelWidth = 40;
 
-  static double monthListMonthOffset(DateTime day) {
+  static double monthListLeftOffset(DateTime day) {
     double yearOffset = (day.year - TimetableModel.hashDate.year) * monthListYearWidth;
     double monthOffset = (day.month-1) * monthListMonthWidth + monthListYearLabelWidth + monthListMonthGap * (day.month-1);
     return yearOffset + monthOffset;
   }
 
-  static double monthListMonthRightOffset(DateTime day) {
-    double leftOffset = monthListMonthOffset(day);
+  static double monthListRightOffset(DateTime day) {
+    double leftOffset = monthListLeftOffset(day);
     return  max(0, leftOffset - (screenWidth - monthListMonthWidth - 2*monthListMonthGap) - 1);
   }
 
@@ -62,19 +62,23 @@ class TimetableLayout {
     return screenSize.width;
   }
 
-  /// The number of distinct weeks that the month spans, including partial weeks.
-  static int monthRows(DateTime month) {
+  /// The number of weeks that the month spans, 
+  /// including weeks partially spanned.
+  static int monthWeeks(DateTime month) {
     month = TimetableModel.monthOfDay(month);
     int days = DateUtils.getDaysInMonth(month.year, month.month);
     int weekday = month.weekday;
     return ((days + weekday - 1) / 7).ceil();
   }
 
-  static int rowOfActiveDay(DateTime activeDay, DateTime month) =>
-    ((activeDay.day + month.weekday - 1)/ 7).ceil();
+  /// Enumeration for the week containing the given day within the month
+  /// i.e. the offset from the week containing the first day of the month.
+  /// it's 1 indexed; 1 is returned for the week containing the first day of the month.
+  static int monthWeek(DateTime day, DateTime month) =>
+    ((day.day + month.weekday - 1)/ 7).ceil();
 
   static double monthBarHeight(DateTime activeMonth) {
-    return monthListHeight + weekdayLabelSize + monthRows(activeMonth) * barDayHeight;}
+    return monthListHeight + weekdayLabelSize + monthWeeks(activeMonth) * barDayHeight;}
     
   static double monthBarMonthHeight(double monthBarHeight) => 
     monthBarHeight - monthListHeight;

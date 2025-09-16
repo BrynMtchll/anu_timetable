@@ -2,7 +2,6 @@ import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
-import 'package:anu_timetable/widgets/month_list.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
@@ -28,8 +27,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   late int weekViewInitialPage = TimetableModel.getWeekPage(currentDate);
   late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(currentDate));
   late int monthBarInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(currentDate));
-
-  late double monthListInitialOffset = TimetableLayout.monthListMonthRightOffset(currentDate);
+  late double monthInitialListOffset = TimetableLayout.monthListRightOffset(currentDate);
 
   late DayViewPageController dayViewPageController;
   late WeekViewPageController weekViewPageController;
@@ -45,8 +43,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
     super.initState();
 
     dayViewPageController = DayViewPageController(initialPage: dayViewInitialPage);
-    weekViewPageController = WeekViewPageController(
-      initialPage: weekViewInitialPage,
+    weekViewPageController = WeekViewPageController(initialPage: weekViewInitialPage,
       onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController));
     weekBarPageController = WeekBarPageController(initialPage: weekBarInitialPage);
     monthBarPageController = MonthBarPageController(initialPage: monthBarInitialPage);
@@ -56,7 +53,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
     weekViewScrollController = WeekViewScrollController(
       onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController));
 
-    monthListScrollController = MonthListScrollController(initialScrollOffset: monthListInitialOffset);
+    monthListScrollController = MonthListScrollController(initialScrollOffset: monthInitialListOffset);
 
     viewTabController.addListener(() {
       viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
