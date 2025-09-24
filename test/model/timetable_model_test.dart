@@ -1,10 +1,12 @@
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:checks/checks.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   late int dayInitialPage = TimetableModel.getDayPage(DateTime.now());
   late int weekInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(DateTime.now()));
   late int monthInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(DateTime.now()));
@@ -31,7 +33,6 @@ void main() {
     monthListScrollController: monthListScrollController);
 
   group("syncDayView", () {
-    
   });
 
   // TODO: SYNCHRONIZATION TESTS

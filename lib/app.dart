@@ -1,5 +1,6 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   late int weekViewInitialPage = TimetableModel.getWeekPage(currentDate);
   late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(currentDate));
   late int monthBarInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(currentDate));
-  late double monthInitialListOffset = TimetableLayout.monthListRightOffset(currentDate);
+  late double monthInitialListOffset = MonthListLayout.rightOffset(currentDate);
 
   late DayViewPageController dayViewPageController;
   late WeekViewPageController weekViewPageController;

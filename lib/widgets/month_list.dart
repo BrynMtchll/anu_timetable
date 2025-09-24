@@ -1,6 +1,7 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -54,7 +55,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
         child: Opacity(
         opacity: opacity.value,
         child: SizedBox(
-          height: TimetableLayout.monthListHeight,
+          height: MonthListLayout.height,
           child: Consumer<MonthListScrollController>(
             builder: (BuildContext context, MonthListScrollController monthListScrollController, Widget? child) => 
               ListView(
@@ -63,9 +64,9 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
                 children: [
                   for (int year = TimetableModel.hashDate.year; year < TimetableModel.endDate.year; year++)
                     Container(
-                      width: TimetableLayout.monthListYearWidth,
-                      height: TimetableLayout.monthListHeight,
-                      padding: EdgeInsets.symmetric(vertical: 5),
+                      width: MonthListLayout.yearWidth,
+                      height: MonthListLayout.height,
+                      padding: EdgeInsets.symmetric(vertical: MonthListLayout.vertPadding, horizontal: MonthListLayout.yearGap/2),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -101,19 +102,19 @@ class _MonthButton extends StatelessWidget {
           },
           child: AnimatedContainer(
             duration: Duration(milliseconds: 200),
-            width: TimetableLayout.monthListMonthWidth,
-            height: TimetableLayout.monthListHeight,
+            width: MonthListLayout.monthWidth,
+            height: MonthListLayout.height,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: monthIsActive(timetableModel.activeDay) ? colorScheme.inverseSurface : null,
               border: Border.all(color: colorScheme.onSurface, width: 0.5),
-              borderRadius: BorderRadius.circular(5)),
+              borderRadius: BorderRadius.circular(7)),
             child: Text(
               style: TextStyle(
                 fontWeight: monthIsActive(timetableModel.activeDay) ? FontWeight.w600 : FontWeight.w400,
                 color: monthIsActive(timetableModel.activeDay) ? colorScheme.onInverseSurface : null,
-                fontSize: 11),
-              TimetableLayout.monthString(month)))));
+                fontSize: 12),
+              TimetableLayout.monthStringAbbrev(month)))));
   }
 }
 
@@ -127,9 +128,9 @@ class _YearLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: TimetableLayout.monthListYearLabelWidth,
+      width: MonthListLayout.yearLabelWidth,
       alignment: Alignment.center,
-      height: TimetableLayout.monthListHeight,
+      height: MonthListLayout.height,
       child: Text(
         style: TextStyle(
           fontWeight: FontWeight.w400,

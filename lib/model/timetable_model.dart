@@ -1,5 +1,6 @@
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
@@ -170,8 +171,8 @@ class TimetableModel extends ChangeNotifier {
   /// Animates the [MonthList]'s [ListView] just enough so that 
   /// the active month is entirely visible.
   void syncMonthList() {
-    double leftOffset = TimetableLayout.monthListLeftOffset(activeDay);
-    double rightOffset = TimetableLayout.monthListRightOffset(activeDay);
+    double leftOffset = MonthListLayout.leftOffset(activeDay);
+    double rightOffset = MonthListLayout.rightOffset(activeDay);
     Duration duration = Duration(milliseconds: 300);
     Curve curve = Curves.easeInOut;
     

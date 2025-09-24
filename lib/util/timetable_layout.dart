@@ -1,6 +1,6 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:flutter/material.dart';
 
 class TimetableLayout {
@@ -35,24 +35,6 @@ class TimetableLayout {
   static const double lineStrokeWidth = 0.2;
   static const double liveLineStrokeWidth = 1.5;
 
-  static const double monthListHeight = 35;
-  static const double monthListMonthWidth = 70;
-  static const double monthListYearWidth
-    = monthListMonthWidth * 12 + monthListYearLabelWidth + monthListMonthGap * 12;
-  static const double monthListMonthGap = 5;
-  static const double monthListYearLabelWidth = 40;
-
-  static double monthListLeftOffset(DateTime day) {
-    double yearOffset = (day.year - TimetableModel.hashDate.year) * monthListYearWidth;
-    double monthOffset = (day.month-1) * monthListMonthWidth + monthListYearLabelWidth + monthListMonthGap * (day.month-1);
-    return yearOffset + monthOffset;
-  }
-
-  static double monthListRightOffset(DateTime day) {
-    double leftOffset = monthListLeftOffset(day);
-    return  max(0, leftOffset - (screenWidth - monthListMonthWidth - 2*monthListMonthGap) - 1);
-  }
-
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
     return view.physicalSize / view.devicePixelRatio;
@@ -78,10 +60,10 @@ class TimetableLayout {
     ((day.day + month.weekday - 1)/ 7).ceil();
 
   static double monthBarHeight(DateTime activeMonth) {
-    return monthListHeight + weekdayLabelSize + monthWeeks(activeMonth) * barDayHeight;}
+    return MonthListLayout.height + weekdayLabelSize + monthWeeks(activeMonth) * barDayHeight;}
     
   static double monthBarMonthHeight(double monthBarHeight) => 
-    monthBarHeight - monthListHeight;
+    monthBarHeight - MonthListLayout.height;
 
   static double vertOffset(int totalMinutes) {
     return minuteHeight * totalMinutes + vertPadding;
@@ -105,6 +87,24 @@ class TimetableLayout {
       case DateTime.friday: return 'F';
       case DateTime.saturday: return 'Sa';
       case DateTime.sunday: return 'Su';
+      default: return '';
+    }
+  }
+
+  static String monthStringAbbrev(int month) {
+    switch (month) {
+      case DateTime.january: return 'Jan';
+      case DateTime.february: return 'Feb';
+      case DateTime.march: return 'Mar';
+      case DateTime.april: return 'Apr';
+      case DateTime.may: return 'May';
+      case DateTime.june: return 'Jun';
+      case DateTime.july: return 'Jul';
+      case DateTime.august: return 'Aug';
+      case DateTime.september: return 'Sep';
+      case DateTime.october: return 'Oct';
+      case DateTime.november: return 'Nov';
+      case DateTime.december: return 'Dec';
       default: return '';
     }
   }
