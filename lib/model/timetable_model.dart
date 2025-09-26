@@ -1,7 +1,6 @@
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
 import 'package:anu_timetable/widgets/month_list.dart';

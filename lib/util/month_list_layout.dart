@@ -12,7 +12,7 @@ class MonthListLayout {
   static const double yearWidth
     = monthWidth * 12 + yearLabelWidth + monthGap * 12 + yearGap;
 
-  static const double monthGap = 10;
+  static const double monthGap = 8;
 
   static const double yearGap = 10;
 

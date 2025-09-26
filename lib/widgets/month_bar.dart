@@ -23,49 +23,57 @@ class _MonthBarState extends State<MonthBar>{
     MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
     
     return Consumer<MonthBarAnimationNotifier>(
-      builder: (BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, Widget? child) { 
-        return Align(
-          alignment: Alignment.topRight,
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-            curve: Curves.easeInOut,
-            height: monthBarAnimationNotifier.displayHeight,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLow,
-              border: Border(
-                bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
-            child: OverflowBox(
-              maxHeight: double.infinity,
-              alignment: Alignment.topCenter,
-              minHeight: monthBarAnimationNotifier.height,
-                child: Column(
-                  children: [
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-                      height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
-                      child: NotificationListener<UserScrollNotification>(
-                        onNotification: timetableModel.onMonthBarNotification,
-                        child: PageView.builder(
-                          controller: monthBarPageController,
-                          onPageChanged: (page) {
-                            monthBarAnimationNotifier.height = TimetableLayout.monthBarHeight(
-                              TimetableModel.month(page.toDouble()));
-                            timetableModel.handleMonthBarPageChanged();
-                          },
-                          itemBuilder: (context, page) =>
-                            AnimatedPadding(
-                              duration: Duration(milliseconds: 200),
-                              curve: Curves.easeInOut,
-                              padding: viewTabController.index == 1 ? 
-                                EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
-                              child: _Month(
-                                month: TimetableModel.month(page.toDouble()), 
-                                monthBarAnimationNotifier: monthBarAnimationNotifier))))),
-                    AnimatedOpacity(
-                      opacity: monthBarAnimationNotifier.open ? 1 : 0,
-                      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-                      child: MonthList(monthBarAnimationNotifier: monthBarAnimationNotifier)),
-                  ]))));
+      builder: (BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, Widget? child) {
+        return AnimatedOpacity(
+          opacity: monthBarAnimationNotifier.shrunk ? 0 : 1, 
+          curve: Curves.easeOut,
+          duration: Duration(milliseconds: 150),
+          child: Visibility(
+            maintainState: true,
+            maintainAnimation: true,
+            visible: monthBarAnimationNotifier.visible,
+            child: Align(
+              alignment: Alignment.topRight,
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+                curve: Curves.easeInOut,
+                height: monthBarAnimationNotifier.displayHeight,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  border: Border(
+                    bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
+                child: OverflowBox(
+                  maxHeight: double.infinity,
+                  alignment: Alignment.topCenter,
+                  minHeight: monthBarAnimationNotifier.height,
+                    child: Column(
+                      children: [
+                        AnimatedContainer(
+                          duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+                          height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
+                          child: NotificationListener<UserScrollNotification>(
+                            onNotification: timetableModel.onMonthBarNotification,
+                            child: PageView.builder(
+                              controller: monthBarPageController,
+                              onPageChanged: (page) {
+                                monthBarAnimationNotifier.height = TimetableLayout.monthBarHeight(
+                                  TimetableModel.month(page.toDouble()));
+                                timetableModel.handleMonthBarPageChanged();
+                              },
+                              itemBuilder: (context, page) =>
+                                AnimatedPadding(
+                                  duration: Duration(milliseconds: 200),
+                                  curve: Curves.easeInOut,
+                                  padding: viewTabController.index == 1 ? 
+                                    EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                                  child: _Month(
+                                    month: TimetableModel.month(page.toDouble()), 
+                                    monthBarAnimationNotifier: monthBarAnimationNotifier))))),
+                        AnimatedOpacity(
+                          opacity: monthBarAnimationNotifier.open ? 1 : 0,
+                          duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+                          child: MonthList(monthBarAnimationNotifier: monthBarAnimationNotifier)),
+                      ]))))));
       });
   }
 }
@@ -82,10 +90,15 @@ class _Month extends StatefulWidget {
 
 class _MonthState extends State<_Month> with TickerProviderStateMixin {
   late final AnimationController _controller;
+  late DateTime _firstWeekOfMonth;
+  late int _weeks;
 
   @override
   void initState() {
     super.initState();
+    _firstWeekOfMonth = TimetableModel.weekOfDay(widget.month);
+    _weeks = TimetableLayout.monthWeeks(widget.month);
+    
     _controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
@@ -100,27 +113,32 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    DateTime firstWeekOfMonth = TimetableModel.weekOfDay(widget.month);
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    int weeks = TimetableLayout.monthWeeks(widget.month);
     int activeWeekIndex = TimetableLayout.monthWeek(timetableModel.activeDay, widget.month);
 
-    widget.monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
+    double vOffsetFrac() {
+      double offset = -(activeWeekIndex - 1) * (TimetableLayout.barDayHeight + TimetableLayout.monthRowSpacing);
+      return offset / TimetableLayout.monthBarRowsHeight(widget.month);  
+    }
 
-    Animation<double> vOffset = Tween<double>(
-      begin: -(activeWeekIndex - 1) * TimetableLayout.barDayHeight, end: 0)
-      .animate(CurvedAnimation(
-        parent: _controller, 
-        curve: Interval(0.0, 1, curve: Curves.easeInOut)));
+    Animation<Offset> offset = Tween<Offset> (begin: Offset(0, vOffsetFrac()), end: Offset.zero)
+      .animate(CurvedAnimation(parent: _controller,curve: Curves.easeInOut));
 
     Animation<double> opacity(int weekIndex) => Tween<double> (
       begin: weekIndex != (activeWeekIndex- 1) ? 0 : 1, end: 1)
       .animate(CurvedAnimation(
         parent: _controller, 
-        curve: Interval(
-          activeWeekIndex == 1 ? 0.5 - ((weekIndex / weeks) /8) : 0.5 - ((weekIndex / weeks) /4),
-          1 - ((weekIndex / weeks) /8),
-          curve: Curves.easeInOut)));
+        curve: Interval((weekIndex - (activeWeekIndex-1)).abs() / _weeks, 1)));
+
+    if (widget.monthBarAnimationNotifier.open && widget.monthBarAnimationNotifier.expanded) {
+      _controller.value = 1;
+    }
+    else if (widget.monthBarAnimationNotifier.open) {
+      _controller.animateTo(1);
+    }
+    else {
+      _controller.animateTo(0);
+    }
     
     return OverflowBox(
       maxHeight: double.infinity,
@@ -129,21 +147,22 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
       child: Column(
         children: [
           WeekdayLabels(),
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) =>
-              ClipRect(
-                child: Transform.translate(
-                  offset: Offset(0, vOffset.value),
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < weeks; i++) Opacity(
-                        opacity: opacity(i).value,
-                        child: _Week(
-                          month: widget.month,
-                          week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, 
-                            firstWeekOfMonth.day + i*7)))
-                    ]))))
+          ClipRect(
+            child: SlideTransition(
+              position: offset,
+              child: Column(
+                spacing: TimetableLayout.monthRowSpacing,
+                children: [
+                  for (int i = 0; i < _weeks; i++) AnimatedBuilder(
+                    animation: opacity(i),
+                    builder:(context, child) => Opacity(
+                      opacity: opacity(i).value, 
+                      child: child),
+                    child: _Week(
+                      month: widget.month,
+                      week: DateTime(_firstWeekOfMonth.year, _firstWeekOfMonth.month, 
+                        _firstWeekOfMonth.day + i*7)))
+                ])))
       ]));
   }
 }

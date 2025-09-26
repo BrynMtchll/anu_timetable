@@ -17,13 +17,21 @@ class MonthList extends StatefulWidget {
 
 class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   late final AnimationController _controller;
-
+  late Animation<Offset> _offset;
+  late Animation<double> _opacity;
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: MonthBarAnimationNotifier.duration));
+
+    _offset = Tween<Offset>(begin: Offset(0, -3), end: Offset.zero)
+      .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _opacity = Tween<double> (begin: 0, end: 1)
+      .animate(CurvedAnimation(parent: _controller, curve: Interval(0.5, 1)));
   }
 
   @override
@@ -35,25 +43,13 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     widget.monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
-
-    Animation<double> opacity = Tween<double> (begin: 0, end: 1)
-      .animate(CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.65, 0.9, curve: Curves.easeInOut)));
-
-    Animation<double> vOffset = Tween<double>(begin: -60, end: 0)
-      .animate(CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.4, 1, curve: Curves.easeInOut)));
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) => Transform.translate( 
-        offset: Offset(0, vOffset.value),
-        child: Opacity(
-        opacity: opacity.value,
+    return SlideTransition(
+      position: _offset,
+      child: AnimatedBuilder(
+        animation: _opacity,
+        builder:(context, child) => Opacity(
+          opacity: _opacity.value, child: child),
         child: SizedBox(
           height: MonthListLayout.height,
           child: Consumer<MonthListScrollController>(
@@ -74,7 +70,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
                           for (int month = 1; month <= 12; month++)
                             _MonthButton(year: year, month: month, colorScheme: colorScheme)
                         ]))
-                ]))))));
+                ])))));
   }
 }
 
@@ -89,32 +85,32 @@ class _MonthButton extends StatelessWidget {
     required this.colorScheme,
   });
 
-  bool monthIsActive(DateTime activeDay) => activeDay.year == year && activeDay.month == month;
-
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Consumer<TimetableModel>(
-        builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
-         GestureDetector(
-          onTap: () {
-            timetableModel.handleMonthListMonthTap(year, month);
-          },
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            width: MonthListLayout.monthWidth,
-            height: MonthListLayout.height,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: monthIsActive(timetableModel.activeDay) ? colorScheme.inverseSurface : null,
-              border: Border.all(color: colorScheme.onSurface, width: 0.5),
-              borderRadius: BorderRadius.circular(7)),
-            child: Text(
-              style: TextStyle(
-                fontWeight: monthIsActive(timetableModel.activeDay) ? FontWeight.w600 : FontWeight.w400,
-                color: monthIsActive(timetableModel.activeDay) ? colorScheme.onInverseSurface : null,
-                fontSize: 12),
-              TimetableLayout.monthStringAbbrev(month)))));
+        builder: (BuildContext context, TimetableModel timetableModel, Widget? child) { 
+          bool monthIsActive = timetableModel.activeDay.year == year && timetableModel.activeDay.month == month;
+          return GestureDetector(
+            onTap: () {
+              timetableModel.handleMonthListMonthTap(year, month);
+            },
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              width: MonthListLayout.monthWidth,
+              height: MonthListLayout.height,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: monthIsActive ? colorScheme.inverseSurface : null,
+                border: Border.all(color: colorScheme.onSurface, width: 0.5),
+                borderRadius: BorderRadius.circular(7)),
+                child: Text(
+                  style: TextStyle(
+                    fontWeight: monthIsActive ? FontWeight.w600 : FontWeight.w400,
+                    color: monthIsActive ? colorScheme.onInverseSurface : null,
+                    fontSize: 12),
+                  TimetableLayout.monthStringAbbrev(month))));
+        });
   }
 }
 

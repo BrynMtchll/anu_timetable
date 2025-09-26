@@ -13,7 +13,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
-      leadingWidth: 110,
+      leadingWidth: 115,
       leading: currentPageIndex == 1 ? _PickerButton() : null,
       backgroundColor: colorScheme.surfaceContainerLow,
       titleSpacing: 0,
@@ -59,7 +59,7 @@ class _PickerButtonText extends StatelessWidget {
     return Consumer<TimetableModel>(
       builder: (context, timetableModel, child) => Text(
         style: TextStyle(
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.w500,
           fontSize: 13),
         TimetableLayout.monthString(timetableModel.activeDay.month)));
   }

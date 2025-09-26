@@ -35,6 +35,8 @@ class TimetableLayout {
   static const double lineStrokeWidth = 0.2;
   static const double liveLineStrokeWidth = 1.5;
 
+  static const double monthRowSpacing = 4;
+
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
     return view.physicalSize / view.devicePixelRatio;
@@ -59,8 +61,12 @@ class TimetableLayout {
   static int monthWeek(DateTime day, DateTime month) =>
     ((day.day + month.weekday - 1)/ 7).ceil();
 
-  static double monthBarHeight(DateTime activeMonth) {
-    return MonthListLayout.height + weekdayLabelSize + monthWeeks(activeMonth) * barDayHeight;}
+  static double monthBarRowsHeight(DateTime activeMonth) {
+    int weeks = monthWeeks(activeMonth);
+    return weeks * barDayHeight + (weeks -1) * monthRowSpacing;
+  }
+  static double monthBarHeight(DateTime activeMonth) 
+    => MonthListLayout.height + weekdayLabelSize + monthBarRowsHeight(activeMonth);
     
   static double monthBarMonthHeight(double monthBarHeight) => 
     monthBarHeight - MonthListLayout.height;

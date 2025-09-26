@@ -2,13 +2,16 @@ import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 
 class MonthBarAnimationNotifier extends ChangeNotifier {
-  bool isScrolling = false;
+  // visibility: final/initial state of the animation set before fade in and expansion and after shrink fade out.
   bool visible = false;
+  // animation trigger
   bool _open = false;
+  // use shrunk to determine toggle visibility for monthbar
   bool shrunk = true;
+  bool expanded = false;
   late double displayHeight = TimetableLayout.weekBarHeight;
   late double _height;
-  static const int duration = 300;
+  static const int duration = 350;
 
   MonthBarAnimationNotifier(DateTime currentDay) {
     _height = TimetableLayout.monthBarHeight(currentDay);
@@ -33,8 +36,14 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
       shrunk = false;
       displayHeight = _height;
       notifyListeners();
+      Future.delayed(const Duration(milliseconds: duration)).then((_) {
+        if (!_open) return;
+        expanded = true;
+        notifyListeners();
+      });
     } else {
       displayHeight = TimetableLayout.weekBarHeight;
+      expanded = false;
       notifyListeners();
       Future.delayed(const Duration(milliseconds: duration)).then((_) {
         if (_open) return;

@@ -30,38 +30,29 @@ class _TimetablePageState extends State<TimetablePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) =>
-        Consumer2<ViewTabController, MonthBarAnimationNotifier>(
-          builder: (context, viewTabController, monthBarAnimationNotifier, child) => 
-          OverflowBox( 
-                  maxHeight: double.infinity,
-                  alignment: Alignment.topCenter,
-                  minHeight: 0,
-            child: Column(
-              children: [
-                Stack(children: [
-                  WeekBar(),
-                  AnimatedOpacity(
-                    opacity: monthBarAnimationNotifier.shrunk ? 0 : 1, 
-                    curve: Curves.easeOut,
-                    duration: Duration(milliseconds: 100),
-                    child: Visibility(
-                    maintainState: true,
-                    maintainAnimation: true,
-                    visible: monthBarAnimationNotifier.visible,
-                    child: MonthBar()
-                  ))]),
-                AnimatedContainer(
-                    duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-                    curve: Curves.easeInOut,
-                    height: constraints.maxHeight - monthBarAnimationNotifier.displayHeight,
-                    width: constraints.maxWidth,
-                  child: TabBarView(
-                    controller: viewTabController,
-                    physics: NeverScrollableScrollPhysics(),
-                    children: [
-                      DayView(),
-                      WeekView(),
-                    ]))
-              ]))));
+        OverflowBox( 
+          maxHeight: double.infinity,
+          alignment: Alignment.topCenter,
+          minHeight: 0,
+          child: 
+              Column(
+                children: [
+                  Stack(children: [
+                    WeekBar(),
+                    MonthBar()
+                  ]),
+                  Consumer<MonthBarAnimationNotifier>(
+                    builder: (context, monthBarAnimationNotifier, child) => 
+                      AnimatedContainer(
+                        duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+                        curve: Curves.easeInOut,
+                        height: constraints.maxHeight - monthBarAnimationNotifier.displayHeight,
+                        width: constraints.maxWidth,
+                        child: child),
+                    child: TabBarView(
+                      controller: Provider.of<ViewTabController>(context, listen: false),
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [DayView(), WeekView()]))
+                ])));
   }
 }
