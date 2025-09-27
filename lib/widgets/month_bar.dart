@@ -18,10 +18,7 @@ class _MonthBarState extends State<MonthBar>{
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    ViewTabController viewTabController = Provider.of<ViewTabController>(context, listen: false);
-    MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
-    
+
     return Consumer<MonthBarAnimationNotifier>(
       builder: (BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, Widget? child) {
         return AnimatedOpacity(
@@ -46,59 +43,56 @@ class _MonthBarState extends State<MonthBar>{
                   maxHeight: double.infinity,
                   alignment: Alignment.topCenter,
                   minHeight: monthBarAnimationNotifier.height,
-                    child: Column(
-                      children: [
-                        AnimatedContainer(
-                          duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-                          height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
-                          child: NotificationListener<UserScrollNotification>(
-                            onNotification: timetableModel.onMonthBarNotification,
-                            child: PageView.builder(
-                              controller: monthBarPageController,
-                              onPageChanged: (page) {
-                                monthBarAnimationNotifier.height = TimetableLayout.monthBarHeight(
-                                  TimetableModel.month(page.toDouble()));
-                                timetableModel.handleMonthBarPageChanged();
-                              },
-                              itemBuilder: (context, page) =>
-                                AnimatedPadding(
-                                  duration: Duration(milliseconds: 200),
-                                  curve: Curves.easeInOut,
-                                  padding: viewTabController.index == 1 ? 
-                                    EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
-                                  child: _Month(
-                                    month: TimetableModel.month(page.toDouble()), 
-                                    monthBarAnimationNotifier: monthBarAnimationNotifier))))),
-                        AnimatedOpacity(
-                          opacity: monthBarAnimationNotifier.open ? 1 : 0,
-                          duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-                          child: MonthList(monthBarAnimationNotifier: monthBarAnimationNotifier)),
-                      ]))))));
-      });
+                  child: child)))));
+      },
+      child: Column(children: [_MonthBarPageView(), MonthList()]));
+  }
+}
+
+class _MonthBarPageView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
+
+    return Consumer<MonthBarAnimationNotifier>(
+      builder: (context, monthBarAnimationNotifier, child) => AnimatedContainer(
+      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+      height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
+      child: child),
+      child: NotificationListener<UserScrollNotification>(
+        onNotification: timetableModel.onMonthBarNotification,
+        child: PageView.builder(
+          controller: monthBarPageController,
+          onPageChanged: (page) {
+            Provider.of<MonthBarAnimationNotifier>(context, listen: false).height = 
+              TimetableLayout.monthBarHeight(TimetableModel.month(page.toDouble()));
+            timetableModel.handleMonthBarPageChanged();
+          },
+          itemBuilder: (context, page) => Consumer<ViewTabController>(
+            builder: (context, viewTabController, child) => AnimatedPadding(
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: viewTabController.index == 1 ? 
+                EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+              child: child),
+            child: _Month(month: TimetableModel.month(page.toDouble()))))));
   }
 }
 
 class _Month extends StatefulWidget {
   final DateTime month;
-  final MonthBarAnimationNotifier monthBarAnimationNotifier;
-
-  const _Month({required this.month, required this.monthBarAnimationNotifier});
-
+  const _Month({required this.month});
   @override
   State<_Month> createState() => _MonthState();
 }
 
 class _MonthState extends State<_Month> with TickerProviderStateMixin {
   late final AnimationController _controller;
-  late DateTime _firstWeekOfMonth;
-  late int _weeks;
 
   @override
   void initState() {
     super.initState();
-    _firstWeekOfMonth = TimetableModel.weekOfDay(widget.month);
-    _weeks = TimetableLayout.monthWeeks(widget.month);
-    
     _controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
@@ -113,33 +107,6 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    int activeWeekIndex = TimetableLayout.monthWeek(timetableModel.activeDay, widget.month);
-
-    double vOffsetFrac() {
-      double offset = -(activeWeekIndex - 1) * (TimetableLayout.barDayHeight + TimetableLayout.monthRowSpacing);
-      return offset / TimetableLayout.monthBarRowsHeight(widget.month);  
-    }
-
-    Animation<Offset> offset = Tween<Offset> (begin: Offset(0, vOffsetFrac()), end: Offset.zero)
-      .animate(CurvedAnimation(parent: _controller,curve: Curves.easeInOut));
-
-    Animation<double> opacity(int weekIndex) => Tween<double> (
-      begin: weekIndex != (activeWeekIndex- 1) ? 0 : 1, end: 1)
-      .animate(CurvedAnimation(
-        parent: _controller, 
-        curve: Interval((weekIndex - (activeWeekIndex-1)).abs() / _weeks, 1)));
-
-    if (widget.monthBarAnimationNotifier.open && widget.monthBarAnimationNotifier.expanded) {
-      _controller.value = 1;
-    }
-    else if (widget.monthBarAnimationNotifier.open) {
-      _controller.animateTo(1);
-    }
-    else {
-      _controller.animateTo(0);
-    }
-    
     return OverflowBox(
       maxHeight: double.infinity,
       alignment: Alignment.topCenter,
@@ -147,24 +114,60 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
       child: Column(
         children: [
           WeekdayLabels(),
-          ClipRect(
-            child: SlideTransition(
-              position: offset,
-              child: Column(
-                spacing: TimetableLayout.monthRowSpacing,
-                children: [
-                  for (int i = 0; i < _weeks; i++) AnimatedBuilder(
-                    animation: opacity(i),
-                    builder:(context, child) => Opacity(
-                      opacity: opacity(i).value, 
-                      child: child),
-                    child: _Week(
-                      month: widget.month,
-                      week: DateTime(_firstWeekOfMonth.year, _firstWeekOfMonth.month, 
-                        _firstWeekOfMonth.day + i*7)))
-                ])))
+          Consumer<MonthBarAnimationNotifier>(
+            builder: (context, monthBarAnimationNotifier, _) => 
+              _monthBarRowsBuilder(context, monthBarAnimationNotifier, _controller, widget.month))
       ]));
   }
+}
+
+Widget _monthBarRowsBuilder(BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, 
+  AnimationController controller, DateTime month) {
+  TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+  int activeWeekIndex = TimetableLayout.monthWeek(timetableModel.activeDay, month);
+  DateTime firstWeekOfMonth = TimetableModel.weekOfDay(month);
+  int weeks = TimetableLayout.monthWeeks(month);
+
+  double vOffsetFrac() {
+    double offset = -(activeWeekIndex - 1) * (TimetableLayout.barDayHeight + TimetableLayout.monthRowSpacing);
+    return offset / TimetableLayout.monthBarRowsHeight(month);  
+  }
+
+  Animation<Offset> offset = Tween<Offset> (begin: Offset(0, vOffsetFrac()), end: Offset.zero)
+    .animate(CurvedAnimation(parent: controller,curve: Curves.easeInOut));
+
+  Animation<double> opacity(int weekIndex) => Tween<double> (
+    begin: weekIndex != (activeWeekIndex- 1) ? 0 : 1, end: 1)
+    .animate(CurvedAnimation(
+      parent: controller, 
+      curve: Interval((weekIndex - (activeWeekIndex-1)).abs() / weeks, 1)));
+
+  if (monthBarAnimationNotifier.open && monthBarAnimationNotifier.expanded) {
+    controller.value = 1;
+  }
+  else if (monthBarAnimationNotifier.open) {
+    controller.animateTo(1);
+  }
+  else {
+    controller.animateTo(0);
+  }
+
+  return ClipRect(
+    child: SlideTransition(
+      position: offset,
+      child:  Column(
+        spacing: TimetableLayout.monthRowSpacing,
+        children: [
+          for (int i = 0; i < weeks; i++) AnimatedBuilder(
+            animation: opacity(i),
+            builder:(context, child) => Opacity(
+              opacity: opacity(i).value, 
+              child: child),
+            child: _Week(
+              month: month,
+              week: DateTime(firstWeekOfMonth.year, firstWeekOfMonth.month, 
+                firstWeekOfMonth.day + i*7)))
+        ])));
 }
 
 class _Week extends StatelessWidget {
@@ -199,10 +202,9 @@ class _Weekday extends StatelessWidget {
         height: TimetableLayout.barDayHeight
       );
     }
-    final TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
     return GestureDetector(
       onTap: () {
-        timetableModel.handleMonthBarDayTap(day);
+        Provider.of<TimetableModel>(context, listen: false).handleMonthBarDayTap(day);
       },
       child: BarDayItem(day: day));
   }

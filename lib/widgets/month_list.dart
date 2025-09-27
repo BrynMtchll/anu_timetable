@@ -7,9 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class MonthList extends StatefulWidget {
-  final MonthBarAnimationNotifier monthBarAnimationNotifier;
-
-  const MonthList({super.key, required this.monthBarAnimationNotifier});
+  const MonthList({super.key});
 
   @override
   State<MonthList> createState() => _MonthListState();
@@ -43,34 +41,40 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    widget.monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
-    return SlideTransition(
-      position: _offset,
-      child: AnimatedBuilder(
-        animation: _opacity,
-        builder:(context, child) => Opacity(
-          opacity: _opacity.value, child: child),
-        child: SizedBox(
-          height: MonthListLayout.height,
-          child: Consumer<MonthListScrollController>(
-            builder: (BuildContext context, MonthListScrollController monthListScrollController, Widget? child) => 
-              ListView(
-                controller: monthListScrollController,
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (int year = TimetableModel.hashDate.year; year < TimetableModel.endDate.year; year++)
-                    Container(
-                      width: MonthListLayout.yearWidth,
-                      height: MonthListLayout.height,
-                      padding: EdgeInsets.symmetric(vertical: MonthListLayout.vertPadding, horizontal: MonthListLayout.yearGap/2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _YearLabel(year: year),
-                          for (int month = 1; month <= 12; month++)
-                            _MonthButton(year: year, month: month, colorScheme: colorScheme)
-                        ]))
-                ])))));
+    return Consumer<MonthBarAnimationNotifier>(
+      builder: (context, monthBarAnimationNotifier, child) {
+        monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
+        return AnimatedOpacity(
+          opacity: monthBarAnimationNotifier.open ? 1 : 0,
+          duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+          child: child);
+      },
+      child: SlideTransition(
+        position: _offset,
+        child: AnimatedBuilder(
+          animation: _opacity,
+          builder:(context, child) => Opacity(opacity: _opacity.value, child: child),
+          child: SizedBox(
+            height: MonthListLayout.height,
+            child: Consumer<MonthListScrollController>(
+              builder: (BuildContext context, MonthListScrollController monthListScrollController, Widget? child) => 
+                ListView(
+                  controller: monthListScrollController,
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (int year = TimetableModel.hashDate.year; year < TimetableModel.endDate.year; year++)
+                      Container(
+                        width: MonthListLayout.yearWidth,
+                        height: MonthListLayout.height,
+                        padding: EdgeInsets.symmetric(vertical: MonthListLayout.vertPadding, horizontal: MonthListLayout.yearGap/2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _YearLabel(year: year),
+                            for (int month = 1; month <= 12; month++)
+                              _MonthButton(year: year, month: month, colorScheme: colorScheme)
+                          ]))
+                  ]))))));
   }
 }
 

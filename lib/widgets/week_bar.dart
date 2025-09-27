@@ -37,11 +37,13 @@ class _WeekBarState extends State<WeekBar>{
                 .handleWeekBarPageChanged();
             },
             itemBuilder: (context, page) {
-              return AnimatedPadding(
-                duration: Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                padding: Provider.of<ViewTabController>(context, listen: false).index == 1 ? 
-                  EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+              return Consumer<ViewTabController>(
+                builder: (context, viewTabController, child) => AnimatedPadding(
+                  duration: Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  padding: viewTabController.index == 1 ? 
+                    EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                  child: child),
                 child: _Week(week: TimetableModel.week(page.toDouble())));
             }))));
   }
@@ -70,7 +72,6 @@ class _Week extends StatelessWidget {
   }
 }
 
-/// Widget for each day of the week bar, i.e. each item of the page.
 class _Weekday extends StatelessWidget {
   final DateTime day;
   const _Weekday({required this.day});
