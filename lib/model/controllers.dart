@@ -79,14 +79,6 @@ class DayViewPageController extends PageController with PageLinker{
     super.onDetach,
   });
 
-  void syncToOther(PageController weekBarPageController) {
-    if (position.hasContentDimensions && weekBarPageController.position.hasContentDimensions) {
-      int newDayViewPage = TimetableModel.getDayPage(
-        TimetableModel.dayOfWeek(weekBarPageController.page!,  TimetableModel.day(page!).weekday));
-      jumpToPage(newDayViewPage);
-    }
-  }
-
   /// Workaround to animate directly to a non adjacent day as though it were adjacent.
   ///   1.  Set [_pageOverride] to the new page,
   ///   2.  animate to the adjacent page of the same side,

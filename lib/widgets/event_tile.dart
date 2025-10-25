@@ -15,7 +15,7 @@ class EventTile extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(width: 0.5, color: colorScheme.primary),
-          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
           color: colorScheme.onPrimaryFixedVariant),
         width: eventTileData.width,
         // margin: EdgeInsets.all(TimetableLayout.lineStrokeWidth),

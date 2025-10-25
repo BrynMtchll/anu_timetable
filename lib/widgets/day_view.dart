@@ -41,18 +41,20 @@ class _DayPageView extends StatelessWidget {
   const _DayPageView();
   @override
   Widget build(BuildContext context) {
-    return Consumer<DayViewPageController>(
-      builder: (context, dayViewPageController, child) {
-        return NotificationListener<UserScrollNotification>(
-          onNotification: Provider.of<TimetableModel>(context, listen: false).onDayViewNotification,
-          child: PageView.builder(
-            clipBehavior: Clip.none,
-            controller: dayViewPageController,
-            onPageChanged: (page) {
-              Provider.of<TimetableModel>(context, listen: false).handleDayViewPageChanged();
-            },
-            itemBuilder: (context, page) => _DayItem(page: dayViewPageController.overridePage(page))));
-      });
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    timetableModel.createDayViewController();
+    return NotificationListener<UserScrollNotification>(
+      onNotification: timetableModel.onDayViewNotification,
+      child: PageView.builder(
+        clipBehavior: Clip.none,
+        controller: timetableModel.dayViewPageController,
+        onPageChanged: (page) {
+          timetableModel.handleDayViewPageChanged();
+        },
+        itemBuilder: (context, page) => Consumer<TimetableModel>(
+          builder: (context, timetableModel, child) {
+            return _DayItem(page: timetableModel.dayViewPageController.overridePage(page));
+          })));
   }
 }
 
@@ -62,10 +64,10 @@ class _DayItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<CurrentDay, TimetableModel, DayViewPageController>(
-      builder: (context, currentDay, timetableModel, dayViewPageController, child) { 
+    return Consumer<CurrentDay>(
+      builder: (context, currentDay, child) { 
         bool pageIsCurrent = TimetableModel.dayIsCurrent(page.toDouble(), currentDay);
-        DateTime day = TimetableModel.day(page.toDouble());
+        DateTime day = TimetableModel.getDay(page.toDouble());
         return Stack(
           children: [
             HourLineLabels(size: TimetableLayout.marginSize, pageIsCurrent: pageIsCurrent),

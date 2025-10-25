@@ -1,5 +1,6 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:anu_timetable/widgets/month_list.dart';
 import 'package:flutter/material.dart';
@@ -18,13 +19,12 @@ class _MonthBarState extends State<MonthBar>{
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     return Consumer<MonthBarAnimationNotifier>(
       builder: (BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, Widget? child) {
         return AnimatedOpacity(
           opacity: monthBarAnimationNotifier.shrunk ? 0 : 1, 
-          curve: Curves.easeOut,
-          duration: Duration(milliseconds: 150),
+          curve: Curves.linear,
+          duration: Duration(milliseconds: 100),
           child: Visibility(
             maintainState: true,
             maintainAnimation: true,
@@ -51,23 +51,23 @@ class _MonthBarState extends State<MonthBar>{
 
 class _MonthBarPageView extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    MonthBarPageController monthBarPageController = Provider.of<MonthBarPageController>(context, listen: false);
-
+    timetableModel.createMonthBarPageController();
     return Consumer<MonthBarAnimationNotifier>(
       builder: (context, monthBarAnimationNotifier, child) => AnimatedContainer(
-      duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-      height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
-      child: child),
+        duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+        height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
+        child: child),
       child: NotificationListener<UserScrollNotification>(
         onNotification: timetableModel.onMonthBarNotification,
         child: PageView.builder(
-          controller: monthBarPageController,
+          controller: timetableModel.monthBarPageController,
           onPageChanged: (page) {
             Provider.of<MonthBarAnimationNotifier>(context, listen: false).height = 
-              TimetableLayout.monthBarHeight(TimetableModel.month(page.toDouble()));
-            timetableModel.handleMonthBarPageChanged();
+              TimetableLayout.monthBarHeight(TimetableModel.getMonth(page.toDouble()));
+            timetableModel.handleMonthBarPageChanged(
+              Provider.of<CurrentDay>(context, listen: false));
           },
           itemBuilder: (context, page) => Consumer<ViewTabController>(
             builder: (context, viewTabController, child) => AnimatedPadding(
@@ -76,7 +76,7 @@ class _MonthBarPageView extends StatelessWidget {
               padding: viewTabController.index == 1 ? 
                 EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
               child: child),
-            child: _Month(month: TimetableModel.month(page.toDouble()))))));
+            child: _Month(month: TimetableModel.getMonth(page.toDouble()))))));
   }
 }
 

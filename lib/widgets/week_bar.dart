@@ -20,6 +20,8 @@ class _WeekBarState extends State<WeekBar>{
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    timetableModel.createWeekBarController();
     return Container(
       alignment: Alignment.topRight,
       color: colorScheme.surfaceContainerLow,
@@ -29,12 +31,11 @@ class _WeekBarState extends State<WeekBar>{
           border: Border(
             bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
         child: NotificationListener<UserScrollNotification>(
-          onNotification: Provider.of<TimetableModel>(context, listen: false).onWeekBarNotification,
+          onNotification: timetableModel.onWeekBarNotification,
           child: PageView.builder(
-            controller: Provider.of<WeekBarPageController>(context, listen: false),
+            controller: timetableModel.weekBarPageController,
             onPageChanged: (page) {
-              Provider.of<TimetableModel>(context, listen: false)
-                .handleWeekBarPageChanged();
+              timetableModel.handleWeekBarPageChanged();
             },
             itemBuilder: (context, page) {
               return Consumer<ViewTabController>(
@@ -44,7 +45,7 @@ class _WeekBarState extends State<WeekBar>{
                   padding: viewTabController.index == 1 ? 
                     EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                   child: child),
-                child: _Week(week: TimetableModel.week(page.toDouble())));
+                child: _Week(week: TimetableModel.getWeek(page.toDouble())));
             }))));
   }
 }

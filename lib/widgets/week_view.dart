@@ -36,8 +36,8 @@ class _LeftMargin extends StatelessWidget {
   const _LeftMargin({required this.size});
   @override
   Widget build(BuildContext context) {
-    return Consumer3<TimetableModel, CurrentDay, WeekViewPageController>(
-      builder: (context, timetableModel, currentDay, weekViewPageController, child) { 
+    return Consumer2<TimetableModel, CurrentDay>(
+      builder: (context, timetableModel, currentDay, child) { 
         bool pageIsCurrent = timetableModel.activeWeekIsCurrent(currentDay);  
         return Stack(
           children: [
@@ -53,19 +53,20 @@ class _WeekPageView extends StatelessWidget {
   const _WeekPageView({required this.size});
   @override
   Widget build(BuildContext context) {
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    timetableModel.createWeekViewController();
     return ClipRect(
       clipper: HorizontalClipper(),
       child: SizedBox(
         width: size.width,
         height: size.height,
         child: NotificationListener<UserScrollNotification>(
-          onNotification: Provider.of<TimetableModel>(context, listen: false).onWeekViewNotification,
+          onNotification: timetableModel.onWeekViewNotification,
           child: PageView.builder(
             clipBehavior: Clip.none,
-            controller: Provider.of<WeekViewPageController>(context, listen: false),
+            controller: timetableModel.weekViewPageController,
             onPageChanged: (page) {
-              Provider.of<TimetableModel>(context, listen: false)
-                .handleWeekViewPageChanged();
+              timetableModel.handleWeekViewPageChanged();
             },
             itemBuilder: (context, page) =>
               Consumer<CurrentDay>(

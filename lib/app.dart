@@ -1,7 +1,6 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
@@ -24,50 +23,28 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
 
   final DateTime currentDate = DateTime.now();
 
-  late int dayViewInitialPage = TimetableModel.getDayPage(currentDate);
-  late int weekViewInitialPage = TimetableModel.getWeekPage(currentDate);
-  late int weekBarInitialPage = TimetableModel.getWeekPage(TimetableModel.weekOfDay(currentDate));
-  late int monthBarInitialPage = TimetableModel.getMonthPage(TimetableModel.monthOfDay(currentDate));
-  late double monthInitialListOffset = MonthListLayout.rightOffset(currentDate);
 
-  late DayViewPageController dayViewPageController;
-  late WeekViewPageController weekViewPageController;
-  late WeekBarPageController weekBarPageController;
-  late MonthBarPageController monthBarPageController;
   late DayViewScrollController dayViewScrollController;
   late WeekViewScrollController weekViewScrollController;
-  late MonthListScrollController monthListScrollController;
   late ViewTabController viewTabController;
 
   @override
   void initState() {
     super.initState();
-
-    dayViewPageController = DayViewPageController(initialPage: dayViewInitialPage);
-    weekViewPageController = WeekViewPageController(initialPage: weekViewInitialPage,
-      onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController));
-    weekBarPageController = WeekBarPageController(initialPage: weekBarInitialPage);
-    monthBarPageController = MonthBarPageController(initialPage: monthBarInitialPage);
     viewTabController = ViewTabController(length: 2, vsync: this);
     dayViewScrollController = DayViewScrollController(
       onAttach: (_) => dayViewScrollController.matchToOther(weekViewScrollController));
     weekViewScrollController = WeekViewScrollController(
       onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController));
 
-    monthListScrollController = MonthListScrollController(initialScrollOffset: monthInitialListOffset);
-
     viewTabController.addListener(() {
       viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
-      dayViewPageController.syncToOther(weekBarPageController);
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    dayViewPageController.dispose();
-    weekViewPageController.dispose();
-    weekBarPageController.dispose();
     viewTabController.dispose();
     dayViewScrollController.dispose();
     weekViewScrollController.dispose();
@@ -84,41 +61,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider.value(value: viewTabController),
         ChangeNotifierProvider.value(value: dayViewScrollController),
         ChangeNotifierProvider.value(value: weekViewScrollController),
-        ChangeNotifierProvider.value(value: dayViewPageController),
-        ChangeNotifierProvider.value(value: weekViewPageController),
-        ChangeNotifierProvider.value(value: weekBarPageController),
-        ChangeNotifierProvider.value(value: monthBarPageController),
-        ChangeNotifierProvider.value(value: monthListScrollController),
-        ChangeNotifierProxyProvider5<
-          DayViewPageController,
-          WeekViewPageController,
-          WeekBarPageController,
-          MonthBarPageController,
-          MonthListScrollController,
-          TimetableModel
-        >(
-          create: (context) => TimetableModel(
-            dayViewPageController: dayViewPageController, 
-            weekViewPageController: weekViewPageController, 
-            weekBarPageController: weekBarPageController,
-            monthBarPageController: monthBarPageController,
-            monthListScrollController: monthListScrollController), 
-          update: (
-            _,
-            dayViewPageController,
-            weekViewPageController,
-            weekBarPageController,
-            monthBarPageController,
-            monthListScrollController,
-            timetableModel) {
-            if (timetableModel == null) throw ArgumentError.notNull('timetableModel');
-            timetableModel.dayViewPageController = dayViewPageController;
-            timetableModel.weekViewPageController = weekViewPageController;
-            timetableModel.weekBarPageController = weekBarPageController;
-            timetableModel.monthBarPageController = monthBarPageController;
-            timetableModel.monthListScrollController = monthListScrollController;
-            return timetableModel;
-          })
+        ChangeNotifierProvider<TimetableModel>(create: (context) => TimetableModel())
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -136,10 +79,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
                 currentPageIndex = index;
               });
             }),
-          body: <Widget>[
-            const HomePage(),
-            TimetablePage(),
-            const MessagesPage()
-          ][currentPageIndex])));
+          body: <Widget>[const HomePage(),TimetablePage(),const MessagesPage()]
+            [currentPageIndex])));
   }
 }

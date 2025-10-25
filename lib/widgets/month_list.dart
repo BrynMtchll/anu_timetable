@@ -1,5 +1,5 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
@@ -41,9 +41,20 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    timetableModel.createMonthListScrollController();
     return Consumer<MonthBarAnimationNotifier>(
       builder: (context, monthBarAnimationNotifier, child) {
-        monthBarAnimationNotifier.open ? _controller.animateTo(1) :  _controller.animateTo(0);
+        if (monthBarAnimationNotifier.open && monthBarAnimationNotifier.expanded) {
+          _controller.value = 1;
+        }
+        else if (monthBarAnimationNotifier.open) {
+          _controller.animateTo(1);
+        }
+        else {
+          _controller.animateTo(0);
+        }
+
         return AnimatedOpacity(
           opacity: monthBarAnimationNotifier.open ? 1 : 0,
           duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
@@ -56,25 +67,23 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
           builder:(context, child) => Opacity(opacity: _opacity.value, child: child),
           child: SizedBox(
             height: MonthListLayout.height,
-            child: Consumer<MonthListScrollController>(
-              builder: (BuildContext context, MonthListScrollController monthListScrollController, Widget? child) => 
-                ListView(
-                  controller: monthListScrollController,
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (int year = TimetableModel.hashDate.year; year < TimetableModel.endDate.year; year++)
-                      Container(
-                        width: MonthListLayout.yearWidth,
-                        height: MonthListLayout.height,
-                        padding: EdgeInsets.symmetric(vertical: MonthListLayout.vertPadding, horizontal: MonthListLayout.yearGap/2),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _YearLabel(year: year),
-                            for (int month = 1; month <= 12; month++)
-                              _MonthButton(year: year, month: month, colorScheme: colorScheme)
-                          ]))
-                  ]))))));
+            child: ListView(
+              controller: timetableModel.monthListScrollController,
+              scrollDirection: Axis.horizontal,
+              children: [
+                for (int year = TimetableModel.hashDate.year; year < TimetableModel.endDate.year; year++)
+                  Container(
+                    width: MonthListLayout.yearWidth,
+                    height: MonthListLayout.height,
+                    padding: EdgeInsets.symmetric(vertical: MonthListLayout.vertPadding, horizontal: MonthListLayout.yearGap/2),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _YearLabel(year: year),
+                        for (int month = 1; month <= 12; month++)
+                          _MonthButton(year: year, month: month, colorScheme: colorScheme)
+                      ]))
+              ])))));
   }
 }
 
@@ -97,7 +106,8 @@ class _MonthButton extends StatelessWidget {
           bool monthIsActive = timetableModel.activeDay.year == year && timetableModel.activeDay.month == month;
           return GestureDetector(
             onTap: () {
-              timetableModel.handleMonthListMonthTap(year, month);
+              timetableModel.handleMonthListMonthTap(DateTime(year, month), 
+                Provider.of<CurrentDay>(context, listen: false));
             },
             child: AnimatedContainer(
               duration: Duration(milliseconds: 200),
