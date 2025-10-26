@@ -20,6 +20,12 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    Provider.of<TimetableModel>(context, listen: false).createDayViewController();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     super.build(context);
@@ -42,7 +48,6 @@ class _DayPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    timetableModel.createDayViewController();
     return NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onDayViewNotification,
       child: PageView.builder(

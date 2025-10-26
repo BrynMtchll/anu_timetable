@@ -18,10 +18,15 @@ class WeekBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _WeekBarState extends State<WeekBar>{
   @override
+  void initState() {
+    Provider.of<TimetableModel>(context, listen: false).createWeekBarController();
+    super.initState();
+  }
+  
+  @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    timetableModel.createWeekBarController();
     return Container(
       alignment: Alignment.topRight,
       color: colorScheme.surfaceContainerLow,

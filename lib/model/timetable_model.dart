@@ -101,17 +101,13 @@ class TimetableModel extends ChangeNotifier {
   static bool monthEquiv(DateTime day1, DateTime day2)
     => monthOfDay(day1) == monthOfDay(day2);
   
-  /// Returns true if the active week contains the current day
-  bool activeWeekIsCurrent(CurrentDay currentDay)
-    => weekOfDay(activeDay) == weekOfDay(currentDay.value);
-
   void setActiveMonth(DateTime month, DateTime currentDay) {
     if (monthEquiv(month, activeDay)) return;
     monthEquiv(month, currentDay) ? activeDay = currentDay : activeDay = month;
   }
 
     void createDayViewController() {
-    dayViewPageController = DayViewPageController(
+      dayViewPageController = DayViewPageController(
       initialPage: getDayPage(activeDay));
   }
 

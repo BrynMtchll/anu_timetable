@@ -17,6 +17,11 @@ class MonthBar extends StatefulWidget {
 
 class _MonthBarState extends State<MonthBar>{
   @override
+  void initState() {
+    Provider.of<TimetableModel>(context, listen: false).createMonthBarPageController();
+    super.initState();
+  }
+  @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Consumer<MonthBarAnimationNotifier>(
@@ -53,7 +58,6 @@ class _MonthBarPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {    
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    timetableModel.createMonthBarPageController();
     return Consumer<MonthBarAnimationNotifier>(
       builder: (context, monthBarAnimationNotifier, child) => AnimatedContainer(
         duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),

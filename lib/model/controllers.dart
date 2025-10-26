@@ -63,6 +63,7 @@ class DayViewPageController extends PageController with PageLinker{
 
   @override jumpToPage(int page) {
     _persistedPage = page;
+    print(hasClients);
     super.jumpToPage(page);
   }
   @override animateToPage(int page, {required Curve curve, required Duration duration}) {

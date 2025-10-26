@@ -35,29 +35,22 @@ class _TodayButton extends StatelessWidget {
     return Consumer2<TimetableModel, CurrentDay>(
       builder: (BuildContext context,TimetableModel timetableModel, CurrentDay currentDay, Widget? child) {
         bool activeDayIsCurrent = timetableModel.activeDay == currentDay.value;
-        return activeDayIsCurrent ? SizedBox() : GestureDetector(
+        return GestureDetector(
           onTap: () {
             timetableModel.handleTodayTap(currentDay.value);
-          }, child: Padding(
-        padding: EdgeInsetsGeometry.only(right: 20),
-        child: Text(
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: colorScheme.primary,
-            fontSize: 13),
-          "Today")));
+          }, 
+          child: Padding(
+            padding: EdgeInsetsGeometry.only(right: 20),
+            child: AnimatedOpacity(
+              opacity: activeDayIsCurrent ? 0 : 1, 
+              duration: Duration(milliseconds: 150), 
+              child: Text(
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.primary,
+                fontSize: 13),
+              "Today"))));
       });
-      // child: GestureDetector(
-      //     onTap: () {
-      //       monthBarAnimationNotifier.open = !monthBarAnimationNotifier.open;
-      //     }, child: Padding(
-      //   padding: EdgeInsetsGeometry.only(right: 20),
-      //   child: Text(
-      //     style: TextStyle(
-      //       fontWeight: FontWeight.w700,
-      //       color: colorScheme.primary,
-      //       fontSize: 13),
-      //     "Today"))));
   }
 }
 

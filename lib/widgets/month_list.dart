@@ -20,6 +20,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    Provider.of<TimetableModel>(context, listen: false).createMonthListScrollController();
 
     _controller = AnimationController(
       vsync: this,
@@ -42,7 +43,6 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    timetableModel.createMonthListScrollController();
     return Consumer<MonthBarAnimationNotifier>(
       builder: (context, monthBarAnimationNotifier, child) {
         if (monthBarAnimationNotifier.open && monthBarAnimationNotifier.expanded) {

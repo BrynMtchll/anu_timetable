@@ -17,6 +17,12 @@ class WeekView extends StatefulWidget {
 
 class _WeekViewState extends State<WeekView>{
   @override
+  void initState() {
+    Provider.of<TimetableModel>(context, listen: false).createWeekViewController();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -54,7 +60,6 @@ class _WeekPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    timetableModel.createWeekViewController();
     return ClipRect(
       clipper: HorizontalClipper(),
       child: SizedBox(
