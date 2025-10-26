@@ -54,8 +54,8 @@ class TimetableModel extends ChangeNotifier {
   }
 
   /// Returns the day corrosponding to the given day view page.
-  static DateTime getDay(double dayPage) =>
-    DateTime(hashDate.year, hashDate.month, hashDate.day + dayPage.round());
+  static DateTime getDay(double dayPage)
+    => DateTime(hashDate.year, hashDate.month, hashDate.day + dayPage.round());
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
@@ -65,8 +65,8 @@ class TimetableModel extends ChangeNotifier {
   }
 
   /// Returns the month corresponding to the given month page.
-  static DateTime getMonth(double monthPage) =>
-    DateTime(hashDate.year, hashDate.month + monthPage.round());
+  static DateTime getMonth(double monthPage)
+    => DateTime(hashDate.year, hashDate.month + monthPage.round());
 
   /// Returns the day of the given week and weekday index.
   static DateTime dayOfWeekPage(double weekPage, int weekdayInd) {
@@ -75,8 +75,8 @@ class TimetableModel extends ChangeNotifier {
   }
 
   /// Returns the monday of the week of the given date.
-  static DateTime weekOfDay(DateTime day) => 
-    DateTime(day.year, day.month, day.day - day.weekday + 1);
+  static DateTime weekOfDay(DateTime day) 
+    => DateTime(day.year, day.month, day.day - day.weekday + 1);
 
   /// Returns the monday of the week that the given date is in.
   static DateTime monthOfDay(DateTime day) => DateTime(day.year, day.month);
@@ -85,35 +85,29 @@ class TimetableModel extends ChangeNotifier {
   static int getDayPage(DateTime day) => day.difference(hashDate).inDays;
 
   /// Returns the week page corrosponding to the given date.
-  static int getWeekPage(DateTime week) => 
-    (week.difference(hashDate).inDays / 7).toInt();
+  static int getWeekPage(DateTime week)
+    => (week.difference(hashDate).inDays / 7).toInt();
 
-  static int getMonthPage(DateTime month) =>
-    (month.year - hashDate.year) * 12 + month.month - hashDate.month;
+  static int getMonthPage(DateTime month)
+    => (month.year - hashDate.year) * 12 + month.month - hashDate.month;
 
-  /// Returns true if the active day is the current day
-  static bool dayIsCurrent(double dayPage, CurrentDay currentDay) =>
-    getDay(dayPage) == currentDay.value;
+  static bool dayEquiv(DateTime day1, DateTime day2) => day1 == day2;
 
-  static bool monthIsCurrent(DateTime month, CurrentDay currentDay) =>
-    month.month == currentDay.value.month && month.year == currentDay.value.year;
+  // Checks if two days are of the same month and year
+  static bool weekEquiv(DateTime day1, DateTime day2)
+    => weekOfDay(day1) == weekOfDay(day2);
+
+  // Checks if two days are of the same month and year
+  static bool monthEquiv(DateTime day1, DateTime day2)
+    => monthOfDay(day1) == monthOfDay(day2);
   
-
-  /// Returns true if the active day is the current day
-  static bool weekIsCurrent(double weekPage, CurrentDay currentDay) =>
-    getWeek(weekPage) == weekOfDay(currentDay.value);
-
   /// Returns true if the active week contains the current day
-  bool activeWeekIsCurrent(CurrentDay currentDay) =>
-    weekOfDay(activeDay) == weekOfDay(currentDay.value);
+  bool activeWeekIsCurrent(CurrentDay currentDay)
+    => weekOfDay(activeDay) == weekOfDay(currentDay.value);
 
-  void setActiveMonth(DateTime month, CurrentDay currentDay) {
-    if (month.year == activeDay.year && month.month == activeDay.month) return;
-    if (monthIsCurrent(month, currentDay)) {
-      activeDay = currentDay.value;
-    } else {
-      activeDay = month;
-    }
+  void setActiveMonth(DateTime month, DateTime currentDay) {
+    if (monthEquiv(month, activeDay)) return;
+    monthEquiv(month, currentDay) ? activeDay = currentDay : activeDay = month;
   }
 
     void createDayViewController() {
@@ -245,7 +239,7 @@ class TimetableModel extends ChangeNotifier {
     syncMonthList();
   }
 
-  void handleMonthBarPageChanged(CurrentDay currentDay) {
+  void handleMonthBarPageChanged(DateTime currentDay) {
     if (!monthBarPageController.isScrolling) return;
     setActiveMonth(getMonth(monthBarPageController.page!), currentDay);
     syncDayView();
@@ -270,8 +264,17 @@ class TimetableModel extends ChangeNotifier {
     syncWeekView();
   }
 
-  void handleMonthListMonthTap(DateTime month, CurrentDay currentDay) {
+  void handleMonthListMonthTap(DateTime month, DateTime currentDay) {
     setActiveMonth(month, currentDay);
+    syncDayView();
+    syncWeekBar();
+    syncWeekView();
+    monthBarPageController.jumpToPage(getMonthPage(activeDay));
+    syncMonthList();
+  }
+
+  void handleTodayTap(DateTime currentDay) {
+    activeDay = currentDay;
     syncDayView();
     syncWeekBar();
     syncWeekView();

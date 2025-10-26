@@ -66,7 +66,8 @@ class _DayItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CurrentDay>(
       builder: (context, currentDay, child) { 
-        bool pageIsCurrent = TimetableModel.dayIsCurrent(page.toDouble(), currentDay);
+        bool pageIsCurrent = TimetableModel.dayEquiv(
+          TimetableModel.getDay(page.toDouble()), currentDay.value);
         DateTime day = TimetableModel.getDay(page.toDouble());
         return Stack(
           children: [

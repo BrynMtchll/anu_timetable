@@ -9,37 +9,29 @@ class MyTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
     return Container(
       alignment: Alignment.center,
-      child: 
-        SizedBox(
-          height: TimetableLayout.tabBarHeight,
-          width: 180,
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceBright,
-              borderRadius: BorderRadius.circular(9)),
-            child: Consumer<ViewTabController>(
-              builder: (context, tabController, child) => 
-                TabBar(
-                  splashFactory: NoSplash.splashFactory,
-                  dividerHeight: 0,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: colorScheme.onSurface,
-                  indicatorPadding: EdgeInsets.symmetric(horizontal: 1.5, vertical: 1.5),
-                  labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  unselectedLabelStyle: TextStyle(
-                    fontSize: 14, 
-                    fontWeight: FontWeight.w500, 
-                    color: colorScheme.onSurface),
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(7),
-                    color: colorScheme.surface),
-                  controller: tabController,
-                  tabs: [
-                    Tab(text: "day"),
-                    Tab(text: "week"),
-                  ])))));
+      height: TimetableLayout.tabBarHeight,
+      width: 180,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceBright,
+        borderRadius: BorderRadius.circular(9)),
+          child: Consumer<ViewTabController>(
+            builder: (context, tabController, child) => TabBar(
+              splashFactory: NoSplash.splashFactory,
+              dividerHeight: 0,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: colorScheme.onSurface,
+              indicatorPadding: EdgeInsets.symmetric(horizontal: 1.5, vertical: 1.5),
+              labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              unselectedLabelStyle: TextStyle(
+                fontSize: 14, 
+                fontWeight: FontWeight.w500, 
+                color: colorScheme.onSurface),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(7),
+                color: colorScheme.surface),
+              controller: tabController,
+              tabs: [Tab(text: "day"),Tab(text: "week")])));
   }
 }

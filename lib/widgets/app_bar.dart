@@ -1,4 +1,5 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/tab_bar.dart';
@@ -19,12 +20,45 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
       titleSpacing: 0,
       centerTitle: true,
       title: currentPageIndex == 1 ? MyTabBar() : null,
-      actions: [
-        SizedBox(width: 110),
-      ]);
+      actions: [_TodayButton()]);
   }
   @override
   Size get preferredSize => Size.fromHeight(40);
+}
+
+class _TodayButton extends StatelessWidget {
+  const _TodayButton();
+
+  @override
+  Widget build(BuildContext context) {
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    return Consumer2<TimetableModel, CurrentDay>(
+      builder: (BuildContext context,TimetableModel timetableModel, CurrentDay currentDay, Widget? child) {
+        bool activeDayIsCurrent = timetableModel.activeDay == currentDay.value;
+        return activeDayIsCurrent ? SizedBox() : GestureDetector(
+          onTap: () {
+            timetableModel.handleTodayTap(currentDay.value);
+          }, child: Padding(
+        padding: EdgeInsetsGeometry.only(right: 20),
+        child: Text(
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: colorScheme.primary,
+            fontSize: 13),
+          "Today")));
+      });
+      // child: GestureDetector(
+      //     onTap: () {
+      //       monthBarAnimationNotifier.open = !monthBarAnimationNotifier.open;
+      //     }, child: Padding(
+      //   padding: EdgeInsetsGeometry.only(right: 20),
+      //   child: Text(
+      //     style: TextStyle(
+      //       fontWeight: FontWeight.w700,
+      //       color: colorScheme.primary,
+      //       fontSize: 13),
+      //     "Today"))));
+  }
 }
 
 class _PickerButton extends StatelessWidget {

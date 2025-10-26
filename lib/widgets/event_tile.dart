@@ -16,7 +16,7 @@ class EventTile extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(width: 0.5, color: colorScheme.primary),
           borderRadius: BorderRadius.all(Radius.circular(8)),
-          color: colorScheme.onPrimaryFixedVariant),
+          color: colorScheme.onPrimary),
         width: eventTileData.width,
         // margin: EdgeInsets.all(TimetableLayout.lineStrokeWidth),
         height: eventTileData.height,
@@ -24,8 +24,8 @@ class EventTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: colorScheme.onSurfaceVariant), "Hi"),
-            Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant), "Hey")
+            Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant), "Hi"),
+            Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant), "Hey")
           ])));
   }
 }

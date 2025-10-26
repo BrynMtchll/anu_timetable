@@ -107,7 +107,7 @@ class _MonthButton extends StatelessWidget {
           return GestureDetector(
             onTap: () {
               timetableModel.handleMonthListMonthTap(DateTime(year, month), 
-                Provider.of<CurrentDay>(context, listen: false));
+                Provider.of<CurrentDay>(context, listen: false).value);
             },
             child: AnimatedContainer(
               duration: Duration(milliseconds: 200),
@@ -120,7 +120,7 @@ class _MonthButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(7)),
                 child: Text(
                   style: TextStyle(
-                    fontWeight: monthIsActive ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: monthIsActive ? FontWeight.w700 : FontWeight.w400,
                     color: monthIsActive ? colorScheme.onInverseSurface : null,
                     fontSize: 12),
                   TimetableLayout.monthStringAbbrev(month))));

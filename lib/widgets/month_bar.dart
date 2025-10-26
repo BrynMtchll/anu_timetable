@@ -64,10 +64,10 @@ class _MonthBarPageView extends StatelessWidget {
         child: PageView.builder(
           controller: timetableModel.monthBarPageController,
           onPageChanged: (page) {
-            Provider.of<MonthBarAnimationNotifier>(context, listen: false).height = 
-              TimetableLayout.monthBarHeight(TimetableModel.getMonth(page.toDouble()));
+            Provider.of<MonthBarAnimationNotifier>(context, listen: false).height 
+              = TimetableLayout.monthBarHeight(TimetableModel.getMonth(page.toDouble()));
             timetableModel.handleMonthBarPageChanged(
-              Provider.of<CurrentDay>(context, listen: false));
+              Provider.of<CurrentDay>(context, listen: false).value);
           },
           itemBuilder: (context, page) => Consumer<ViewTabController>(
             builder: (context, viewTabController, child) => AnimatedPadding(

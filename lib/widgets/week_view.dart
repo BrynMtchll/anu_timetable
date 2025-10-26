@@ -38,7 +38,7 @@ class _LeftMargin extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<TimetableModel, CurrentDay>(
       builder: (context, timetableModel, currentDay, child) { 
-        bool pageIsCurrent = timetableModel.activeWeekIsCurrent(currentDay);  
+        bool pageIsCurrent = TimetableModel.weekEquiv(timetableModel.activeDay, currentDay.value);
         return Stack(
           children: [
             HourLineLabels(size: size, pageIsCurrent: pageIsCurrent),
@@ -71,7 +71,7 @@ class _WeekPageView extends StatelessWidget {
             itemBuilder: (context, page) =>
               Consumer<CurrentDay>(
                 builder: (context, currentDay, child) {
-                  bool pageIsCurrent = TimetableModel.weekIsCurrent(page.toDouble(), currentDay);
+                  bool pageIsCurrent = TimetableModel.weekEquiv(TimetableModel.getWeek(page.toDouble()), currentDay.value);
                   return Stack(
                     children: [
                       HourLines(size: size, pageIsCurrent: pageIsCurrent),

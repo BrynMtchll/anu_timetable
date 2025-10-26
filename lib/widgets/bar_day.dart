@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
@@ -39,22 +40,25 @@ class BarDayItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Consumer<TimetableModel>(
-      builder: (BuildContext context, TimetableModel timetableModel, Widget? child) => 
-        AnimatedContainer(
+    return Consumer2<TimetableModel, CurrentDay>(
+      builder: (BuildContext context, TimetableModel timetableModel, CurrentDay currentDay, Widget? child) {
+        bool dayIsCurrent = TimetableModel.dayEquiv(day, currentDay.value);
+        bool dayIsActive = TimetableModel.dayEquiv(day, timetableModel.activeDay);
+        return AnimatedContainer(
           duration: Duration(milliseconds: 200),
           width: TimetableLayout.barDayHeight,
           height: TimetableLayout.barDayHeight,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: TimetableLayout.weekdayBackgroundColor(context, colorScheme, timetableModel, day)),
+            color: TimetableLayout.weekdayBackgroundColor(context, colorScheme, dayIsActive, dayIsCurrent)),
           child: Align(
             alignment: Alignment.center,
             child:  Text(
               style: TextStyle(
-                fontWeight: FontWeight.w400,
-                color: TimetableLayout.weekdayTextColor(context, colorScheme, timetableModel, day),
+                fontWeight: dayIsActive || dayIsCurrent ? FontWeight.w700 : FontWeight.w400,
+                color: TimetableLayout.weekdayTextColor(context, colorScheme, dayIsActive, dayIsCurrent),
                 fontSize: 14),
-              day.day.toString()))));
+              day.day.toString())));
+      });
   }
 }

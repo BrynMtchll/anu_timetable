@@ -75,13 +75,31 @@ class TimetableLayout {
     return minuteHeight * totalMinutes + vertPadding;
   }
 
-  static Color weekdayBackgroundColor(BuildContext context, ColorScheme colorScheme, TimetableModel timetableModel, DateTime day) {
+  static Color weekdayBackgroundColor(BuildContext context, ColorScheme colorScheme, bool dayIsActive, dayIsCurrent) {
     // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surfaceContainerLow;
-    return day == timetableModel.activeDay ? colorScheme.inverseSurface : colorScheme.surfaceContainerLow;
+    if (dayIsActive && dayIsCurrent) {
+      return colorScheme.inversePrimary;
+      // return Colors.blueAccent;
+    }
+    else if (dayIsActive) {
+      return colorScheme.inverseSurface;
+    }
+    else {
+      return colorScheme.surfaceContainerLow;
+    }
   }
-  static Color weekdayTextColor(BuildContext context, ColorScheme colorScheme, TimetableModel timetableModel, DateTime day) {
+  static Color weekdayTextColor(BuildContext context, ColorScheme colorScheme, bool dayIsActive, bool dayIsCurrent) {
     // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.onSurface;
-    return day == timetableModel.activeDay ? colorScheme.onInverseSurface : colorScheme.onSurface;
+    if (!dayIsActive && dayIsCurrent) {
+      return colorScheme.primary;
+    }
+    else if (dayIsActive && !dayIsCurrent) {
+       return colorScheme.onInverseSurface;
+    }
+    else {
+      return colorScheme.onSurface;
+    }
+    // return dayIsActive ? colorScheme.onInverseSurface : colorScheme.onSurface;
   }
 
   static String weekdayCharacters(int weekday){
