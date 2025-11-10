@@ -59,28 +59,30 @@ class _MonthBarPageView extends StatelessWidget {
   Widget build(BuildContext context) {    
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
     return Consumer<MonthBarAnimationNotifier>(
-      builder: (context, monthBarAnimationNotifier, child) => AnimatedContainer(
-        duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-        height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
-        child: child),
+      builder: (context, monthBarAnimationNotifier, child) => 
+        AnimatedContainer(
+          duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
+          height: TimetableLayout.monthBarMonthHeight(monthBarAnimationNotifier.height),
+          child: child),
       child: NotificationListener<UserScrollNotification>(
         onNotification: timetableModel.onMonthBarNotification,
         child: PageView.builder(
           controller: timetableModel.monthBarPageController,
           onPageChanged: (page) {
             Provider.of<MonthBarAnimationNotifier>(context, listen: false).height 
-              = TimetableLayout.monthBarHeight(TimetableModel.getMonth(page.toDouble()));
+              = TimetableLayout.monthBarHeight(TimetableModel.getMonth(page));
             timetableModel.handleMonthBarPageChanged(
               Provider.of<CurrentDay>(context, listen: false).value);
           },
-          itemBuilder: (context, page) => Consumer<ViewTabController>(
-            builder: (context, viewTabController, child) => AnimatedPadding(
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: viewTabController.index == 1 ? 
-                EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
-              child: child),
-            child: _Month(month: TimetableModel.getMonth(page.toDouble()))))));
+          itemBuilder: (context, page) => 
+            Consumer<ViewTabController>(
+              builder: (context, viewTabController, child) => AnimatedPadding(
+                duration: Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: viewTabController.index == 1 ? 
+                  EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                child: child),
+              child: _Month(month: TimetableModel.getMonth(page))))));
   }
 }
 

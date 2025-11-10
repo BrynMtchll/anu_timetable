@@ -1,5 +1,4 @@
 import 'package:anu_timetable/model/event_tile_arranger.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 
 class EventTile extends StatelessWidget {
@@ -14,7 +13,7 @@ class EventTile extends StatelessWidget {
       left: eventTileData.left,
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(width: 0.5, color: colorScheme.primary),
+          border: Border.all(width: 0.7, color: colorScheme.primary),
           borderRadius: BorderRadius.all(Radius.circular(8)),
           color: colorScheme.onPrimary),
         width: eventTileData.width,

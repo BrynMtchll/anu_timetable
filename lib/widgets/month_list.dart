@@ -4,6 +4,7 @@ import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class MonthList extends StatefulWidget {
@@ -81,7 +82,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
                       children: [
                         _YearLabel(year: year),
                         for (int month = 1; month <= 12; month++)
-                          _MonthButton(year: year, month: month, colorScheme: colorScheme)
+                          _MonthButton(year: year, month: month)
                       ]))
               ])))));
   }
@@ -90,12 +91,10 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
 class _MonthButton extends StatelessWidget {
   final int year;
   final int month;
-  final ColorScheme colorScheme;
 
   const _MonthButton({
     required this.year,
     required this.month,
-    required this.colorScheme,
   });
 
   @override
@@ -123,7 +122,7 @@ class _MonthButton extends StatelessWidget {
                     fontWeight: monthIsActive ? FontWeight.w700 : FontWeight.w400,
                     color: monthIsActive ? colorScheme.onInverseSurface : null,
                     fontSize: 12),
-                  TimetableLayout.monthStringAbbrev(month))));
+                  DateFormat.MMM().format(DateTime(year, month)))));
         });
   }
 }

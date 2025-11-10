@@ -50,7 +50,7 @@ class _WeekBarState extends State<WeekBar>{
                   padding: viewTabController.index == 1 ? 
                     EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                   child: child),
-                child: _Week(week: TimetableModel.getWeek(page.toDouble())));
+                child: _Week(week: TimetableModel.getWeek(page)));
             }))));
   }
 }
@@ -72,7 +72,7 @@ class _Week extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 for (int weekday = 1; weekday <= DateTime.daysPerWeek; weekday++) 
-                  _Weekday(day: DateTime(week.year, week.month, week.day + weekday - 1)),
+                  _Weekday(day: DateTime(week.year, week.month, week.day + weekday - 1))
               ])
         ])));
   }

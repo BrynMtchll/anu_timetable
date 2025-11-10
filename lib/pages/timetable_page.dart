@@ -1,6 +1,7 @@
 
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/widgets/list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/week_view.dart';
@@ -48,7 +49,7 @@ class _TimetablePageState extends State<TimetablePage> {
                 child: TabBarView(
                   controller: Provider.of<ViewTabController>(context, listen: false),
                   physics: NeverScrollableScrollPhysics(),
-                  children: [DayView(), WeekView()]))
+                  children: [TListView(), DayView(), WeekView()]))
               ])));
   }
 }

@@ -17,7 +17,7 @@ class LiveTimeIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<CurrentSecond, ViewTabController>(
       builder: (context, currentSecond, viewTabController, child) {
-        bool weekViewActive = viewTabController.index == 1;
+        bool weekViewActive = viewTabController.index == 2;
         return CustomPaint(
           size: size,
           painter: _LiveTimePainter(

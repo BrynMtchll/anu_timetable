@@ -1,5 +1,6 @@
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
@@ -22,7 +23,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
 
   final DateTime currentDate = DateTime.now();
 
-
   late DayViewScrollController dayViewScrollController;
   late WeekViewScrollController weekViewScrollController;
   late ViewTabController viewTabController;
@@ -30,10 +30,12 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
-    viewTabController = ViewTabController(length: 2, vsync: this);
+    viewTabController = ViewTabController(length: 3, vsync: this);
     dayViewScrollController = DayViewScrollController(
+      initialScrollOffset:  TimetableLayout.initialScrollOffset,
       onAttach: (_) => dayViewScrollController.matchToOther(weekViewScrollController));
     weekViewScrollController = WeekViewScrollController(
+      initialScrollOffset: TimetableLayout.initialScrollOffset,
       onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController));
 
     viewTabController.addListener(() {
@@ -66,11 +68,9 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         title: 'Flutter Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 70, 117, 199),
-            primary: Colors.blue.shade300,
-            // seedColor: const Color.fromARGB(255, 63, 63, 236),
+            seedColor: const Color.fromARGB(255, 190, 135, 43),
             brightness: Brightness.dark,
-            dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
+            dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
           useMaterial3: true),
         home: Scaffold(
           appBar: MyAppBar(currentPageIndex: currentPageIndex),

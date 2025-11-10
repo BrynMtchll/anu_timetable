@@ -29,17 +29,14 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     super.build(context);
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-            return SingleChildScrollView(
-              controller: Provider.of<DayViewScrollController>(context, listen: false),
-              child: ClipRect(
-                clipper: HorizontalClipper(),
-                child: Container(
-                  color: colorScheme.surface,
-                  height: TimetableLayout.height,
-                  child: _DayPageView())));
-      });
+    return SingleChildScrollView(
+      controller: Provider.of<DayViewScrollController>(context, listen: false),
+      child: ClipRect(
+        clipper: HorizontalClipper(),
+        child: Container(
+          color: colorScheme.surface,
+          height: TimetableLayout.height,
+          child: _DayPageView())));
   }
 }
 
@@ -72,8 +69,8 @@ class _DayItem extends StatelessWidget {
     return Consumer<CurrentDay>(
       builder: (context, currentDay, child) { 
         bool pageIsCurrent = TimetableModel.dayEquiv(
-          TimetableModel.getDay(page.toDouble()), currentDay.value);
-        DateTime day = TimetableModel.getDay(page.toDouble());
+          TimetableModel.getDay(page), currentDay.value);
+        DateTime day = TimetableModel.getDay(page);
         return Stack(
           children: [
             HourLineLabels(size: TimetableLayout.marginSize, pageIsCurrent: pageIsCurrent),

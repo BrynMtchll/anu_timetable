@@ -37,6 +37,8 @@ class TimetableLayout {
 
   static const double monthRowSpacing = 4;
 
+  static double initialScrollOffset = TimetableLayout.vertPadding + (DateTime.now().hour - 4) * TimetableLayout.hourHeight;
+
   static Size get screenSize {
     FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
     return view.physicalSize / view.devicePixelRatio;
@@ -75,32 +77,6 @@ class TimetableLayout {
     return minuteHeight * totalMinutes + vertPadding;
   }
 
-  static Color weekdayBackgroundColor(BuildContext context, ColorScheme colorScheme, bool dayIsActive, dayIsCurrent) {
-    // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.surfaceContainerLow;
-    if (dayIsActive && dayIsCurrent) {
-      return colorScheme.inversePrimary;
-      // return Colors.blueAccent;
-    }
-    else if (dayIsActive) {
-      return colorScheme.inverseSurface;
-    }
-    else {
-      return colorScheme.surfaceContainerLow;
-    }
-  }
-  static Color weekdayTextColor(BuildContext context, ColorScheme colorScheme, bool dayIsActive, bool dayIsCurrent) {
-    // if (Provider.of<ViewTabController>(context).index != 0) return colorScheme.onSurface;
-    if (!dayIsActive && dayIsCurrent) {
-      return colorScheme.primary;
-    }
-    else if (dayIsActive && !dayIsCurrent) {
-       return colorScheme.onInverseSurface;
-    }
-    else {
-      return colorScheme.onSurface;
-    }
-    // return dayIsActive ? colorScheme.onInverseSurface : colorScheme.onSurface;
-  }
 
   static String weekdayCharacters(int weekday){
     switch (weekday) {
@@ -111,24 +87,6 @@ class TimetableLayout {
       case DateTime.friday: return 'F';
       case DateTime.saturday: return 'Sa';
       case DateTime.sunday: return 'Su';
-      default: return '';
-    }
-  }
-
-  static String monthStringAbbrev(int month) {
-    switch (month) {
-      case DateTime.january: return 'Jan';
-      case DateTime.february: return 'Feb';
-      case DateTime.march: return 'Mar';
-      case DateTime.april: return 'Apr';
-      case DateTime.may: return 'May';
-      case DateTime.june: return 'Jun';
-      case DateTime.july: return 'Jul';
-      case DateTime.august: return 'Aug';
-      case DateTime.september: return 'Sep';
-      case DateTime.october: return 'Oct';
-      case DateTime.november: return 'Nov';
-      case DateTime.december: return 'Dec';
       default: return '';
     }
   }

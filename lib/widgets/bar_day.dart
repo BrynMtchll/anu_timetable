@@ -37,6 +37,33 @@ class BarDayItem extends StatelessWidget {
   final DateTime day;
   const BarDayItem({super.key, required this.day});
 
+  Color backgroundColor(ColorScheme colorScheme, bool dayIsActive, dayIsCurrent) {
+    if (dayIsActive && dayIsCurrent) {
+      return colorScheme.primary;
+    }
+    else if (dayIsActive) {
+      return colorScheme.inverseSurface;
+    }
+    else {
+      return colorScheme.surfaceContainerLow;
+    }
+  }
+  Color textColor(ColorScheme colorScheme, bool dayIsActive, bool dayIsCurrent) {
+    if (dayIsActive && dayIsCurrent) {
+      return colorScheme.onPrimary;
+    }
+    else if (dayIsCurrent) {
+      return colorScheme.primary;
+    }
+    else if (dayIsActive) {
+       return colorScheme.onInverseSurface;
+    }
+    else {
+      return colorScheme.onSurface;
+    }
+    // return dayIsActive ? colorScheme.onInverseSurface : colorScheme.onSurface;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -50,13 +77,13 @@ class BarDayItem extends StatelessWidget {
           height: TimetableLayout.barDayHeight,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: TimetableLayout.weekdayBackgroundColor(context, colorScheme, dayIsActive, dayIsCurrent)),
+            color: backgroundColor(colorScheme, dayIsActive, dayIsCurrent)),
           child: Align(
             alignment: Alignment.center,
             child:  Text(
               style: TextStyle(
-                fontWeight: dayIsActive || dayIsCurrent ? FontWeight.w700 : FontWeight.w400,
-                color: TimetableLayout.weekdayTextColor(context, colorScheme, dayIsActive, dayIsCurrent),
+                fontWeight: dayIsActive || dayIsCurrent ? FontWeight.w800 : FontWeight.w400,
+                color: textColor(colorScheme, dayIsActive, dayIsCurrent),
                 fontSize: 14),
               day.day.toString())));
       });

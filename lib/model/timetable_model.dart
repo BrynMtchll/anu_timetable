@@ -1,5 +1,4 @@
 import 'package:anu_timetable/model/controllers.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
@@ -54,22 +53,22 @@ class TimetableModel extends ChangeNotifier {
   }
 
   /// Returns the day corrosponding to the given day view page.
-  static DateTime getDay(double dayPage)
-    => DateTime(hashDate.year, hashDate.month, hashDate.day + dayPage.round());
+  static DateTime getDay(int dayPage)
+    => DateTime(hashDate.year, hashDate.month, hashDate.day + dayPage);
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
-  static DateTime getWeek(double weekPage) {
-    int dayOffset = hashDate.day + (weekPage.round() * 7).round();
+  static DateTime getWeek(int weekPage) {
+    int dayOffset = hashDate.day + (weekPage * 7);
     return DateTime(hashDate.year, hashDate.month, dayOffset);
   }
 
   /// Returns the month corresponding to the given month page.
-  static DateTime getMonth(double monthPage)
-    => DateTime(hashDate.year, hashDate.month + monthPage.round());
+  static DateTime getMonth(int monthPage)
+    => DateTime(hashDate.year, hashDate.month + monthPage);
 
   /// Returns the day of the given week and weekday index.
-  static DateTime dayOfWeekPage(double weekPage, int weekdayInd) {
+  static DateTime dayOfWeekPage(int weekPage, int weekdayInd) {
     DateTime week = TimetableModel.getWeek(weekPage);
     return DateTime(week.year, week.month, week.day + weekdayInd - 1);
   }
@@ -137,7 +136,6 @@ class TimetableModel extends ChangeNotifier {
     monthListScrollController = MonthListScrollController(
       initialScrollOffset: MonthListLayout.rightOffset(activeDay));
   }
-
 
   /// Animates the [DayView]'s [PageView] directly to the active day,
   /// skipping intermediate pages.
@@ -209,7 +207,7 @@ class TimetableModel extends ChangeNotifier {
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged() {
     if (dayViewPageController.isScrolling) {
-      activeDay = getDay(dayViewPageController.page!);
+      activeDay = getDay(dayViewPageController.page!.round());
       syncWeekBar();
       syncMonthBar();
       syncMonthList();
@@ -221,7 +219,7 @@ class TimetableModel extends ChangeNotifier {
   /// it's linked to the week bar page.
   void handleWeekBarPageChanged() {
     if (!weekBarPageController.isScrolling) return;
-    activeDay = dayOfWeekPage(weekBarPageController.page!, activeDay.weekday);
+    activeDay = dayOfWeekPage(weekBarPageController.page!.round(), activeDay.weekday);
     syncDayView();
     syncMonthBar();
     syncMonthList();
@@ -229,7 +227,7 @@ class TimetableModel extends ChangeNotifier {
 
   void handleWeekViewPageChanged() {
     if (!weekViewPageController.isScrolling) return;
-    activeDay = dayOfWeekPage(weekViewPageController.page!, activeDay.weekday);
+    activeDay = dayOfWeekPage(weekViewPageController.page!.round(), activeDay.weekday);
     syncDayView();
     syncMonthBar();
     syncMonthList();
@@ -237,7 +235,7 @@ class TimetableModel extends ChangeNotifier {
 
   void handleMonthBarPageChanged(DateTime currentDay) {
     if (!monthBarPageController.isScrolling) return;
-    setActiveMonth(getMonth(monthBarPageController.page!), currentDay);
+    setActiveMonth(getMonth(monthBarPageController.page!.round()), currentDay);
     syncDayView();
     syncWeekBar();
     syncWeekView();

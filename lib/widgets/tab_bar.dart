@@ -12,10 +12,10 @@ class MyTabBar extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       height: TimetableLayout.tabBarHeight,
-      width: 180,
+      width: 210,
       decoration: BoxDecoration(
         color: colorScheme.surfaceBright,
-        borderRadius: BorderRadius.circular(9)),
+        borderRadius: BorderRadius.circular(50)),
           child: Consumer<ViewTabController>(
             builder: (context, tabController, child) => TabBar(
               splashFactory: NoSplash.splashFactory,
@@ -23,15 +23,15 @@ class MyTabBar extends StatelessWidget {
               indicatorSize: TabBarIndicatorSize.tab,
               labelColor: colorScheme.onSurface,
               indicatorPadding: EdgeInsets.symmetric(horizontal: 1.5, vertical: 1.5),
-              labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
               unselectedLabelStyle: TextStyle(
-                fontSize: 14, 
+                fontSize: 13, 
                 fontWeight: FontWeight.w500, 
                 color: colorScheme.onSurface),
               indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(7),
+                borderRadius: BorderRadius.circular(50),
                 color: colorScheme.surface),
               controller: tabController,
-              tabs: [Tab(text: "day"),Tab(text: "week")])));
+              tabs: [Tab(text: "list"), Tab(text: "day"),Tab(text: "week")])));
   }
 }

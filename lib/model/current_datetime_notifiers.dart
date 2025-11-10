@@ -63,7 +63,6 @@ class CurrentSecond extends ChangeNotifier {
   }
 
   int get getTotalMinutes => value.getTotalMinutes;
-  
   int get getTotalSeconds => getTotalMinutes * 60 + value.second;
   
   /// Returns the time at the current second as a fraction of the day.
