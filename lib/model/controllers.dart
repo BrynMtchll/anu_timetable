@@ -1,6 +1,7 @@
 import 'package:anu_timetable/model/timetable_model.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 mixin PageLinker on PageController {
   double get pageWidth;
@@ -27,7 +28,6 @@ mixin PageLinker on PageController {
 mixin ScrollLinker on ScrollController {
   void matchToOther(ScrollController otherController) {
     if (!otherController.hasClients) return;
-
     if (position.pixels != otherController.position.pixels) {
       position.correctPixels(otherController.position.pixels);
     }
@@ -63,7 +63,6 @@ class DayViewPageController extends PageController with PageLinker{
 
   @override jumpToPage(int page) {
     _persistedPage = page;
-    print(hasClients);
     super.jumpToPage(page);
   }
   @override animateToPage(int page, {required Curve curve, required Duration duration}) {
@@ -164,6 +163,11 @@ class ViewTabController extends TabController {
       case (0): controller1.jumpTo(controller2.offset);
     }
   }
+}
+
+class TListViewItemScrollController extends ItemScrollController{
+  bool isScrolling = false;
+  TListViewItemScrollController();
 }
 
 class WeekViewScrollController extends ScrollController with ScrollLinker{

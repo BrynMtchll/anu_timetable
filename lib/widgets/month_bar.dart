@@ -39,7 +39,9 @@ class _MonthBarState extends State<MonthBar>{
               child: AnimatedContainer(
                 duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
                 curve: Curves.easeInOut,
-                height: monthBarAnimationNotifier.displayHeight,
+                height: monthBarAnimationNotifier.open
+                    ? monthBarAnimationNotifier.height
+                    : TimetableLayout.weekBarHeight,
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerLow,
                   border: Border(
@@ -79,7 +81,7 @@ class _MonthBarPageView extends StatelessWidget {
               builder: (context, viewTabController, child) => AnimatedPadding(
                 duration: Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                padding: viewTabController.index == 1 ? 
+                padding: viewTabController.index == 2 ? 
                   EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                 child: child),
               child: _Month(month: TimetableModel.getMonth(page))))));

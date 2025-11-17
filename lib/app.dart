@@ -37,7 +37,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
     weekViewScrollController = WeekViewScrollController(
       initialScrollOffset: TimetableLayout.initialScrollOffset,
       onAttach: (_) => weekViewScrollController.matchToOther(dayViewScrollController));
-
     viewTabController.addListener(() {
       viewTabController.matchScrollOffsets(dayViewScrollController, weekViewScrollController);
     });

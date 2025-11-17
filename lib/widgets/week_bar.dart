@@ -1,4 +1,3 @@
-import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:flutter/material.dart';
@@ -27,31 +26,31 @@ class _WeekBarState extends State<WeekBar>{
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
       alignment: Alignment.topRight,
-      color: colorScheme.surfaceContainerLow,
-      child: Container(
-        height: TimetableLayout.weekBarHeight,
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
-        child: NotificationListener<UserScrollNotification>(
-          onNotification: timetableModel.onWeekBarNotification,
-          child: PageView.builder(
-            controller: timetableModel.weekBarPageController,
-            onPageChanged: (page) {
-              timetableModel.handleWeekBarPageChanged();
-            },
-            itemBuilder: (context, page) {
-              return Consumer<ViewTabController>(
-                builder: (context, viewTabController, child) => AnimatedPadding(
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  padding: viewTabController.index == 1 ? 
-                    EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
-                  child: child),
-                child: _Week(week: TimetableModel.getWeek(page)));
-            }))));
+      height:  Provider.of<ViewTabController>(context).index == 0 ? TimetableLayout.weekBarHeight : TimetableLayout.weekBarHeight,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.onSurface, width: 0.2))),
+      child: NotificationListener<UserScrollNotification>(
+        onNotification: timetableModel.onWeekBarNotification,
+        child: PageView.builder(
+          controller: timetableModel.weekBarPageController,
+          onPageChanged: (page) {
+            timetableModel.handleWeekBarPageChanged();
+          },
+          itemBuilder: (context, page) {
+            return Consumer<ViewTabController>(
+              builder: (context, viewTabController, child) => AnimatedPadding(
+                duration: Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: viewTabController.index == 2 ? 
+                  EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
+                child: child),
+              child: _Week(week: TimetableModel.getWeek(page)));
+          })));
   }
 }
 

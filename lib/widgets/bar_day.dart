@@ -82,7 +82,7 @@ class BarDayItem extends StatelessWidget {
             alignment: Alignment.center,
             child:  Text(
               style: TextStyle(
-                fontWeight: dayIsActive || dayIsCurrent ? FontWeight.w800 : FontWeight.w400,
+                fontWeight: dayIsActive || dayIsCurrent ? FontWeight.w700 : FontWeight.w400,
                 color: textColor(colorScheme, dayIsActive, dayIsCurrent),
                 fontSize: 14),
               day.day.toString())));

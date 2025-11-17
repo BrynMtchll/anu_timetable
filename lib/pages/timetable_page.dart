@@ -1,6 +1,7 @@
 
 import 'package:anu_timetable/model/animation_notifiers.dart';
 import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
@@ -39,11 +40,11 @@ class _TimetablePageState extends State<TimetablePage> {
             children: [
               Stack(children: [WeekBar(), MonthBar()]),
               Consumer<MonthBarAnimationNotifier>(
-                builder: (context, monthBarAnimationNotifier, child) => 
-                  AnimatedContainer(
-                    duration: Duration(milliseconds: MonthBarAnimationNotifier.duration),
-                    curve: Curves.easeInOut,
-                    height: constraints.maxHeight - monthBarAnimationNotifier.displayHeight,
+                builder: (context, monthBarAnimationNotifier, child) =>
+                  SizedBox(
+                    height: monthBarAnimationNotifier.expanded
+                    ? constraints.maxHeight - monthBarAnimationNotifier.height
+                    : constraints.maxHeight - TimetableLayout.weekBarHeight,
                     width: constraints.maxWidth,
                     child: child),
                 child: TabBarView(

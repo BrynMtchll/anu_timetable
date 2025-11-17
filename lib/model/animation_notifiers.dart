@@ -9,7 +9,6 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
   // use shrunk to determine toggle visibility for monthbar
   bool shrunk = true;
   bool expanded = false;
-  late double displayHeight = TimetableLayout.weekBarHeight;
   late double _height;
   static const int duration = 350;
 
@@ -20,7 +19,6 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
   set height(double newVal) {
     if (newVal != _height) {
       _height = newVal;
-      if (_open) displayHeight = _height;
       notifyListeners();
     }
   }
@@ -34,7 +32,6 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
     if (_open) {
       visible = true;
       shrunk = false;
-      displayHeight = _height;
       notifyListeners();
       Future.delayed(const Duration(milliseconds: duration)).then((_) {
         if (!_open) return;
@@ -42,7 +39,6 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
         notifyListeners();
       });
     } else {
-      displayHeight = TimetableLayout.weekBarHeight;
       expanded = false;
       notifyListeners();
       Future.delayed(const Duration(milliseconds: duration)).then((_) {
