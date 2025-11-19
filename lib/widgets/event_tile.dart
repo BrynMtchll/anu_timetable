@@ -1,4 +1,4 @@
-import 'package:anu_timetable/model/event_tile_arranger.dart';
+import 'package:anu_timetable/util/event_tile_arranger.dart';
 import 'package:flutter/material.dart';
 
 class EventTile extends StatelessWidget {

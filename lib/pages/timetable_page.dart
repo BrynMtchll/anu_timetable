@@ -1,6 +1,6 @@
 
-import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/animation.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/list_view.dart';
 import 'package:flutter/material.dart';
@@ -43,8 +43,8 @@ class _TimetablePageState extends State<TimetablePage> {
                 builder: (context, monthBarAnimationNotifier, child) =>
                   SizedBox(
                     height: monthBarAnimationNotifier.expanded
-                    ? constraints.maxHeight - monthBarAnimationNotifier.height
-                    : constraints.maxHeight - TimetableLayout.weekBarHeight,
+                      ? constraints.maxHeight - monthBarAnimationNotifier.height
+                      : constraints.maxHeight - TimetableLayout.weekBarHeight,
                     width: constraints.maxWidth,
                     child: child),
                 child: TabBarView(

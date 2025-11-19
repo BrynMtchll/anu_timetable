@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 
 class MonthListLayout {
@@ -19,7 +19,7 @@ class MonthListLayout {
   static const double yearLabelWidth = 40;
 
   static double leftOffset(DateTime day) {
-    double yearOffset = (day.year - TimetableModel.hashDate.year) * (yearWidth);
+    double yearOffset = (day.year - TimetableVM.hashDate.year) * (yearWidth);
     double monthOffset = (day.month-1) * monthWidth + yearLabelWidth + monthGap * (day.month-1);
     return yearOffset + monthOffset + yearGap/2;
   }

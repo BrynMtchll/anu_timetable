@@ -2,8 +2,8 @@
 
 import 'dart:math';
 
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -26,9 +26,9 @@ class _TListViewState extends State<TListView> {
 
   @override
   Widget build(BuildContext context) {
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     Random random = Random();
-    int activeDayIndex = TimetableModel.getDayPage(timetableModel.activeDay);
+    int activeDayIndex = TimetableVM.getDayIndex(timetableModel.activeDay);
 
     itemPositionsListener.itemPositions.addListener(() {
       int newActiveDayIndex =itemPositionsListener.itemPositions.value.first.index;
@@ -39,14 +39,14 @@ class _TListViewState extends State<TListView> {
       }
       if (newActiveDayIndex != activeDayIndex) {
         activeDayIndex = newActiveDayIndex;
-        timetableModel.handleTListViewDayChanged(TimetableModel.getDay(newActiveDayIndex));
+        timetableModel.handleTListViewDayChanged(TimetableVM.getDay(newActiveDayIndex));
       }
     });
     List randints = [for (int i = 0; i < 10000; i++) random.nextInt(3)];
     return NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onTListNotification,
       child: ScrollablePositionedList.builder(
-        initialScrollIndex: TimetableModel.getDayPage(timetableModel.activeDay),
+        initialScrollIndex: TimetableVM.getDayIndex(timetableModel.activeDay),
         itemScrollController: timetableModel.tListViewItemScrollController,
         itemPositionsListener: itemPositionsListener,
         itemCount: 10000,
@@ -69,33 +69,29 @@ class _DayItem extends StatelessWidget {
   const _DayItem({required this.index, required this.nItems});
   @override
   Widget build(BuildContext context) {
-    DateTime day = TimetableModel.getDay(index);
+    DateTime day = TimetableVM.getDay(index);
     ColorScheme colorScheme = ColorScheme.of(context);
-
-    
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: Column(
         children: [
           Consumer<CurrentDay>(builder: (context, currentDay, child) {
-            bool dayIsCurrent = TimetableModel.dayEquiv(day, currentDay.value);
-
+            bool dayIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
             return Container(
-            width: double.infinity,
-            margin: EdgeInsets.only(bottom: nItems > 0 ? 10 : 7),
-            padding: EdgeInsets.only(left: 20, right: 15, bottom: 2),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: dayColor(dayIsCurrent, colorScheme), 
-                  width: 0.4))),
-            child: Text(
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
-                color: dayColor(dayIsCurrent, colorScheme)),
-            DateFormat('EEEE dd MMM').format(day).toUpperCase()));
+              width: double.infinity,
+              margin: EdgeInsets.only(bottom: nItems > 0 ? 10 : 7),
+              padding: EdgeInsets.only(left: 20, right: 15, bottom: 2),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: dayColor(dayIsCurrent, colorScheme), 
+                    width: 0.4))),
+              child: Text(
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                  color: dayColor(dayIsCurrent, colorScheme)),
+                DateFormat('EEEE dd MMM').format(day).toUpperCase()));
           }),
-          
           Column(
             children: [for (int i = 0; i < nItems; i++) _EventItem()])
         ]));

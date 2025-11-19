@@ -1,6 +1,6 @@
-import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/animation.dart';
+import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/tab_bar.dart';
 import 'package:flutter/material.dart';
@@ -32,8 +32,8 @@ class _TodayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Consumer2<TimetableModel, CurrentDay>(
-      builder: (BuildContext context,TimetableModel timetableModel, CurrentDay currentDay, Widget? child) {
+    return Consumer2<TimetableVM, CurrentDay>(
+      builder: (BuildContext context,TimetableVM timetableModel, CurrentDay currentDay, Widget? child) {
         bool activeDayIsCurrent = timetableModel.activeDay == currentDay.value;
         return GestureDetector(
           onTap: () {
@@ -83,7 +83,7 @@ class _PickerButton extends StatelessWidget {
 class _PickerButtonText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<TimetableModel>(
+    return Consumer<TimetableVM>(
       builder: (context, timetableModel, child) => Text(
         style: TextStyle(
           fontWeight: FontWeight.w500,

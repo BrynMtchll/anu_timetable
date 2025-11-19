@@ -1,5 +1,9 @@
-import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/data/repositories/event_repository.dart';
+import 'package:anu_timetable/data/repositories/event_respository_local.dart';
+import 'package:anu_timetable/data/services/local/local_event_service.dart';
+import 'package:anu_timetable/model/animation.dart';
+import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +11,8 @@ import 'package:anu_timetable/pages/home.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
 import 'package:anu_timetable/pages/messages_page.dart';
 import 'package:provider/provider.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/timetable.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
 
 class App extends StatefulWidget {
@@ -54,6 +58,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider.value(value: LocalEventService()),
+        Provider(create:(context) => EventRespositoryLocal(localEventService: context.read()) as EventRepository),
         ChangeNotifierProvider(create: (context) => CurrentDay()),
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
@@ -61,7 +67,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider.value(value: viewTabController),
         ChangeNotifierProvider.value(value: dayViewScrollController),
         ChangeNotifierProvider.value(value: weekViewScrollController),
-        ChangeNotifierProvider<TimetableModel>(create: (context) => TimetableModel())
+        ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
+        ChangeNotifierProvider<EventsVM>(create: (context) => EventsVM(eventRepository: context.read()))
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

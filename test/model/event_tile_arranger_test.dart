@@ -1,4 +1,4 @@
-import 'package:anu_timetable/model/event_tile_arranger.dart';
+import 'package:anu_timetable/util/event_tile_arranger.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:checks/checks.dart';
 import 'package:flutter_test/flutter_test.dart';

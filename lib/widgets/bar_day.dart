@@ -1,5 +1,5 @@
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -67,10 +67,10 @@ class BarDayItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Consumer2<TimetableModel, CurrentDay>(
-      builder: (BuildContext context, TimetableModel timetableModel, CurrentDay currentDay, Widget? child) {
-        bool dayIsCurrent = TimetableModel.dayEquiv(day, currentDay.value);
-        bool dayIsActive = TimetableModel.dayEquiv(day, timetableModel.activeDay);
+    return Consumer2<TimetableVM, CurrentDay>(
+      builder: (BuildContext context, TimetableVM timetableModel, CurrentDay currentDay, Widget? child) {
+        bool dayIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
+        bool dayIsActive = TimetableVM.dayEquiv(day, timetableModel.activeDay);
         return AnimatedContainer(
           duration: Duration(milliseconds: 200),
           width: TimetableLayout.barDayHeight,

@@ -1,7 +1,7 @@
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/model/current.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/util/paints.dart';
 

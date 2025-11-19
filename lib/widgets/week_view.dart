@@ -1,13 +1,13 @@
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/util/clippers.dart';
 import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/widgets/hour_lines.dart';
 import 'package:anu_timetable/widgets/day_lines.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/model/current.dart';
 
 class WeekView extends StatefulWidget {
   const WeekView({super.key});
@@ -18,7 +18,7 @@ class WeekView extends StatefulWidget {
 class _WeekViewState extends State<WeekView>{
   @override
   void initState() {
-    Provider.of<TimetableModel>(context, listen: false).createWeekViewController();
+    Provider.of<TimetableVM>(context, listen: false).createWeekViewController();
     super.initState();
   }
 
@@ -39,9 +39,9 @@ class _LeftMargin extends StatelessWidget {
   const _LeftMargin({required this.size});
   @override
   Widget build(BuildContext context) {
-    return Consumer2<TimetableModel, CurrentDay>(
+    return Consumer2<TimetableVM, CurrentDay>(
       builder: (context, timetableModel, currentDay, child) { 
-        bool pageIsCurrent = TimetableModel.weekEquiv(timetableModel.activeDay, currentDay.value);
+        bool pageIsCurrent = TimetableVM.weekEquiv(timetableModel.activeDay, currentDay.value);
         return Stack(
           children: [
             HourLineLabels(size: size, pageIsCurrent: pageIsCurrent),
@@ -56,7 +56,7 @@ class _WeekPageView extends StatelessWidget {
   const _WeekPageView({required this.size});
   @override
   Widget build(BuildContext context) {
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     return ClipRect(
       clipper: HorizontalClipper(),
       child: SizedBox(
@@ -73,7 +73,7 @@ class _WeekPageView extends StatelessWidget {
             itemBuilder: (context, page) =>
               Consumer<CurrentDay>(
                 builder: (context, currentDay, child) {
-                  bool pageIsCurrent = TimetableModel.weekEquiv(TimetableModel.getWeek(page), currentDay.value);
+                  bool pageIsCurrent = TimetableVM.weekEquiv(TimetableVM.getWeek(page), currentDay.value);
                   return Stack(
                     children: [
                       HourLines(size: size, pageIsCurrent: pageIsCurrent),

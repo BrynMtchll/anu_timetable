@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:anu_timetable/model/events.dart';
+import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:calendar_view/calendar_view.dart';
 

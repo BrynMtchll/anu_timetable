@@ -1,4 +1,4 @@
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -47,7 +47,7 @@ class DayViewPageController extends PageController with PageLinker{
   /// mistakenly return the adjacent page instead of the target page.
   int? _pageOverride;
   int? _adjacentPage;
-  int _persistedPage = TimetableModel.getDayPage(DateTime.now());
+  int _persistedPage = TimetableVM.getDayIndex(DateTime.now());
 
   @override get page {
     if (!hasClients) {

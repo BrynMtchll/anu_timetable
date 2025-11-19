@@ -1,8 +1,8 @@
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 
 class WeekBar extends StatefulWidget implements PreferredSizeWidget {
@@ -18,14 +18,14 @@ class WeekBar extends StatefulWidget implements PreferredSizeWidget {
 class _WeekBarState extends State<WeekBar>{
   @override
   void initState() {
-    Provider.of<TimetableModel>(context, listen: false).createWeekBarController();
+    Provider.of<TimetableVM>(context, listen: false).createWeekBarController();
     super.initState();
   }
   
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     return AnimatedContainer(
       duration: Duration(milliseconds: 200),
       alignment: Alignment.topRight,
@@ -49,7 +49,7 @@ class _WeekBarState extends State<WeekBar>{
                 padding: viewTabController.index == 2 ? 
                   EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                 child: child),
-              child: _Week(week: TimetableModel.getWeek(page)));
+              child: _Week(week: TimetableVM.getWeek(page)));
           })));
   }
 }
@@ -83,7 +83,7 @@ class _Weekday extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    final TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     return GestureDetector(
       onTap: () {
         timetableModel.handleWeekBarDayTap(day);

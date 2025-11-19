@@ -1,4 +1,4 @@
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
@@ -7,7 +7,6 @@ import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:anu_timetable/widgets/week_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// A central control for keeping the various relevant timetable
 /// widgets synchronised to the active day (the day in focus).
@@ -16,7 +15,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 /// [DayView] pages map to individual days,
 /// [WeekBar] and [WeekView] pages map to the mondays of weeks,
 /// [MonthBar] pages and the [MonthList]'s offset map the the first days of months.
-class TimetableModel extends ChangeNotifier {
+class TimetableVM extends ChangeNotifier {
 
   /// Needs to be the start of the week (monday) so that
   /// the week and day pages align.
@@ -36,11 +35,11 @@ class TimetableModel extends ChangeNotifier {
   late MonthListScrollController monthListScrollController;
   late TListViewItemScrollController tListViewItemScrollController;
 
-  /// The sole state managed by [TimetableModel]. It is what all of the 
+  /// The sole state managed by [TimetableVM]. It is what all of the 
   /// managed controllers are synchronised to.
   late DateTime _activeDay;
 
-  TimetableModel() {
+  TimetableVM() {
     final currentDay = DateTime.now();
     _activeDay = DateTime(currentDay.year, currentDay.month, currentDay.day);
     createWeekViewController();
@@ -57,24 +56,24 @@ class TimetableModel extends ChangeNotifier {
   }
 
   /// Returns the day corrosponding to the given day view page.
-  static DateTime getDay(int dayPage)
-    => DateTime(hashDate.year, hashDate.month, hashDate.day + dayPage);
+  static DateTime getDay(int dayIndex)
+    => DateTime(hashDate.year, hashDate.month, hashDate.day + dayIndex);
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
-  static DateTime getWeek(int weekPage) {
-    int dayOffset = hashDate.day + (weekPage * 7);
+  static DateTime getWeek(int weekIndex) {
+    int dayOffset = hashDate.day + (weekIndex * 7);
     return DateTime(hashDate.year, hashDate.month, dayOffset);
   }
 
   /// Returns the month corresponding to the given month page.
-  static DateTime getMonth(int monthPage)
-    => DateTime(hashDate.year, hashDate.month + monthPage);
+  static DateTime getMonth(int monthIndex)
+    => DateTime(hashDate.year, hashDate.month + monthIndex);
 
   /// Returns the day of the given week and weekday index.
-  static DateTime dayOfWeekPage(int weekPage, int weekdayInd) {
-    DateTime week = TimetableModel.getWeek(weekPage);
-    return DateTime(week.year, week.month, week.day + weekdayInd - 1);
+  static DateTime dayOfWeek(int weekIndex, int weekdayIndex) {
+    DateTime week = TimetableVM.getWeek(weekIndex);
+    return DateTime(week.year, week.month, week.day + weekdayIndex - 1);
   }
 
   /// Returns the monday of the week of the given date.
@@ -84,14 +83,14 @@ class TimetableModel extends ChangeNotifier {
   /// Returns the monday of the week that the given date is in.
   static DateTime monthOfDay(DateTime day) => DateTime(day.year, day.month);
 
-  /// Returns the day view page corrosponding to the given date.
-  static int getDayPage(DateTime day) => day.difference(hashDate).inDays;
+  /// Returns the day view index corrosponding to the given date.
+  static int getDayIndex(DateTime day) => day.difference(hashDate).inDays;
 
-  /// Returns the week page corrosponding to the given date.
-  static int getWeekPage(DateTime week)
+  /// Returns the week index corrosponding to the given date.
+  static int getWeekIndex(DateTime week)
     => (week.difference(hashDate).inDays / 7).toInt();
 
-  static int getMonthPage(DateTime month)
+  static int getMonthIndex(DateTime month)
     => (month.year - hashDate.year) * 12 + month.month - hashDate.month;
 
   static bool dayEquiv(DateTime day1, DateTime day2) => day1 == day2;
@@ -109,14 +108,14 @@ class TimetableModel extends ChangeNotifier {
     return monthEquiv(month, currentDay) ? currentDay : month;
   }
 
-    void createDayViewController() {
-      dayViewPageController = DayViewPageController(
-      initialPage: getDayPage(activeDay));
+  void createDayViewController() {
+    dayViewPageController = DayViewPageController(
+    initialPage: getDayIndex(activeDay));
   }
 
   void createWeekViewController() {
     weekViewPageController = WeekViewPageController(
-      initialPage: getWeekPage(weekOfDay(activeDay)),
+      initialPage: getWeekIndex(weekOfDay(activeDay)),
       onAttach: (_) => weekViewPageController.jumpToOther(weekBarPageController));
     weekViewPageController.addListener(() {
       weekBarPageController.matchToOther(weekViewPageController);
@@ -125,7 +124,7 @@ class TimetableModel extends ChangeNotifier {
 
   void createWeekBarController() {
     weekBarPageController = WeekBarPageController(
-      initialPage: getWeekPage(weekOfDay(activeDay)));
+      initialPage: getWeekIndex(weekOfDay(activeDay)));
     weekBarPageController.addListener(() {
       weekViewPageController.matchToOther(weekBarPageController);
     });
@@ -133,7 +132,7 @@ class TimetableModel extends ChangeNotifier {
 
   void createMonthBarPageController() {
     monthBarPageController = MonthBarPageController(
-      initialPage: getMonthPage(monthOfDay(activeDay)));
+      initialPage: getMonthIndex(monthOfDay(activeDay)));
   }
 
   void createMonthListScrollController() {
@@ -145,54 +144,47 @@ class TimetableModel extends ChangeNotifier {
   /// skipping intermediate pages.
   void syncDayView() {
     if (!dayViewPageController.hasClients) return;
-    int newActiveDayPage = getDayPage(activeDay);
-    int activeDayPage = dayViewPageController.page!.round();
-    if (newActiveDayPage != activeDayPage) {
-      dayViewPageController.animateDirectToPage(newActiveDayPage);
-    }
+    int newActiveDayIndex = getDayIndex(activeDay);
+    int activeDayIndex = dayViewPageController.page!.round();
+    if (newActiveDayIndex == activeDayIndex) return;
+    dayViewPageController.animateDirectToPage(newActiveDayIndex);
   }
 
   /// Animates the [WeekBar]'s [PageView] to the active page.
   void syncWeekBar({bool jump = false}) async {
-    int newWeekPage = getWeekPage(activeDay);
-    int activeWeekPage = weekBarPageController.page!.round();
-    if (newWeekPage != activeWeekPage) {
-      jump ? weekBarPageController.jumpToPage(newWeekPage)
-        : await weekBarPageController.animateToPage(
-          newWeekPage,
-          duration: Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-        );
-    }
+    int newWeekIndex = getWeekIndex(activeDay);
+    int activeWeekIndex = weekBarPageController.page!.round();
+    if (newWeekIndex == activeWeekIndex) return;
+    jump ? weekBarPageController.jumpToPage(newWeekIndex)
+      : await weekBarPageController.animateToPage(
+        newWeekIndex,
+        duration: Duration(milliseconds: 400),
+        curve: Curves.easeInOut);
   }
 
   /// Animates the [WeekView]'s [PageView] to the active page.
   void syncWeekView() async {
     if (!weekViewPageController.hasClients) return;
-    int newWeekPage = getWeekPage(activeDay);
-    int activeWeekPage = weekViewPageController.page!.round();
-    if (newWeekPage != activeWeekPage) {
-      await weekViewPageController.animateToPage(
-        newWeekPage,
-        duration: Duration(milliseconds: 400), 
-        curve: Curves.easeInOut,
-      );
-    }
+    int newWeekIndex = getWeekIndex(activeDay);
+    int activeWeekIndex = weekViewPageController.page!.round();
+    if (newWeekIndex == activeWeekIndex) return;
+    await weekViewPageController.animateToPage(
+      newWeekIndex,
+      duration: Duration(milliseconds: 400), 
+      curve: Curves.easeInOut);
   }
 
   /// Animates the [MonthBar]'s [PageView] to the active page.
   void syncMonthBar({bool jump = false}) async {
     if (!monthBarPageController.hasClients) return;
-    int newMonthPage = getMonthPage(activeDay);
-    int activeMonthPage = monthBarPageController.page!.round();
-    if (newMonthPage != activeMonthPage) {
-      jump ? monthBarPageController.jumpToPage(newMonthPage)
-        : await monthBarPageController.animateToPage(
-          newMonthPage,
-          duration: Duration(milliseconds: 400), 
-          curve: Curves.easeInOut,
-        );
-    }
+    int newMonthIndex = getMonthIndex(activeDay);
+    int activeMonthIndex = monthBarPageController.page!.round();
+    if (newMonthIndex == activeMonthIndex) return;
+    jump ? monthBarPageController.jumpToPage(newMonthIndex)
+      : await monthBarPageController.animateToPage(
+        newMonthIndex,
+        duration: Duration(milliseconds: 400), 
+        curve: Curves.easeInOut);
   }
 
   /// Animates the [MonthList]'s [ListView] just enough so that 
@@ -212,18 +204,25 @@ class TimetableModel extends ChangeNotifier {
 
   void syncTListView({bool jump = false}) {
     if (!tListViewItemScrollController.isAttached) return;
-    int newActiveDayIndex = getDayPage(activeDay);
+    int newActiveDayIndex = getDayIndex(activeDay);
     jump ? tListViewItemScrollController.jumpTo(index: newActiveDayIndex) :
       tListViewItemScrollController.scrollTo(index: newActiveDayIndex, duration: Duration(milliseconds: 200));
+  }
+
+  void synchronise({bool jumpWeekBar = false, bool jumpMonthBar = false, bool jumpTListView = false}) {
+    syncDayView();
+    syncWeekBar(jump: jumpWeekBar);
+    syncWeekView();
+    syncMonthBar(jump: jumpMonthBar);
+    syncMonthList();
+    syncTListView(jump: jumpTListView);
   }
 
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged() {
     if (!dayViewPageController.isScrolling) return;
     activeDay = getDay(dayViewPageController.page!.round());
-    syncWeekBar();
-    syncMonthBar();
-    syncMonthList();
+    synchronise();
   }
 
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
@@ -231,24 +230,18 @@ class TimetableModel extends ChangeNotifier {
   /// it's linked to the week bar page.
   void handleWeekBarPageChanged() {
     if (!weekBarPageController.isScrolling) return;
-    activeDay = dayOfWeekPage(weekBarPageController.page!.round(), activeDay.weekday);
-    syncDayView();
-    syncMonthBar();
-    syncMonthList();
-    syncTListView();
+    activeDay = dayOfWeek(weekBarPageController.page!.round(), activeDay.weekday);
+    synchronise();
   }
 
   void handleWeekViewPageChanged() {
     if (!weekViewPageController.isScrolling) return;
-    activeDay = dayOfWeekPage(weekViewPageController.page!.round(), activeDay.weekday);
-    syncDayView();
-    syncMonthBar();
-    syncMonthList();
-    syncTListView();
+    activeDay = dayOfWeek(weekViewPageController.page!.round(), activeDay.weekday);
+    synchronise();
   }
 
   int dayDiff(DateTime day1, DateTime day2) {
-    return (getDayPage(day1) - getDayPage(day2)).abs();
+    return (getDayIndex(day1) - getDayIndex(day2)).abs();
   }
 
   void handleMonthBarPageChanged(DateTime currentDay) {
@@ -256,63 +249,38 @@ class TimetableModel extends ChangeNotifier {
     DateTime newActiveDay = getNewActiveDayForMonth(getMonth(monthBarPageController.page!.round()), currentDay);
     int diff = dayDiff(activeDay, newActiveDay);
     activeDay = newActiveDay;
-    syncDayView();
-    syncWeekBar();
-    syncWeekView();
-    syncMonthList();
-    syncTListView(jump: diff >= 7);
+    synchronise(jumpTListView: diff >= 7);
   }
 
   void handleTListViewDayChanged(DateTime day) {
     if (!tListViewItemScrollController.isScrolling) return;
     activeDay = day;
-    syncDayView();
-    syncWeekBar(jump: true);
-    syncWeekView();
-    syncMonthBar(jump: true);
-    syncMonthList();
+    synchronise(jumpWeekBar: true, jumpMonthBar: true);
   }
 
   /// Handler for the onTap event of the [WeekBar]'s weekday items.
   void handleWeekBarDayTap(DateTime day) {
     activeDay = day;
-    syncDayView();
-    syncMonthBar();
-    syncMonthList();
-    syncTListView();
-}
+    synchronise();
+  }
 
   /// Handler for the onTap event of the [MonthBar]'s weekday items.
   void handleMonthBarDayTap(DateTime day) {
     int diff = dayDiff(day, activeDay);
     activeDay = day;
-    syncDayView();
-    syncWeekBar();
-    syncWeekView();
-    syncTListView(jump: diff >= 7);
-
+    synchronise(jumpTListView: diff >= 7);
   }
 
   void handleMonthListMonthTap(DateTime month, DateTime currentDay) {
     DateTime newActiveDay = getNewActiveDayForMonth(month, currentDay);
     int diff = dayDiff(newActiveDay, activeDay);
     activeDay = newActiveDay;
-    syncDayView();
-    syncWeekBar();
-    syncWeekView();
-    syncMonthBar(jump: true);
-    syncMonthList();
-    syncTListView(jump: diff >= 7);
+    synchronise(jumpWeekBar: true, jumpMonthBar: true, jumpTListView: diff >= 7);
   }
 
   void handleTodayTap(DateTime currentDay) {
     activeDay = currentDay;
-    syncDayView();
-    syncWeekBar();
-    syncWeekView();
-    syncMonthBar(jump: true);
-    syncMonthList();
-    syncTListView();
+    synchronise();
   }
 
   bool onWeekBarNotification(UserScrollNotification notification) {

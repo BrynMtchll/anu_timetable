@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:flutter/material.dart';
 
@@ -51,7 +51,7 @@ class TimetableLayout {
   /// The number of weeks that the month spans, 
   /// including weeks partially spanned.
   static int monthWeeks(DateTime month) {
-    month = TimetableModel.monthOfDay(month);
+    month = TimetableVM.monthOfDay(month);
     int days = DateUtils.getDaysInMonth(month.year, month.month);
     int weekday = month.weekday;
     return ((days + weekday - 1) / 7).ceil();

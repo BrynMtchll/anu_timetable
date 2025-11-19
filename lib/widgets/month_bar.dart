@@ -1,11 +1,11 @@
-import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/controllers.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
+import 'package:anu_timetable/model/animation.dart';
+import 'package:anu_timetable/model/controller.dart';
+import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:anu_timetable/widgets/month_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 
 class MonthBar extends StatefulWidget {
@@ -18,7 +18,7 @@ class MonthBar extends StatefulWidget {
 class _MonthBarState extends State<MonthBar>{
   @override
   void initState() {
-    Provider.of<TimetableModel>(context, listen: false).createMonthBarPageController();
+    Provider.of<TimetableVM>(context, listen: false).createMonthBarPageController();
     super.initState();
   }
   @override
@@ -59,7 +59,7 @@ class _MonthBarState extends State<MonthBar>{
 class _MonthBarPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {    
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     return Consumer<MonthBarAnimationNotifier>(
       builder: (context, monthBarAnimationNotifier, child) => 
         AnimatedContainer(
@@ -72,7 +72,7 @@ class _MonthBarPageView extends StatelessWidget {
           controller: timetableModel.monthBarPageController,
           onPageChanged: (page) {
             Provider.of<MonthBarAnimationNotifier>(context, listen: false).height 
-              = TimetableLayout.monthBarHeight(TimetableModel.getMonth(page));
+              = TimetableLayout.monthBarHeight(TimetableVM.getMonth(page));
             timetableModel.handleMonthBarPageChanged(
               Provider.of<CurrentDay>(context, listen: false).value);
           },
@@ -84,7 +84,7 @@ class _MonthBarPageView extends StatelessWidget {
                 padding: viewTabController.index == 2 ? 
                   EdgeInsets.only(left: TimetableLayout.leftMargin) : EdgeInsets.all(0),
                 child: child),
-              child: _Month(month: TimetableModel.getMonth(page))))));
+              child: _Month(month: TimetableVM.getMonth(page))))));
   }
 }
 
@@ -131,9 +131,9 @@ class _MonthState extends State<_Month> with TickerProviderStateMixin {
 
 Widget _monthBarRowsBuilder(BuildContext context, MonthBarAnimationNotifier monthBarAnimationNotifier, 
   AnimationController controller, DateTime month) {
-  TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+  TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
   int activeWeekIndex = TimetableLayout.monthWeek(timetableModel.activeDay, month);
-  DateTime firstWeekOfMonth = TimetableModel.weekOfDay(month);
+  DateTime firstWeekOfMonth = TimetableVM.weekOfDay(month);
   int weeks = TimetableLayout.monthWeeks(month);
 
   double vOffsetFrac() {
@@ -212,7 +212,7 @@ class _Weekday extends StatelessWidget {
     }
     return GestureDetector(
       onTap: () {
-        Provider.of<TimetableModel>(context, listen: false).handleMonthBarDayTap(day);
+        Provider.of<TimetableVM>(context, listen: false).handleMonthBarDayTap(day);
       },
       child: BarDayItem(day: day));
   }

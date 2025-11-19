@@ -1,19 +1,17 @@
-import 'package:anu_timetable/model/events.dart';
+import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/widgets/event_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:anu_timetable/model/event_tile_arranger.dart';
+import 'package:anu_timetable/util/event_tile_arranger.dart';
 
-class EventTileGenerator extends StatelessWidget {
+class EventTiles extends StatelessWidget {
   final Size size; 
   final DateTime day;
+  final List<Event> events;
 
-  const EventTileGenerator({super.key, required this.size, required this.day});
+  const EventTiles({super.key, required this.events, required this.size, required this.day});
 
   @override
   Widget build(BuildContext context) {
-    EventsModel eventsModel = EventsModel();
-
-    List<Event> events = eventsModel.getEventsOnDay(day);
     List<EventTileData> eventTilesData = List.generate(events.length, (index) {
       return EventTileData(event: events[index]);
     });
@@ -24,7 +22,6 @@ class EventTileGenerator extends StatelessWidget {
        return EventTile(eventTileData: eventTilesData[index]);
     });
 
-    eventsModel.populateEventsForToday();
     return SizedBox(
       width: size.width,
       height: size.height,

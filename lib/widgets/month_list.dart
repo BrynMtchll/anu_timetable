@@ -1,6 +1,6 @@
-import 'package:anu_timetable/model/animation_notifiers.dart';
-import 'package:anu_timetable/model/current_datetime_notifiers.dart';
-import 'package:anu_timetable/model/timetable_model.dart';
+import 'package:anu_timetable/model/animation.dart';
+import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    Provider.of<TimetableModel>(context, listen: false).createMonthListScrollController();
+    Provider.of<TimetableVM>(context, listen: false).createMonthListScrollController();
 
     _controller = AnimationController(
       vsync: this,
@@ -42,8 +42,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    TimetableModel timetableModel = Provider.of<TimetableModel>(context, listen: false);
+    TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     return Consumer<MonthBarAnimationNotifier>(
       builder: (context, monthBarAnimationNotifier, child) {
         if (monthBarAnimationNotifier.open && monthBarAnimationNotifier.expanded) {
@@ -72,7 +71,7 @@ class _MonthListState extends State<MonthList> with TickerProviderStateMixin {
               controller: timetableModel.monthListScrollController,
               scrollDirection: Axis.horizontal,
               children: [
-                for (int year = TimetableModel.hashDate.year; year < TimetableModel.endDate.year; year++)
+                for (int year = TimetableVM.hashDate.year; year < TimetableVM.endDate.year; year++)
                   Container(
                     width: MonthListLayout.yearWidth,
                     height: MonthListLayout.height,
@@ -100,8 +99,8 @@ class _MonthButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Consumer<TimetableModel>(
-        builder: (BuildContext context, TimetableModel timetableModel, Widget? child) { 
+    return Consumer<TimetableVM>(
+        builder: (BuildContext context, TimetableVM timetableModel, Widget? child) { 
           bool monthIsActive = timetableModel.activeDay.year == year && timetableModel.activeDay.month == month;
           return GestureDetector(
             onTap: () {

@@ -1,4 +1,4 @@
-import 'package:anu_timetable/model/controllers.dart';
+import 'package:anu_timetable/model/controller.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:provider/provider.dart';
