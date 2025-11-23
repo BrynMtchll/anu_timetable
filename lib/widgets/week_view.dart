@@ -68,7 +68,7 @@ class _WeekPageView extends StatelessWidget {
             clipBehavior: Clip.none,
             controller: timetableModel.weekViewPageController,
             onPageChanged: (page) {
-              timetableModel.handleWeekViewPageChanged();
+              timetableModel.handleWeekViewPageChanged(context);
             },
             itemBuilder: (context, page) =>
               Consumer<CurrentDay>(

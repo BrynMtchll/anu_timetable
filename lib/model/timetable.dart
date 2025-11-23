@@ -1,4 +1,6 @@
 import 'package:anu_timetable/model/controller.dart';
+import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
@@ -7,6 +9,7 @@ import 'package:anu_timetable/widgets/week_bar.dart';
 import 'package:anu_timetable/widgets/week_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
 
 /// A central control for keeping the various relevant timetable
 /// widgets synchronised to the active day (the day in focus).
@@ -102,6 +105,9 @@ class TimetableVM extends ChangeNotifier {
   // Checks if two days are of the same month and year
   static bool monthEquiv(DateTime day1, DateTime day2)
     => monthOfDay(day1) == monthOfDay(day2);
+  
+  static int dayDiff(DateTime day1, DateTime day2) 
+    => (getDayIndex(day1) - getDayIndex(day2)).abs();
   
   DateTime getNewActiveDayForMonth(DateTime month, DateTime currentDay) {
     if (monthEquiv(month, activeDay)) return activeDay;
@@ -209,6 +215,7 @@ class TimetableVM extends ChangeNotifier {
       tListViewItemScrollController.scrollTo(index: newActiveDayIndex, duration: Duration(milliseconds: 200));
   }
 
+
   void synchronise({bool jumpWeekBar = false, bool jumpMonthBar = false, bool jumpTListView = false}) {
     syncDayView();
     syncWeekBar(jump: jumpWeekBar);
@@ -218,68 +225,80 @@ class TimetableVM extends ChangeNotifier {
     syncTListView(jump: jumpTListView);
   }
 
+  void loadActiveDayEvents(BuildContext context) {
+    Provider.of<EventsVM>(context, listen: false).loadEventsForDay.execute(activeDay);
+  }
+
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
-  void handleDayViewPageChanged() {
+  void handleDayViewPageChanged(BuildContext context) {
     if (!dayViewPageController.isScrolling) return;
     activeDay = getDay(dayViewPageController.page!.round());
+    loadActiveDayEvents(context);
     synchronise();
   }
 
   /// Handler for the onPageChanged event of the [WeekBar]'s [PageView].
   /// No handler is needed for when the week view page is changed as 
   /// it's linked to the week bar page.
-  void handleWeekBarPageChanged() {
+  void handleWeekBarPageChanged(BuildContext context) {
     if (!weekBarPageController.isScrolling) return;
     activeDay = dayOfWeek(weekBarPageController.page!.round(), activeDay.weekday);
+    loadActiveDayEvents(context);
     synchronise();
   }
 
-  void handleWeekViewPageChanged() {
+  void handleWeekViewPageChanged(BuildContext context) {
     if (!weekViewPageController.isScrolling) return;
     activeDay = dayOfWeek(weekViewPageController.page!.round(), activeDay.weekday);
+    loadActiveDayEvents(context);
     synchronise();
   }
 
-  int dayDiff(DateTime day1, DateTime day2) {
-    return (getDayIndex(day1) - getDayIndex(day2)).abs();
-  }
-
-  void handleMonthBarPageChanged(DateTime currentDay) {
+  void handleMonthBarPageChanged(BuildContext context) {
     if (!monthBarPageController.isScrolling) return;
+    DateTime currentDay = Provider.of<CurrentDay>(context, listen: false).value;
     DateTime newActiveDay = getNewActiveDayForMonth(getMonth(monthBarPageController.page!.round()), currentDay);
     int diff = dayDiff(activeDay, newActiveDay);
     activeDay = newActiveDay;
+    loadActiveDayEvents(context);
     synchronise(jumpTListView: diff >= 7);
   }
 
-  void handleTListViewDayChanged(DateTime day) {
+  void handleTListViewDayChanged(BuildContext context, DateTime day) {
     if (!tListViewItemScrollController.isScrolling) return;
     activeDay = day;
+    loadActiveDayEvents(context);
     synchronise(jumpWeekBar: true, jumpMonthBar: true);
   }
 
   /// Handler for the onTap event of the [WeekBar]'s weekday items.
-  void handleWeekBarDayTap(DateTime day) {
+  void handleWeekBarDayTap(BuildContext context, DateTime day) {
     activeDay = day;
+    loadActiveDayEvents(context);
     synchronise();
   }
 
   /// Handler for the onTap event of the [MonthBar]'s weekday items.
-  void handleMonthBarDayTap(DateTime day) {
+  void handleMonthBarDayTap(BuildContext context, DateTime day) {
     int diff = dayDiff(day, activeDay);
     activeDay = day;
+    loadActiveDayEvents(context);
     synchronise(jumpTListView: diff >= 7);
   }
 
-  void handleMonthListMonthTap(DateTime month, DateTime currentDay) {
+  void handleMonthListMonthTap(BuildContext context, DateTime month) {
+    DateTime currentDay = Provider.of<CurrentDay>(context, listen: false).value;
     DateTime newActiveDay = getNewActiveDayForMonth(month, currentDay);
     int diff = dayDiff(newActiveDay, activeDay);
     activeDay = newActiveDay;
+    loadActiveDayEvents(context);
     synchronise(jumpWeekBar: true, jumpMonthBar: true, jumpTListView: diff >= 7);
   }
 
-  void handleTodayTap(DateTime currentDay) {
+  void handleTodayTap(BuildContext context) {
+    DateTime currentDay = Provider.of<CurrentDay>(context, listen: false).value;
     activeDay = currentDay;
+    loadActiveDayEvents(context);
     synchronise();
   }
 

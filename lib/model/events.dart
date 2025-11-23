@@ -50,7 +50,12 @@ class EventsVM extends ChangeNotifier {
 
   final Map<DateTime, List<Event>> _events = {};
 
-  List<Event> getEventsOnDay(DateTime day) => _events[day]!;
+  List<Event> getEventsOnDay(DateTime day) {
+    if (_events.containsKey(day)) {
+      return _events[day]!;
+    }
+    return [];
+  }
 
   Future<Result> _loadEventsForDay(DateTime day) async {
     try {
@@ -59,7 +64,6 @@ class EventsVM extends ChangeNotifier {
         case Ok<List<Event>>():
           _events[day] = resultLoadEventsForDay.value;
         case Error<List<Event>>():
-          print("fail");
       }
       return resultLoadEventsForDay;
     } finally {

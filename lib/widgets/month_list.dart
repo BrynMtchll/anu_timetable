@@ -104,8 +104,7 @@ class _MonthButton extends StatelessWidget {
           bool monthIsActive = timetableModel.activeDay.year == year && timetableModel.activeDay.month == month;
           return GestureDetector(
             onTap: () {
-              timetableModel.handleMonthListMonthTap(DateTime(year, month), 
-                Provider.of<CurrentDay>(context, listen: false).value);
+              timetableModel.handleMonthListMonthTap(context, DateTime(year, month));
             },
             child: AnimatedContainer(
               duration: Duration(milliseconds: 200),

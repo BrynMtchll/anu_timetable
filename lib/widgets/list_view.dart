@@ -39,7 +39,7 @@ class _TListViewState extends State<TListView> {
       }
       if (newActiveDayIndex != activeDayIndex) {
         activeDayIndex = newActiveDayIndex;
-        timetableModel.handleTListViewDayChanged(TimetableVM.getDay(newActiveDayIndex));
+        timetableModel.handleTListViewDayChanged(context, TimetableVM.getDay(newActiveDayIndex));
       }
     });
     List randints = [for (int i = 0; i < 10000; i++) random.nextInt(3)];

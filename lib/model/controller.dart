@@ -88,7 +88,6 @@ class DayViewPageController extends PageController with PageLinker{
     int currPage = this.page!.round();
     _adjacentPage = page > this.page! ? currPage +1 : currPage -1;
     _pageOverride = page;
-    notifyListeners();
 
     await animateToPage(
       _adjacentPage!,
@@ -98,7 +97,6 @@ class DayViewPageController extends PageController with PageLinker{
     _pageOverride = null;
     _adjacentPage = null;
 
-    notifyListeners();
     jumpToPage(page);
   }
 }

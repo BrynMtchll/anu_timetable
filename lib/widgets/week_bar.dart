@@ -1,4 +1,5 @@
 import 'package:anu_timetable/model/controller.dart';
+import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +40,7 @@ class _WeekBarState extends State<WeekBar>{
         child: PageView.builder(
           controller: timetableModel.weekBarPageController,
           onPageChanged: (page) {
-            timetableModel.handleWeekBarPageChanged();
+            timetableModel.handleWeekBarPageChanged(context);
           },
           itemBuilder: (context, page) {
             return Consumer<ViewTabController>(
@@ -86,7 +87,7 @@ class _Weekday extends StatelessWidget {
     final TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     return GestureDetector(
       onTap: () {
-        timetableModel.handleWeekBarDayTap(day);
+        timetableModel.handleWeekBarDayTap(context, day);
       },
       child: BarDayItem(day: day));
   }

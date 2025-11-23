@@ -73,8 +73,7 @@ class _MonthBarPageView extends StatelessWidget {
           onPageChanged: (page) {
             Provider.of<MonthBarAnimationNotifier>(context, listen: false).height 
               = TimetableLayout.monthBarHeight(TimetableVM.getMonth(page));
-            timetableModel.handleMonthBarPageChanged(
-              Provider.of<CurrentDay>(context, listen: false).value);
+            timetableModel.handleMonthBarPageChanged(context);
           },
           itemBuilder: (context, page) => 
             Consumer<ViewTabController>(
@@ -212,7 +211,7 @@ class _Weekday extends StatelessWidget {
     }
     return GestureDetector(
       onTap: () {
-        Provider.of<TimetableVM>(context, listen: false).handleMonthBarDayTap(day);
+        Provider.of<TimetableVM>(context, listen: false).handleMonthBarDayTap(context, day);
       },
       child: BarDayItem(day: day));
   }

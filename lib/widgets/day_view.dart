@@ -1,7 +1,7 @@
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/clippers.dart';
-import 'package:anu_timetable/widgets/event_tile_generator.dart';
+import 'package:anu_timetable/widgets/event_tiles.dart';
 import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -46,35 +46,31 @@ class _DayPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
+    timetableModel.loadActiveDayEvents(context);
     return NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onDayViewNotification,
-      child: PageView.builder(
+        child: PageView.builder(
         clipBehavior: Clip.none,
         controller: timetableModel.dayViewPageController,
         onPageChanged: (page) {
-          timetableModel.handleDayViewPageChanged();
+          timetableModel.handleDayViewPageChanged(context);
         },
         itemBuilder: (context, page) => Consumer<TimetableVM>(
           builder: (context, timetableModel, child) {
-            return _DayItem(page: timetableModel.dayViewPageController.overridePage(page));
+            int pageOverride = timetableModel.dayViewPageController.overridePage(page);
+            return _DayItem(page: pageOverride);
           })));
   }
 }
 
-class _DayItem extends StatefulWidget {
+class _DayItem extends StatelessWidget {
   final int page;
   const _DayItem({required this.page});
 
   @override
-  State<_DayItem> createState() => _DayItemState();
-}
-
-class _DayItemState extends State<_DayItem> {
-  late DateTime day = TimetableVM.getDay(widget.page);
-  late EventsForDayVM events = EventsForDayVM(eventRepository: context.read(), day: day);
-  @override
   Widget build(BuildContext context) {
-    print("hey");
+    final EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
+    final DateTime day = TimetableVM.getDay(page);
     return Consumer<CurrentDay>(
       builder: (context, currentDay, child) { 
         bool pageIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
@@ -88,24 +84,10 @@ class _DayItemState extends State<_DayItem> {
             Positioned(
               left: TimetableLayout.leftMargin,
               child: ListenableBuilder(
-                    listenable: events.load,
-                    builder: (context, child) {
-                      if (events.load.running) {
-                        print("running");
-                      }
-                      print("hi");
-                      return EventTiles(events: events.events, size: TimetableLayout.innerSize, day: day);
-                    },)
-                  ),
-              // child: Consumer<EventsVM>(
-              //   builder: (context, events, child) => 
-              //     ListenableBuilder(
-              //       listenable: events.loadEventsForDay,
-              //       builder: (context, child) {
-              //         if (events.loadEventsForDay.error)
-              //       },
-              //     )
-                  // EventTileGenerator(size: size, day: day)),
+                listenable: eventsVM.loadEventsForDay,
+                builder: (context, child) {
+                  return EventTiles(events: eventsVM.getEventsOnDay(day), size: TimetableLayout.innerSize, day: day);
+                })),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin,
               child: LiveTimeIndicator(size: TimetableLayout.innerSize)),

@@ -37,7 +37,7 @@ class _TodayButton extends StatelessWidget {
         bool activeDayIsCurrent = timetableModel.activeDay == currentDay.value;
         return GestureDetector(
           onTap: () {
-            timetableModel.handleTodayTap(currentDay.value);
+            timetableModel.handleTodayTap(context);
           }, 
           child: Padding(
             padding: EdgeInsetsGeometry.only(right: 20),
