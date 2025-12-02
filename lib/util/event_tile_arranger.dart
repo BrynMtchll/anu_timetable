@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:math' as math;
 
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
@@ -25,47 +24,6 @@ class EventTileData {
 
   bool overlapping(EventTileData other) {
     return event.overlapping(other.event);
-  }
-}
-
-class Section {
-  final int pathStart;
-  final int pathEnd;
-  /// A section [canCoalesceLeft] if:
-  ///   1. [left] is not null, i.e. it is not the leftmost section, 
-  ///   2. [left] is not fixed,
-  ///   3. the shared bound between it and [left] is a right bound. 
-  bool get canCoalesceLeft => left != null && !left!.fixed && leftBoundType == BoundType.right;
-  /// A section [canCoalesceRight] if 
-  ///   1. [right] is not null, i.e. it is not the leftmost section, 
-  ///   2. [right] is not fixed, 
-  ///   3. the shared bound between it and [right] is a left bound. 
-  bool get canCoalesceRight =>  right != null && !right!.fixed && rightBoundType == BoundType.left;
-  bool fixed;
-  BoundType leftBoundType;
-  BoundType rightBoundType;
-  late int length;
-  late double density;
-  final double width;
-  double leftPos;
-  // null for the first section of a path.
-  Section? left;
-  // null for the last section of a path.
-  Section? right;
-
-  Section({ 
-    required this.width,
-    required this.leftPos,
-    required this.pathStart,
-    required this.pathEnd,
-    required this.leftBoundType,
-    required this.rightBoundType,
-    this.left,
-    this.right,
-    this.fixed = false,
-  }) {
-    length = pathEnd - pathStart;
-    density = length / width;
   }
 }
 
@@ -277,8 +235,6 @@ List<int> getLongestPath(int numEvents, List<List<int>> columns, List<List<int>>
       if (visited[root]) continue;
       final maxLengthFromEvent = findMaxLengthFrom(root, adjList, maxLengthFrom, visited, fixed);
       if (maxLengthFromEvent >= longest.length) {
-        print("left bound: ${bounds.left[root]}, right bound: ${bounds.right[root]}");
-        print(root);
         if (longest.root == -1 || bounds.left[root] > bounds.left[longest.root]) {
           longest = (length: maxLengthFromEvent, root: root);
         }
@@ -290,165 +246,184 @@ List<int> getLongestPath(int numEvents, List<List<int>> columns, List<List<int>>
   return path;
 }
 
-List<double> func(List<EventTileData> eventTilesData, List<int> path, List<List<int>> adjList, List<List<int>> invAdjList, Bounds bounds) {
-  print("PATH: $path");
+List<int> getminWidthInds(List<double> widths, List<bool> fixed) {
+  List<int> minWidthInds = [];
+  double minWidthUnfixed = double.infinity;
+  for (final (i, width) in widths.indexed) {
+    if (!fixed[i] && width < minWidthUnfixed) {
+      minWidthUnfixed = width;
+    }
+  }
+  for (final (i, width) in widths.indexed) {
+    if (width == minWidthUnfixed && !fixed[i]) {
+      minWidthInds.add(i);
+    }
+  }
+  return minWidthInds;
+}
 
+double getNextSmallestWidth(List<double> widths, List<bool> fixed, int spanStart) {
+  double nextSmallestWidth = double.infinity;
+  // only have to up to before span since only those before can expand into it
+  for (int sectInd = 0; sectInd < spanStart; sectInd++) {
+    if (!fixed[sectInd] && widths[sectInd] < nextSmallestWidth) {
+      nextSmallestWidth = widths[sectInd];
+    }
+  }
+  return nextSmallestWidth;
+}
+
+void increaseSubSpanWidths(List<double> widths, List<bool> fixed, int spanStart, int spanEnd, double widthTotal) {
+  int len = spanEnd - spanStart + 1;
+  double subNewWidth = widthTotal / len;
+
+  // fix if less than next smallest since we can't expand further and don't want to shrink further 
+  // (by loop invariant that it was (non strictly) smallest before)
+  double nextSmallestWidth = getNextSmallestWidth(widths, fixed, spanStart);
+  for (int sectInd = spanStart; sectInd <= spanEnd; sectInd++) {
+    widths[sectInd] = subNewWidth;
+  }
+  if (subNewWidth <= nextSmallestWidth) {
+    for (int sectInd = spanStart; sectInd <= spanEnd; sectInd++) {
+      fixed[sectInd] = true;
+    }
+  }
+}
+
+void increaseWidths(List<double> widths, Bounds bounds, List<int> path, List<bool> fixed, int sectStart, int spanStart, int spanEnd) {
+  int len = spanEnd - spanStart + 1;
+  double widthTotal = widths[spanEnd] * len + widths[spanEnd + 1];
+  double newWidth = widthTotal / (len + 1);
+
+  double lb = bounds.left[path[sectStart + spanStart]];
+  double left = lb;
+  
+  for (int i = spanStart; i <= spanEnd; i++) {
+    final event = path[sectStart + i];
+    // Check if increasing to newWidth would violate right bound.
+    if (newWidth >= bounds.right[event] - left) {
+      double subWidthTotal = bounds.right[event] - lb;
+      increaseSubSpanWidths(widths, fixed, spanStart, spanEnd, subWidthTotal);
+
+      spanStart = i+1;
+      widthTotal -= subWidthTotal;
+      lb = bounds.right[event];
+      left = lb;
+      newWidth = widthTotal / ((spanEnd - i + 1));
+    } else if (i == spanEnd) {
+      for (int sectInd = spanStart; sectInd <= i; sectInd++) {
+        widths[sectInd] = newWidth;
+      }
+    } else {
+      left += newWidth;
+    }
+  }
+  widths[spanEnd + 1] = newWidth;
+}
+
+void balanceWidths(List<double> widths, Bounds bounds, List<int> path, int sectStart, int sectEnd) {
+  int len = sectEnd - sectStart + 1;
+  List<bool> fixed = [for (int i = 0; i < len; i++) false];
+  List<int> minWidthInds = getminWidthInds(widths, fixed);
+
+  while (minWidthInds.isNotEmpty) {
+    int spanStart = -1, spanEnd = -1;
+    for (final ind in minWidthInds) {
+    if (ind == len - 1 || fixed[ind + 1]) {
+        fixed[ind] = true;
+        if (spanStart == -1) {
+          continue;
+        }
+        for (int j = spanStart; j <= spanEnd; j++) {
+          fixed[j] = true;
+        }
+        continue;
+      }
+      if (spanStart == -1) {
+        spanStart = ind;
+      }
+      spanEnd = ind;
+      if (minWidthInds.contains(ind + 1)) {
+        continue;
+      }
+      increaseWidths(widths, bounds, path, fixed, sectStart, spanStart, spanEnd);
+      spanStart = -1;
+    }
+    minWidthInds = getminWidthInds(widths, fixed);
+  }
+}
+
+/// Left bounds are inherited to the right, and right bounds to the left, of adjacent events.
+/// This function updates the bounds for events in [path] to reflect this, which is more 
+/// efficient than doing so via a dfs for every bound update.
+void propagateBounds(Bounds bounds, List<int> path) {
   double lb = bounds.left[path.first], rb = bounds.right[path.last];
-
-  List<double> widthsFinal = [for (int i = 0; i < path.length; i++) -1];
-
   for (final event in path) {
     bounds.left[event] = max(lb, bounds.left[event]);
     lb = bounds.left[event];
   }
-
   for (final event in path.reversed) {
     bounds.right[event] = min(rb, bounds.right[event]);
     rb = bounds.right[event];
   }
+}
 
-  for (int start = 0, end = 0; end < path.length; end++) {
-    if (end < path.length - 1 && bounds.right[path[end]] > bounds.left[path[end + 1]]) continue;
-    List<double> widths = [];
-    List<int> smallestWidthInds = [];
-    int len = end - start + 1;
-    List<bool> fixed = [for (int i = 0; i < len; i++) false];
-    for (int i = start; i <= end; i++) {
-      final event = path[i];
-      if (i - start == len - 1) {
-        widths.add(bounds.right[event] - bounds.left[event]);
-        break;
-      }
-      final nextEvent = path[i+1];
-      assert(bounds.right[event] >= bounds.left[nextEvent]);
-      assert(bounds.left[event] <= bounds.left[nextEvent]);
-
-      final left = bounds.left[event];
-      final right = bounds.left[nextEvent];
-      final width = right - left;
-      widths.add(width);
+void setPositions(List<EventTileData> eventTilesData, Bounds bounds, List<List<int>> adjList, List<List<int>> invAdjList, List<int> path, List<double> widths) {
+  double l = bounds.left[path[0]];
+  for (final (i, w) in widths.indexed) {
+    final event = path[i];
+    eventTilesData[event].left = l;
+    eventTilesData[event].width = w;
+    for (final adj in adjList[event]) {
+      bounds.left[adj] = max(bounds.left[adj], w + l);
     }
-    double smallestWidth = widths.reduce(math.min);
-    for (int relInd = 0; relInd < widths.length; relInd++) {
-      final width = widths[relInd];
-      if (width == smallestWidth && !fixed[relInd]) {
-        smallestWidthInds.add(relInd);
-      }
+    for (final adj in invAdjList[event]) {
+      bounds.right[adj] = min(bounds.right[adj], l);
     }
-
-    while (smallestWidthInds.isEmpty == false) {
-      List<int> consecs = [];
-      for (final relInd in smallestWidthInds) {
-        if (relInd == len - 1 || fixed[relInd + 1]) {
-          print("fixing $relInd");
-          fixed[relInd] = true;
-          for (final prevRelInd in consecs) {
-            print("fixing prev $prevRelInd");
-
-            fixed[prevRelInd] = true;
-          }
-          consecs.clear();
-          continue;
-        }
-        consecs.add(relInd);
-        if (smallestWidthInds.contains(relInd + 1)) {
-          continue;
-        }
-        // want to up the min width
-        double widthTotal = widths[relInd] * consecs.length + widths[relInd + 1];
-        
-
-        double newWidth = widthTotal / (consecs.length + 1);
-        int nTotal = consecs.length + 1;
-
-        double left = bounds.left[path[start + consecs.first]];
-        double lb = bounds.left[path[start + consecs.first]];
-        int leftCInd = 0;
-        // widthTotal += min(widths[relInd + 1], bounds.right[path[start + relInd]] - left);
-        print("width total: $widthTotal, ${widths[relInd + 1]}");
-        print("consecs: $consecs");
-        for (int j = 0; j < consecs.length; j++) {
-          final prevRelInd = consecs[j];
-          final prevInd = start + prevRelInd;
-          final prevEvent = path[prevInd];
-          if (newWidth >= bounds.right[prevEvent] - left) {
-            // cannot increase width
-            // print("setting width to max from ${widths[prevRelInd]} to ${bounds.right[prevEvent] - left} instead of $newWidth");
-            // nTotal -= 1;
-            // newWidth = widthTotal / nTotal;
-            print(j - leftCInd + 1);
-            print(bounds.right[prevEvent] - lb);
-            double w = (bounds.right[prevEvent] - lb) / (j - leftCInd + 1);
-            for (int k = leftCInd; k <= j; k++) {
-              final relInd2 = consecs[k];
-              print("setting width to max from ${widths[relInd2]} to $w instead of $newWidth");
-              widths[relInd2] = w;
-              fixed[relInd2] = true;
-            }
-
-            leftCInd = j+1;
-            widthTotal -= (bounds.right[prevEvent] - lb);
-            lb = bounds.right[prevEvent];
-            newWidth = widthTotal / (consecs.length - j);
-
-          } else if (j == consecs.length - 1) {
-            for (int k = leftCInd; k <= j; k++) {
-              final relInd2 = consecs[k];
-              print("setting width from ${widths[relInd2]} to $newWidth of $relInd2");
-              widths[relInd2] = newWidth;
-            }
-          }
-          left += newWidth;
-        }
-        print("hi");
-        consecs.clear();
-        widths[relInd + 1] = newWidth;
-      }
-      smallestWidthInds.clear();
-      double smallestWidthUnfixed = double.infinity;
-      for (int relInd = 0; relInd < widths.length; relInd++) {
-        final width = widths[relInd];
-        if (!fixed[relInd] && width < smallestWidthUnfixed) {
-          smallestWidthUnfixed = width;
-        }
-      }
-      print("smallest unfixed: $smallestWidthUnfixed");
-      for (int relInd = 0; relInd < widths.length; relInd++) {
-        final width = widths[relInd];
-        if (width == smallestWidthUnfixed && !fixed[relInd]) {
-          smallestWidthInds.add(relInd);
-        }
-      }
-    }
-
-    // for(final width in widths) {
-    //   print(width);
-    // }
-
-    double left = bounds.left[path[start]];
-
-    for (int relInd = 0; relInd < widths.length; relInd++) {
-      final width = widths[relInd];
-      final ind = start + relInd;
-      widthsFinal[ind] = width;
-      print("${path[ind]}: $left, $width");
-      final event = path[ind];
-
-      eventTilesData[event].left = left;
-      eventTilesData[event].width = width;
-      
-      for (final adj in adjList[event]) {
-        bounds.left[adj] = max(bounds.left[adj], width + left);
-      }
-      for (final adj in invAdjList[event]) {
-        bounds.right[adj] = min(bounds.right[adj], left);
-      }
-
-      left += width;
-    }
-    start = end + 1;
+    l += w;
   }
-  return widthsFinal;
+}
+
+List<double> initWidths(List<int> path, Bounds bounds, int start, int end) {
+  List<double> widths = [];
+  int len = end - start + 1;
+
+  for (int i = start; i <= end; i++) {
+    final event = path[i];
+    if (i - start == len - 1) {
+      widths.add(bounds.right[event] - bounds.left[event]);
+      break;
+    }
+    final nextEvent = path[i+1];
+    assert(bounds.right[event] >= bounds.left[nextEvent]);
+    assert(bounds.left[event] <= bounds.left[nextEvent]);
+
+    final l = bounds.left[event];
+    final r = bounds.left[nextEvent];
+    final w = r - l;
+    widths.add(w);
+  }
+  return widths;
+}
+// TODO: need to re pick path after each section fix
+/// divide the path into sections of contiguous sequences of events with overlapping bounds
+/// widths are initialised such that each event's width is the distance from its left bound
+/// to the next event's left bound
+/// widths are then balanced by growing the smallest widths to the right, shrinking their larger right neighbours.
+List<double> detWidths(List<EventTileData> eventTilesData, List<int> path, List<List<int>> adjList, List<List<int>> invAdjList, Bounds bounds) {
+  propagateBounds(bounds, path);
+  List<double> pathWidths = [for (int i = 0; i < path.length; i++) -1];
+  for (int sectStart = 0, sectEnd = 0; sectEnd < path.length; sectEnd++) {
+    if (sectEnd < path.length - 1 && bounds.right[path[sectEnd]] > bounds.left[path[sectEnd + 1]]) continue;
+    List<double> sectWidths = initWidths(path, bounds, sectStart, sectEnd);
+    balanceWidths(sectWidths, bounds, path, sectStart, sectEnd);
+
+    for (final (i, w) in sectWidths.indexed) {
+      pathWidths[sectStart + i] = w;
+    }
+    sectStart = sectEnd + 1;
+  }
+  return pathWidths;
 }
 
 /// Once an event has been fixed, [EventTileData.left] becomes a right bound 
@@ -463,20 +438,8 @@ void fix(List<EventTileData> eventTilesData, double availableWidth, List<List<in
 
   while (numFixed < numEvents) {
     final List<int> path = getLongestPath(numEvents, columns, adjList, fixed, bounds);
-    
-    
-    List<double> widths = func(eventTilesData, path, adjList, invAdjList, bounds);
-
-    // Section head = createSections(path, bounds);
-    // head = coalesceSections(head, path);
-
-    // List<Section> sections = [];
-    // for (Section? curr = head; curr != null; curr = curr.right) {
-    //   sections.add(curr);
-    // }
-
-
-    // fixPath(eventTilesData, widths, path, adjList, invAdjList, bounds);
+    List<double> widths = detWidths(eventTilesData, path, adjList, invAdjList, bounds);
+    setPositions(eventTilesData, bounds, adjList, invAdjList, path, widths);
     for (final event in path) {
       fixed[event] = true;
     }
