@@ -4,6 +4,7 @@ import 'package:anu_timetable/data/services/local/local_event_service.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
+import 'package:anu_timetable/pages/event_page.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
+import 'package:go_router/go_router.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -54,6 +56,44 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
     weekViewScrollController.dispose();
   }
 
+  final _router = GoRouter(
+    initialLocation: '/timetable',
+    routes: <RouteBase>[
+      StatefulShellRoute.indexedStack(
+        builder: (BuildContext context, GoRouterState state, 
+          StatefulNavigationShell navigationShell) =>
+          ScaffoldWithNavBar(navigationShell: navigationShell),
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/home',
+                builder: (BuildContext context, GoRouterState state) => 
+                  const HomePage()),
+            ]),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/timetable',
+                builder: (BuildContext context, GoRouterState state) => 
+                  const TimetablePage(),
+                routes: <RouteBase>[
+                  GoRoute(
+                    path: "event",
+                    builder: (BuildContext context, GoRouterState state) => 
+                      const EventPage()),
+                ]),
+            ]),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/messages',
+                builder: (BuildContext context, GoRouterState state) => 
+                  const MessagesPage()),
+            ])
+        ])
+    ]);
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -70,7 +110,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
         ChangeNotifierProvider<EventsVM>(create: (context) => EventsVM(eventRepository: context.read()))
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'Flutter Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
@@ -78,16 +118,25 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             brightness: Brightness.dark,
             dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
           useMaterial3: true),
-        home: Scaffold(
-          appBar: MyAppBar(currentPageIndex: currentPageIndex),
-          bottomNavigationBar: MyBottomNavigationBar(
-            currentPageIndex: currentPageIndex, 
-            onPageChanged: (int index) {
-              setState(() {
-                currentPageIndex = index;
-              });
-            }),
-          body: <Widget>[const HomePage(),TimetablePage(),const MessagesPage()]
-            [currentPageIndex])));
+        routerConfig: _router));
+  }
+}
+
+class ScaffoldWithNavBar extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
+  const ScaffoldWithNavBar({super.key, required this.navigationShell});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: navigationShell.currentIndex,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
+          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'timetable'),
+          BottomNavigationBarItem(icon: Icon(Icons.tab), label: 'messages'),
+        ],
+        onTap: (int index) => navigationShell.goBranch(index)),
+      body: navigationShell);
   }
 }

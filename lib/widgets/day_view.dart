@@ -50,16 +50,16 @@ class _DayPageView extends StatelessWidget {
     return NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onDayViewNotification,
         child: PageView.builder(
-        clipBehavior: Clip.none,
-        controller: timetableModel.dayViewPageController,
-        onPageChanged: (page) {
-          timetableModel.handleDayViewPageChanged(context);
-        },
-        itemBuilder: (context, page) => Consumer<TimetableVM>(
-          builder: (context, timetableModel, child) {
-            int pageOverride = timetableModel.dayViewPageController.overridePage(page);
-            return _DayItem(page: pageOverride);
-          })));
+          clipBehavior: Clip.none,
+          controller: timetableModel.dayViewPageController,
+          onPageChanged: (page) {
+            timetableModel.handleDayViewPageChanged(context);
+          },
+          itemBuilder: (context, page) => Consumer<TimetableVM>(
+            builder: (context, timetableModel, child) {
+              int pageOverride = timetableModel.dayViewPageController.overridePage(page);
+              return _DayItem(page: pageOverride);
+            })));
   }
 }
 
@@ -84,13 +84,13 @@ class _DayItem extends StatelessWidget {
             Positioned(
               left: TimetableLayout.leftMargin,
               child: ListenableBuilder(
-                listenable: eventsVM.loadEventsForDay,
+                listenable: eventsVM.loadDay,
                 builder: (context, child) {
-                  return EventTiles(events: eventsVM.getEventsOnDay(day), size: TimetableLayout.innerSize, day: day);
+                  return EventTiles(events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize);
                 })),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin,
-              child: LiveTimeIndicator(size: TimetableLayout.innerSize)),
+              child: IgnorePointer(child: LiveTimeIndicator(size: TimetableLayout.innerSize))),
           ]);
       });
   }

@@ -1,71 +1,75 @@
 import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/domain/model/event.dart';
+import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
 import 'package:flutter/material.dart';
-
-class EventsForDayVM extends ChangeNotifier {
-
-  EventsForDayVM({
-    required EventRepository eventRepository,
-    required DateTime day
-  }) : _eventRepository = eventRepository {
-    load = Command1(_load)..execute(day);
-  }
-
-  final EventRepository _eventRepository;
-
-  late Command1<void, DateTime> load;
-
-  late List<Event> _events = [];
-
-  List<Event> get events => _events;
-
-  Future<Result> _load(DateTime day) async {
-    try {
-      final resultLoad = await _eventRepository.getEventsOnDay(day);
-      switch(resultLoad) {
-        case Ok<List<Event>>():
-          _events = resultLoad.value;
-        case Error<List<Event>>():
-          print("fail");
-      }
-      return resultLoad;
-    } finally {
-      notifyListeners();
-    }
-  }
-}
 
 class EventsVM extends ChangeNotifier {
   EventsVM({
     required EventRepository eventRepository,
   }) : _eventRepository = eventRepository {
-    loadEventsForDay = Command1(_loadEventsForDay);
+    loadDay = Command1(_loadDay);
+    loadWeek = Command1(_loadWeek);
   }
 
   final EventRepository _eventRepository;
 
-  late Command1<void, DateTime> loadEventsForDay;
+  late Command1<void, DateTime> loadDay;
+  late Command1<void, DateTime> loadWeek;
 
-  final Map<DateTime, List<Event>> _events = {};
+  final Map<int, List<Event>> _events = {};
 
-  List<Event> getEventsOnDay(DateTime day) {
-    if (_events.containsKey(day)) {
-      return _events[day]!;
+  List<Event> getEventsOnDay(int dayIndex) {
+    if (_events.containsKey(dayIndex)) {
+      return _events[dayIndex]!;
+    }
+    // TODO: log error
+    return [];
+  }
+  List<List<Event>> getEventsOnWeek(int weekIndex) {
+    List<List<Event>> weekEvents = [];
+    DateTime week = TimetableVM.getWeek(weekIndex);
+    int dayIndex = TimetableVM.getDayIndex(week);
+    for (int weekdayIndex = dayIndex; weekdayIndex < dayIndex + 7; weekdayIndex++) {
+      if (_events.containsKey(weekdayIndex)) {
+        weekEvents.add(_events[weekdayIndex]!);
+      }
+      else {
+        // TODO: log error
+        weekEvents.add([]);
+      }
     }
     return [];
   }
 
-  Future<Result> _loadEventsForDay(DateTime day) async {
+  Future<Result> _loadDay(DateTime day) async {
+    int i = TimetableVM.getDayIndex(day);
     try {
-      final resultLoadEventsForDay = await _eventRepository.getEventsOnDay(day);
-      switch(resultLoadEventsForDay) {
+      final resultLoadDay = await _eventRepository.getEventsOnDay(day);
+      switch(resultLoadDay) {
         case Ok<List<Event>>():
-          _events[day] = resultLoadEventsForDay.value;
+          _events[i] = resultLoadDay.value;
         case Error<List<Event>>():
       }
-      return resultLoadEventsForDay;
+      return resultLoadDay;
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<Result> _loadWeek(DateTime week) async {
+    int dayIndex = TimetableVM.getDayIndex(week);
+    try {
+      final resultLoadWeek = await _eventRepository.getEventsOnWeek(week);
+      switch(resultLoadWeek) {
+        case Ok<List<List<Event>>>():
+          for (final (i, e) in resultLoadWeek.value.indexed) {
+            _events[dayIndex + i] = e;
+          }
+        case Error<List<List<Event>>>():
+      }
+      return resultLoadWeek;
     } finally {
       notifyListeners();
     }

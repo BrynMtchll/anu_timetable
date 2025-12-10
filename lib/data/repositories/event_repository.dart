@@ -5,4 +5,5 @@ import 'package:anu_timetable/util/result.dart';
 
 abstract class EventRepository {
   Future<Result<List<Event>>> getEventsOnDay(DateTime day);
+  Future<Result<List<List<Event>>>> getEventsOnWeek(DateTime week);
 }

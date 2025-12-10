@@ -7,19 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
-  final int currentPageIndex;
-  const MyAppBar({super.key, required this.currentPageIndex});
+  const MyAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
       leadingWidth: 115,
-      leading: currentPageIndex == 1 ? _PickerButton() : null,
+      leading: _PickerButton(),
       backgroundColor: colorScheme.surfaceContainerLow,
       titleSpacing: 0,
       centerTitle: true,
-      title: currentPageIndex == 1 ? MyTabBar() : null,
+      title: MyTabBar(),
       actions: [_TodayButton()]);
   }
   @override

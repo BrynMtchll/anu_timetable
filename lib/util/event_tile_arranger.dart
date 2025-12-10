@@ -303,8 +303,7 @@ void increaseWidths(List<double> widths, Bounds bounds, List<int> path, List<boo
     // Check if increasing to newWidth would violate right bound.
     if (newWidth >= bounds.right[event] - left) {
       double subWidthTotal = bounds.right[event] - lb;
-      increaseSubSpanWidths(widths, fixed, spanStart, spanEnd, subWidthTotal);
-
+      increaseSubSpanWidths(widths, fixed, spanStart, i, subWidthTotal);
       spanStart = i+1;
       widthTotal -= subWidthTotal;
       lb = bounds.right[event];
@@ -321,6 +320,15 @@ void increaseWidths(List<double> widths, Bounds bounds, List<int> path, List<boo
   widths[spanEnd + 1] = newWidth;
 }
 
+/// Balances the widths in the section of the path from [sectStart] to [sectEnd]
+/// by growing the smallest widths to the right and shrinking their larger right neighbours,
+/// until all widths in the section are fixed.
+/// The widths are fixed when they can no longer be grown without violating bounds,
+/// or becoming smaller than the width of all those before it in the section.
+/// The overall effect is a cascade of the smallest widths growing to the right, with widths
+/// to the right joining the cascade as they become equal smallest in an iterative fashion.
+/// Increases in width are bundled into spans of contiguous smallest widths to avoid excess 
+/// iterations propagating width increases one by one (though that could've been simpler).
 void balanceWidths(List<double> widths, Bounds bounds, List<int> path, int sectStart, int sectEnd) {
   int len = sectEnd - sectStart + 1;
   List<bool> fixed = [for (int i = 0; i < len; i++) false];
@@ -384,13 +392,14 @@ void setPositions(List<EventTileData> eventTilesData, Bounds bounds, List<List<i
   }
 }
 
-List<double> initWidths(List<int> path, Bounds bounds, int start, int end) {
+/// Initializes widths for the events in [path] from [sectStart] to [sectEnd]
+List<double> initWidths(List<int> path, Bounds bounds, int sectStart, int sectEnd) {
   List<double> widths = [];
-  int len = end - start + 1;
+  int len = sectEnd - sectStart + 1;
 
-  for (int i = start; i <= end; i++) {
+  for (int i = sectStart; i <= sectEnd; i++) {
     final event = path[i];
-    if (i - start == len - 1) {
+    if (i - sectStart == len - 1) {
       widths.add(bounds.right[event] - bounds.left[event]);
       break;
     }
@@ -405,9 +414,10 @@ List<double> initWidths(List<int> path, Bounds bounds, int start, int end) {
   }
   return widths;
 }
+
 // TODO: need to re pick path after each section fix
-/// divide the path into sections of contiguous sequences of events with overlapping bounds
-/// widths are initialised such that each event's width is the distance from its left bound
+/// divide the path into sections of contiguous sequences of events with overlapping bounds.
+/// Widths are initialised such that each event's width is the distance from its left bound
 /// to the next event's left bound
 /// widths are then balanced by growing the smallest widths to the right, shrinking their larger right neighbours.
 List<double> detWidths(List<EventTileData> eventTilesData, List<int> path, List<List<int>> adjList, List<List<int>> invAdjList, Bounds bounds) {

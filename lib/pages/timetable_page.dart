@@ -2,6 +2,7 @@
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
+import 'package:anu_timetable/widgets/app_bar.dart';
 import 'package:anu_timetable/widgets/list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
@@ -30,7 +31,9 @@ class _TimetablePageState extends State<TimetablePage> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
+    return Scaffold(
+      appBar: MyAppBar(),
+      body: LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) =>
         OverflowBox( 
           maxHeight: double.infinity,
@@ -51,6 +54,6 @@ class _TimetablePageState extends State<TimetablePage> {
                   controller: Provider.of<ViewTabController>(context, listen: false),
                   physics: NeverScrollableScrollPhysics(),
                   children: [TListView(), DayView(), WeekView()]))
-              ])));
+              ]))));
   }
 }

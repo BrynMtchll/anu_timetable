@@ -209,7 +209,7 @@ class TimetableVM extends ChangeNotifier {
   }
 
   void syncTListView({bool jump = false}) {
-    if (!tListViewItemScrollController.isAttached) return;
+    if (!tListViewItemScrollController.isAttached || tListViewItemScrollController.isScrolling) return;
     int newActiveDayIndex = getDayIndex(activeDay);
     jump ? tListViewItemScrollController.jumpTo(index: newActiveDayIndex) :
       tListViewItemScrollController.scrollTo(index: newActiveDayIndex, duration: Duration(milliseconds: 200));
@@ -226,14 +226,17 @@ class TimetableVM extends ChangeNotifier {
   }
 
   void loadActiveDayEvents(BuildContext context) {
-    Provider.of<EventsVM>(context, listen: false).loadEventsForDay.execute(activeDay);
+    Provider.of<EventsVM>(context, listen: false).loadDay.execute(activeDay);
+  }
+  void loadActiveWeekEvents(BuildContext context) {
+    Provider.of<EventsVM>(context, listen: false).loadWeek.execute(weekOfDay(activeDay));
   }
 
   /// Handler for the onPageChanged event of the [DayView]'s [PageView].
   void handleDayViewPageChanged(BuildContext context) {
     if (!dayViewPageController.isScrolling) return;
     activeDay = getDay(dayViewPageController.page!.round());
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise();
   }
 
@@ -243,14 +246,14 @@ class TimetableVM extends ChangeNotifier {
   void handleWeekBarPageChanged(BuildContext context) {
     if (!weekBarPageController.isScrolling) return;
     activeDay = dayOfWeek(weekBarPageController.page!.round(), activeDay.weekday);
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise();
   }
 
   void handleWeekViewPageChanged(BuildContext context) {
     if (!weekViewPageController.isScrolling) return;
     activeDay = dayOfWeek(weekViewPageController.page!.round(), activeDay.weekday);
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise();
   }
 
@@ -260,21 +263,21 @@ class TimetableVM extends ChangeNotifier {
     DateTime newActiveDay = getNewActiveDayForMonth(getMonth(monthBarPageController.page!.round()), currentDay);
     int diff = dayDiff(activeDay, newActiveDay);
     activeDay = newActiveDay;
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise(jumpTListView: diff >= 7);
   }
 
   void handleTListViewDayChanged(BuildContext context, DateTime day) {
     if (!tListViewItemScrollController.isScrolling) return;
     activeDay = day;
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise(jumpWeekBar: true, jumpMonthBar: true);
   }
 
   /// Handler for the onTap event of the [WeekBar]'s weekday items.
   void handleWeekBarDayTap(BuildContext context, DateTime day) {
     activeDay = day;
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise();
   }
 
@@ -282,7 +285,7 @@ class TimetableVM extends ChangeNotifier {
   void handleMonthBarDayTap(BuildContext context, DateTime day) {
     int diff = dayDiff(day, activeDay);
     activeDay = day;
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise(jumpTListView: diff >= 7);
   }
 
@@ -291,14 +294,14 @@ class TimetableVM extends ChangeNotifier {
     DateTime newActiveDay = getNewActiveDayForMonth(month, currentDay);
     int diff = dayDiff(newActiveDay, activeDay);
     activeDay = newActiveDay;
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise(jumpWeekBar: true, jumpMonthBar: true, jumpTListView: diff >= 7);
   }
 
   void handleTodayTap(BuildContext context) {
     DateTime currentDay = Provider.of<CurrentDay>(context, listen: false).value;
     activeDay = currentDay;
-    loadActiveDayEvents(context);
+    loadActiveWeekEvents(context);
     synchronise();
   }
 

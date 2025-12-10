@@ -1,5 +1,8 @@
+import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/controller.dart';
+import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/clippers.dart';
+import 'package:anu_timetable/widgets/event_tiles.dart';
 import 'package:anu_timetable/widgets/live_time_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,6 +60,9 @@ class _WeekPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
+    final EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
+    timetableModel.loadActiveWeekEvents(context);
+
     return ClipRect(
       clipper: HorizontalClipper(),
       child: SizedBox(
@@ -74,12 +80,19 @@ class _WeekPageView extends StatelessWidget {
               Consumer<CurrentDay>(
                 builder: (context, currentDay, child) {
                   bool pageIsCurrent = TimetableVM.weekEquiv(TimetableVM.getWeek(page), currentDay.value);
-                  return Stack(
+                  return ListenableBuilder(listenable: eventsVM.loadWeek, builder: (context, child) { 
+                    int dayIndex = TimetableVM.getDayIndex(TimetableVM.getWeek(page));
+                    return Stack(
                     children: [
                       HourLines(size: size, pageIsCurrent: pageIsCurrent),
                       DayLines(size: size),
-                      if (pageIsCurrent) LiveTimeIndicator(size: size)
+                        for (int i = 0; i < 7; i++)
+                          Positioned(
+                            left: size.width / 7 * i,
+                            child: EventTiles(events: eventsVM.getEventsOnDay(dayIndex + i), size: Size(size.width / 7, size.height))),
+                      if (pageIsCurrent) IgnorePointer(child: LiveTimeIndicator(size: size))
                     ]);
-                })))));
+                });
+            })))));
   }
 }
