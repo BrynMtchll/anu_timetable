@@ -41,7 +41,7 @@ class _TodayButton extends StatelessWidget {
           child: Padding(
             padding: EdgeInsetsGeometry.only(right: 20),
             child: AnimatedOpacity(
-              opacity: activeDayIsCurrent ? 0 : 1, 
+              opacity: activeDayIsCurrent ? 0 : 1,
               duration: Duration(milliseconds: 150), 
               child: Text(
               style: TextStyle(

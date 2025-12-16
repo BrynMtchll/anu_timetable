@@ -9,14 +9,13 @@ class EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
-    print("yo");
     return Positioned(
       top: eventTileData.top,
       left: eventTileData.left,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          context.push("/timetable/event");
+          context.push("/timetable/event/${eventTileData.event.id}");
         },
         child: Container(
           decoration: BoxDecoration(

@@ -3,10 +3,10 @@ import 'package:anu_timetable/data/repositories/event_respository_local.dart';
 import 'package:anu_timetable/data/services/local/local_event_service.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/event.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/pages/event_page.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
-import 'package:anu_timetable/widgets/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:anu_timetable/pages/home.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
@@ -14,7 +14,6 @@ import 'package:anu_timetable/pages/messages_page.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/model/controller.dart';
-import 'package:anu_timetable/widgets/app_bar.dart';
 import 'package:go_router/go_router.dart';
 
 class App extends StatefulWidget {
@@ -79,9 +78,14 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
                   const TimetablePage(),
                 routes: <RouteBase>[
                   GoRoute(
-                    path: "event",
-                    builder: (BuildContext context, GoRouterState state) => 
-                      const EventPage()),
+                    path: "event/:id",
+                    builder: (BuildContext context, GoRouterState state) {
+                      final id = state.pathParameters['id']!;
+                      print(id);
+                      final eventVM = EventVM(eventRepository: context.read());
+                      eventVM.loadEvent.execute(id);
+                      return EventPage(eventVM: eventVM, id: id);
+                    }),
                 ]),
             ]),
           StatefulShellBranch(
@@ -108,7 +112,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         ChangeNotifierProvider.value(value: dayViewScrollController),
         ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
-        ChangeNotifierProvider<EventsVM>(create: (context) => EventsVM(eventRepository: context.read()))
+        ChangeNotifierProvider<EventsVM>(create: (context) => EventsVM(eventRepository: context.read())),
+        ChangeNotifierProvider<EventVM>(create: (context) => EventVM(eventRepository: context.read()))
       ],
       child: MaterialApp.router(
         title: 'Flutter Demo',
