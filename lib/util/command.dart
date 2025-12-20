@@ -60,7 +60,6 @@ abstract class Command<T> extends ChangeNotifier {
     _running = true;
     _result = null;
     notifyListeners();
-
     try {
       _result = await action();
     } finally {

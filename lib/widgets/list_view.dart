@@ -2,13 +2,16 @@
 
 import 'dart:math';
 
+import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/current.dart';
+import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 class TListView extends StatefulWidget {
   const TListView({super.key});
@@ -43,8 +46,9 @@ class _TListViewState extends State<TListView> {
         timetableModel.handleTListViewDayChanged(context, TimetableVM.getDay(newActiveDayIndex));
       }
     });
-    List randints = [for (int i = 0; i < 10000; i++) random.nextInt(3)];
-    return NotificationListener<UserScrollNotification>(
+      // EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
+    return Consumer<EventsVM> (
+      builder: (context, eventsVM, child) => NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onTListNotification,
       child: ScrollablePositionedList.builder(
         initialScrollIndex: TimetableVM.getDayIndex(timetableModel.activeDay),
@@ -52,55 +56,65 @@ class _TListViewState extends State<TListView> {
         itemPositionsListener: itemPositionsListener,
         itemCount: 10000,
         itemBuilder: (context, index) {
-          return _DayItem(index: index, nItems: randints[index]);
-        }));
+          // EventsVM eventsVM = EventsVM(eventRepository: context.read());
+        //  await eventsVM.loadDay.execute(TimetableVM.getDay(index));
+          // print(TimetableVM.getDay(index));
+          return _DayItem(index: index, eventsVM: eventsVM);
+        })));
   }
 }
 
 class _DayItem extends StatelessWidget {
   final int index;
-  final int nItems;
+  final EventsVM eventsVM;
 
-  Color dayColor(bool dayIsCurrent, ColorScheme colorScheme) {
+  Color dayColor(bool dayIsCurrent, ColorScheme colorScheme, List<Event> events) {
     if (dayIsCurrent) return colorScheme.primary;
-    else if (nItems > 0) return colorScheme.onSurface;
+    else if (events.isNotEmpty) return colorScheme.onSurface;
     else return colorScheme.outline;
   }
 
-  const _DayItem({required this.index, required this.nItems});
+  const _DayItem({required this.index, required this.eventsVM});
+
   @override
   Widget build(BuildContext context) {
     DateTime day = TimetableVM.getDay(index);
     ColorScheme colorScheme = ColorScheme.of(context);
-
+    List<Event> events = eventsVM.getEventsOnDay(index);
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      //  child: ListenableBuilder(
+      //   listenable: eventsVM.loadDay,
+      //   builder: (context, child) {
+          
+      //     // print(eventsVM.getEventsOnDay(index));
       child: Column(
         children: [
           Consumer<CurrentDay>(builder: (context, currentDay, child) {
             bool dayIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
             return Container(
               width: double.infinity,
-              margin: EdgeInsets.only(bottom: nItems > 0 ? 10 : 7),
+              margin: EdgeInsets.only(bottom: events.isNotEmpty ? 10 : 7),
               padding: EdgeInsets.only(left: 20, right: 15, bottom: 2),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: dayColor(dayIsCurrent, colorScheme), 
+                    color: dayColor(dayIsCurrent, colorScheme, events), 
                     width: 0.4))),
               child: Text(
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
-                  color: dayColor(dayIsCurrent, colorScheme)),
+                  color: dayColor(dayIsCurrent, colorScheme, events)),
                 DateFormat('EEEE dd MMM').format(day).toUpperCase()));
           }),
           Column(
-            children: [for (int i = 0; i < nItems; i++) _EventItem()])
+            children: [for (final event in events) _EventItem(event: event)])
         ]));
   }
 }
 
 class _EventItem extends StatelessWidget {
-  const _EventItem();
+  final Event event;
+  const _EventItem({required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +122,7 @@ class _EventItem extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        context.push("/timetable/event");
+        context.push("/timetable/event/${event.id}");
       },
       child: Container(
         decoration: BoxDecoration(

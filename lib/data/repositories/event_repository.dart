@@ -8,4 +8,5 @@ abstract class EventRepository {
   Future<Result<Event>> getEvent(String id);
   Future<Result<List<Event>>> getEventsOnDay(DateTime day);
   Future<Result<List<List<Event>>>> getEventsOnWeek(DateTime week);
+  Future<Result<List<List<Event>>>> getEventsOnYear(DateTime year);
 }

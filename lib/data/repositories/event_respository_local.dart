@@ -4,6 +4,7 @@ import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/data/services/local/local_event_service.dart';
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/util/result.dart';
+import 'package:calendar_view/calendar_view.dart';
 import 'package:flutter/material.dart';
 
 class EventRespositoryLocal implements EventRepository {
@@ -65,6 +66,28 @@ class EventRespositoryLocal implements EventRepository {
       weekEvents.add(events);
     }
     return Result.ok(weekEvents);
+  }
+  @override
+  Future<Result<List<List<Event>>>> getEventsOnYear(DateTime year) async {
+    List<List<Event>> yearEvents = [];
+    for (int wd = 0; wd < year.getDayDifference(DateTime(year.year + 1)); wd++) {
+      DateTime day = DateTime(year.year, year.month, year.day + wd);
+      List<Event> events = [];
+      if (!_eventsOnDay.containsKey(day)) {
+        _eventsOnDay[day] = [];
+        events = await _createEventsForDay(day);
+        for (final e in events) {
+          _eventsOnDay[day]!.add(e.id);
+          _events[e.id] = e;
+        }
+      } else {
+      for (final id in _eventsOnDay[day]!) {
+        events.add(_events[id]!);
+      }
+    }
+      yearEvents.add(events);
+    }
+    return Result.ok(yearEvents);
   }
 
   Future<List<Event>> _createEventsForDay(DateTime day) async {

@@ -11,12 +11,14 @@ class EventsVM extends ChangeNotifier {
   }) : _eventRepository = eventRepository {
     loadDay = Command1(_loadDay);
     loadWeek = Command1(_loadWeek);
+    loadYear = Command1(_loadYear);
   }
 
   final EventRepository _eventRepository;
 
   late Command1<void, DateTime> loadDay;
   late Command1<void, DateTime> loadWeek;
+  late Command1<void, DateTime> loadYear;
 
   final Map<int, List<Event>> _events = {};
 
@@ -25,6 +27,9 @@ class EventsVM extends ChangeNotifier {
       return _events[dayIndex]!;
     }
     // TODO: log error
+    print("no event found!");
+    DateTime day = TimetableVM.getDay(dayIndex);
+    loadYear.execute(DateTime(day.year));
     return [];
   }
   List<List<Event>> getEventsOnWeek(int weekIndex) {
@@ -70,6 +75,22 @@ class EventsVM extends ChangeNotifier {
         case Error<List<List<Event>>>():
       }
       return resultLoadWeek;
+    } finally {
+      notifyListeners();
+    }
+  }
+  Future<Result> _loadYear(DateTime year) async {
+    int dayIndex = TimetableVM.getDayIndex(year);
+    try {
+      final resultLoadYear = await _eventRepository.getEventsOnYear(year);
+      switch(resultLoadYear) {
+        case Ok<List<List<Event>>>():
+          for (final (i, e) in resultLoadYear.value.indexed) {
+            _events[dayIndex + i] = e;
+          }
+        case Error<List<List<Event>>>():
+      }
+      return resultLoadYear;
     } finally {
       notifyListeners();
     }

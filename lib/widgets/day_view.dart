@@ -46,7 +46,6 @@ class _DayPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
-    timetableModel.loadActiveDayEvents(context);
     return NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onDayViewNotification,
         child: PageView.builder(
@@ -83,11 +82,7 @@ class _DayItem extends StatelessWidget {
               child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent)),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child: ListenableBuilder(
-                listenable: eventsVM.loadDay,
-                builder: (context, child) {
-                  return EventTiles(events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize);
-                })),
+              child:  EventTiles(events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize)),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin,
               child: IgnorePointer(child: LiveTimeIndicator(size: TimetableLayout.innerSize))),

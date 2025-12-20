@@ -61,8 +61,6 @@ class _WeekPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
     final EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
-    timetableModel.loadActiveWeekEvents(context);
-
     return ClipRect(
       clipper: HorizontalClipper(),
       child: SizedBox(
@@ -76,23 +74,21 @@ class _WeekPageView extends StatelessWidget {
             onPageChanged: (page) {
               timetableModel.handleWeekViewPageChanged(context);
             },
-            itemBuilder: (context, page) =>
-              Consumer<CurrentDay>(
+            itemBuilder: (context, page) 
+              => Consumer<CurrentDay>(
                 builder: (context, currentDay, child) {
                   bool pageIsCurrent = TimetableVM.weekEquiv(TimetableVM.getWeek(page), currentDay.value);
-                  return ListenableBuilder(listenable: eventsVM.loadWeek, builder: (context, child) { 
-                    int dayIndex = TimetableVM.getDayIndex(TimetableVM.getWeek(page));
-                    return Stack(
-                    children: [
-                      HourLines(size: size, pageIsCurrent: pageIsCurrent),
-                      DayLines(size: size),
-                        for (int i = 0; i < 7; i++)
-                          Positioned(
-                            left: size.width / 7 * i,
-                            child: EventTiles(events: eventsVM.getEventsOnDay(dayIndex + i), size: Size(size.width / 7, size.height))),
-                      if (pageIsCurrent) IgnorePointer(child: LiveTimeIndicator(size: size))
-                    ]);
-                });
+                  int dayIndex = TimetableVM.getDayIndex(TimetableVM.getWeek(page));
+                  return Stack(
+                  children: [
+                    HourLines(size: size, pageIsCurrent: pageIsCurrent),
+                    DayLines(size: size),
+                      for (int i = 0; i < 7; i++)
+                        Positioned(
+                          left: size.width / 7 * i,
+                          child: EventTiles(events: eventsVM.getEventsOnDay(dayIndex + i), size: Size(size.width / 7, size.height))),
+                    if (pageIsCurrent) IgnorePointer(child: LiveTimeIndicator(size: size))
+                  ]);
             })))));
   }
 }
