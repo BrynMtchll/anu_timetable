@@ -1,6 +1,5 @@
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
-import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/widgets/bar_day.dart';
 import 'package:anu_timetable/widgets/month_list.dart';
 import 'package:flutter/material.dart';

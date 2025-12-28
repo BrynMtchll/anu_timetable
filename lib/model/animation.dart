@@ -54,3 +54,25 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
     }
   }
 }
+
+class EventTileAnimationNotifier extends ChangeNotifier {
+  bool expanded = false;
+  String? eventId;
+  int dayIndex;
+  
+  EventTileAnimationNotifier({required this.dayIndex});
+
+  void expand(String newEventId) {
+    if (newEventId == eventId) return;
+    expanded = true;
+    eventId = newEventId;
+    notifyListeners();
+  }
+
+  void shrink() {
+    if (!expanded) return;
+    eventId = null;
+    expanded = false;
+    notifyListeners();
+  }
+}

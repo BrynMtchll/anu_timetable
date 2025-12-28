@@ -36,10 +36,11 @@ class EventTileData {
 /// The constraints an event has on the arrangement is proportional to the 
 /// number of overlaps an event has and how centrally it is placed.
 /// So, events with the most overlaps are assigned to the outermost columns.
-void arrangeEventTiles(List<EventTileData> eventTilesData, double availableWidth) {
+(List<List<int>>, List<List<int>>) arrangeEventTiles(List<EventTileData> eventTilesData, double availableWidth) {
   List<List<int>> columns = assignColumns(eventTilesData);
   var (adjList, invAdjList) = buildGraph(eventTilesData, columns);
   fix(eventTilesData, availableWidth, columns, adjList, invAdjList);
+  return (adjList, invAdjList);
 }
 
 /// Finds the first column in the given set of columns that doesn't 

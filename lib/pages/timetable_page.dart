@@ -49,7 +49,14 @@ class _TimetablePageState extends State<TimetablePage> {
                       ? constraints.maxHeight - monthBarAnimationNotifier.height
                       : constraints.maxHeight - TimetableLayout.weekBarHeight,
                     width: constraints.maxWidth,
-                    child: child),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (monthBarAnimationNotifier.expanded) {
+                          monthBarAnimationNotifier.open = false;
+                        }
+                      },
+                      child: child
+                    )),
                 child: TabBarView(
                   controller: Provider.of<ViewTabController>(context, listen: false),
                   physics: NeverScrollableScrollPhysics(),

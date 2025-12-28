@@ -1,4 +1,4 @@
-import 'package:anu_timetable/domain/model/event.dart';
+import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/clippers.dart';
@@ -75,20 +75,25 @@ class _WeekPageView extends StatelessWidget {
               timetableModel.handleWeekViewPageChanged(context);
             },
             itemBuilder: (context, page) 
-              => Consumer<CurrentDay>(
-                builder: (context, currentDay, child) {
-                  bool pageIsCurrent = TimetableVM.weekEquiv(TimetableVM.getWeek(page), currentDay.value);
-                  int dayIndex = TimetableVM.getDayIndex(TimetableVM.getWeek(page));
-                  return Stack(
-                  children: [
-                    HourLines(size: size, pageIsCurrent: pageIsCurrent),
-                    DayLines(size: size),
-                      for (int i = 0; i < 7; i++)
-                        Positioned(
-                          left: size.width / 7 * i,
-                          child: EventTiles(events: eventsVM.getEventsOnDay(dayIndex + i), size: Size(size.width / 7, size.height))),
-                    if (pageIsCurrent) IgnorePointer(child: LiveTimeIndicator(size: size))
-                  ]);
-            })))));
+              => Consumer<MonthBarAnimationNotifier>(
+                builder: (context, monthBarAnimationNotifier, child) => 
+                  IgnorePointer(
+                    ignoring: monthBarAnimationNotifier.open,
+                    child: child),
+                 child: Consumer<CurrentDay>(
+                    builder: (context, currentDay, child) {
+                      bool pageIsCurrent = TimetableVM.weekEquiv(TimetableVM.getWeek(page), currentDay.value);
+                      int dayIndex = TimetableVM.getDayIndex(TimetableVM.getWeek(page));
+                      return Stack(
+                      children: [
+                        HourLines(size: size, pageIsCurrent: pageIsCurrent),
+                        DayLines(size: size),
+                          for (int i = 0; i < 7; i++)
+                            Positioned(
+                              left: size.width / 7 * i,
+                              child: EventTiles(dayIndex: dayIndex, events: eventsVM.getEventsOnDay(dayIndex + i), size: Size(size.width / 7, size.height))),
+                        if (pageIsCurrent) IgnorePointer(child: LiveTimeIndicator(size: size))
+                      ]);
+            }))))));
   }
 }

@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/clippers.dart';
@@ -16,10 +17,7 @@ class DayView extends StatefulWidget {
   State<DayView> createState() => _DayViewState();
 }
 
-class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<DayView>{
-  @override
-  bool get wantKeepAlive => true;
-
+class _DayViewState extends State<DayView>{
   @override
   void initState() {
     Provider.of<TimetableVM>(context, listen: false).createDayViewController();
@@ -29,7 +27,6 @@ class _DayViewState extends State<DayView> with AutomaticKeepAliveClientMixin<Da
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    super.build(context);
     return SingleChildScrollView(
       controller: Provider.of<DayViewScrollController>(context, listen: false),
       child: ClipRect(
@@ -54,11 +51,15 @@ class _DayPageView extends StatelessWidget {
           onPageChanged: (page) {
             timetableModel.handleDayViewPageChanged(context);
           },
-          itemBuilder: (context, page) => Consumer<TimetableVM>(
+          itemBuilder: (context, page) => Consumer<MonthBarAnimationNotifier>(
+            builder: (context, monthBarAnimationNotifier, child) => IgnorePointer(
+              ignoring: monthBarAnimationNotifier.open,
+              child: child),
+            child: Consumer<TimetableVM>(
             builder: (context, timetableModel, child) {
               int pageOverride = timetableModel.dayViewPageController.overridePage(page);
               return _DayItem(page: pageOverride);
-            })));
+            }))));
   }
 }
 
@@ -82,7 +83,7 @@ class _DayItem extends StatelessWidget {
               child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent)),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child:  EventTiles(events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize)),
+              child:  EventTiles(dayIndex: page, events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize)),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin,
               child: IgnorePointer(child: LiveTimeIndicator(size: TimetableLayout.innerSize))),

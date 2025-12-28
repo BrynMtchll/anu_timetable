@@ -1,8 +1,7 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
-
 import 'dart:math';
-
 import 'package:anu_timetable/domain/model/event.dart';
+import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/timetable.dart';
@@ -11,11 +10,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 class TListView extends StatefulWidget {
   const TListView({super.key});
-
   @override
   State<TListView> createState() => _TListViewState();
 }
@@ -27,11 +24,9 @@ class _TListViewState extends State<TListView> {
     super.initState();
     itemPositionsListener = ItemPositionsListener.create();
   }
-
   @override
   Widget build(BuildContext context) {
     TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
-    Random random = Random();
     int activeDayIndex = TimetableVM.getDayIndex(timetableModel.activeDay);
 
     itemPositionsListener.itemPositions.addListener(() {
@@ -46,7 +41,6 @@ class _TListViewState extends State<TListView> {
         timetableModel.handleTListViewDayChanged(context, TimetableVM.getDay(newActiveDayIndex));
       }
     });
-      // EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
     return Consumer<EventsVM> (
       builder: (context, eventsVM, child) => NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onTListNotification,
@@ -55,12 +49,11 @@ class _TListViewState extends State<TListView> {
         itemScrollController: timetableModel.tListViewItemScrollController,
         itemPositionsListener: itemPositionsListener,
         itemCount: 10000,
-        itemBuilder: (context, index) {
-          // EventsVM eventsVM = EventsVM(eventRepository: context.read());
-        //  await eventsVM.loadDay.execute(TimetableVM.getDay(index));
-          // print(TimetableVM.getDay(index));
-          return _DayItem(index: index, eventsVM: eventsVM);
-        })));
+        itemBuilder: (context, index) => Consumer<MonthBarAnimationNotifier>(
+          builder: (context, monthBarAnimationNotifier, child) => IgnorePointer(
+            ignoring: monthBarAnimationNotifier.open,
+            child: child),
+          child: _DayItem(index: index, eventsVM: eventsVM)))));
   }
 }
 
@@ -81,13 +74,12 @@ class _DayItem extends StatelessWidget {
     DateTime day = TimetableVM.getDay(index);
     ColorScheme colorScheme = ColorScheme.of(context);
     List<Event> events = eventsVM.getEventsOnDay(index);
+    events.sort((a, b) {
+      int startOrder = a.startTime.compareTo(b.startTime);
+      return startOrder == 0 ? a.endTime.compareTo(b.endTime) : startOrder;
+    });
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-      //  child: ListenableBuilder(
-      //   listenable: eventsVM.loadDay,
-      //   builder: (context, child) {
-          
-      //     // print(eventsVM.getEventsOnDay(index));
       child: Column(
         children: [
           Consumer<CurrentDay>(builder: (context, currentDay, child) {
@@ -130,15 +122,26 @@ class _EventItem extends StatelessWidget {
           color: colorScheme.onPrimary,
           borderRadius: BorderRadius.all(Radius.circular(4))),
         margin: EdgeInsets.only(left: 20, right: 15, bottom: 6),
-        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 5),
         width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
-              "Hi"),
-            Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant),
-              "Hey"),
-        ])));
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                  event.title),
+                Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant),
+                  "Hey"),
+              ]),
+          Column(
+            children: [
+              Text(DateFormat("hh:mma").format(event.startTime),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
+              Text(DateFormat("hh:mma").format(event.endTime),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
+            ])
+          ])));
   }
 }
