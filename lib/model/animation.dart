@@ -59,13 +59,43 @@ class EventTileAnimationNotifier extends ChangeNotifier {
   bool expanded = false;
   String? eventId;
   int dayIndex;
-  
-  EventTileAnimationNotifier({required this.dayIndex});
+  late List<bool> onLeft;
+  late List<bool> collapse;
+  int numEvents;
+  late List<List<int>> adjList;
+  late List<List<int>> invAdjList;
 
-  void expand(String newEventId) {
+  EventTileAnimationNotifier({required this.adjList, required this.invAdjList, required this.dayIndex, required this.numEvents}) {
+    onLeft = List.filled(numEvents, false);
+    collapse = List.filled(numEvents, false);
+  }
+
+  void collapseAdjacents(List<List<int>> adjList, List<bool>visited, int index, bool leftSide) {
+    if (visited[index]) return;
+    
+    visited[index] = true;
+    onLeft[index] = leftSide;
+    collapse[index] = true;
+
+    for (final adj in adjList[index]) {
+      collapseAdjacents(adjList, visited, adj, leftSide);
+    }
+  }
+
+  void setCollapsed(int index) {
+    collapse = List.filled(numEvents, false);
+    onLeft = List.filled(numEvents, false);
+    List<bool> visited = List.filled(numEvents, false);
+    collapseAdjacents(adjList, visited, index, false);
+    visited = List.filled(numEvents, false);
+    collapseAdjacents(invAdjList, visited, index, true);
+  }
+
+  void expand(String newEventId, int index) {
     if (newEventId == eventId) return;
     expanded = true;
     eventId = newEventId;
+    setCollapsed(index);
     notifyListeners();
   }
 

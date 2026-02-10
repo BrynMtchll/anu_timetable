@@ -119,7 +119,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
         title: 'Flutter Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 190, 135, 43),
+            // 255, 190, 135, 43
+            seedColor: const Color.fromARGB(255, 58, 43, 190),
             brightness: Brightness.dark,
             dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
           useMaterial3: true),
