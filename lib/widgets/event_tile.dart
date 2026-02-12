@@ -92,7 +92,7 @@ class EventTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant),
-                            "Hi"),
+                            eventTileData.event.title),
                           Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant), 
                             "Hey")
                         ]))).animate(

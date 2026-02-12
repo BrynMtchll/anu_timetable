@@ -6,7 +6,6 @@ import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -151,7 +150,6 @@ class _EventItem extends StatelessWidget {
               Text(DateFormat("hh:mma").format(event.endTime),
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
             ])
-          ]))
-          );
+          ])));
   }
 }

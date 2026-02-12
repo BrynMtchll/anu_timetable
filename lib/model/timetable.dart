@@ -1,6 +1,5 @@
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/model/current.dart';
-import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
 import 'package:anu_timetable/widgets/day_view.dart';
 import 'package:anu_timetable/widgets/month_bar.dart';
@@ -87,11 +86,14 @@ class TimetableVM extends ChangeNotifier {
   static DateTime monthOfDay(DateTime day) => DateTime(day.year, day.month);
 
   /// Returns the day view index corrosponding to the given date.
-  static int getDayIndex(DateTime day) => day.difference(hashDate).inDays;
+  static int getDayIndex(DateTime day) {
+    return ((day.difference(hashDate).inHours / 24).round()).toInt();
+  }
 
   /// Returns the week index corrosponding to the given date.
-  static int getWeekIndex(DateTime week)
-    => (week.difference(hashDate).inDays / 7).toInt();
+  static int getWeekIndex(DateTime week) {
+    return (((week.difference(hashDate).inHours / 24).round()) / 7).toInt();
+  }
 
   static int getMonthIndex(DateTime month)
     => (month.year - hashDate.year) * 12 + month.month - hashDate.month;
