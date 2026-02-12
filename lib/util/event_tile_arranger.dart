@@ -8,7 +8,6 @@ typedef Bounds = ({List<double> left, List<double> right});
 enum BoundType {left, right}
 
 class EventTileData {
-  final Event event;
   late double left;
   late double top;
   late double bottom;
@@ -16,14 +15,14 @@ class EventTileData {
   late double height;
   late int overlapCount = 0;
 
-  EventTileData({required this.event}) {
+  EventTileData({required Event event}) {
     top = TimetableLayout.vertOffset(event.startTime.getTotalMinutes);
     bottom = TimetableLayout.vertOffset(event.endTime.getTotalMinutes);
     height = bottom - top;
   }
 
   bool overlapping(EventTileData other) {
-    return event.overlapping(other.event);
+    return bottom > other.top && top < other.bottom;
   }
 }
 
@@ -48,12 +47,12 @@ class EventTileData {
 /// Returns the index of the found column.
 /// 
 /// If there is no such column, a new empty column is added and returned. 
-int findFirstFreeColumn(List<EventTileData> eventTilesData, List<List<int>> columns, int event) {
+int findFirstFreeColumn(List<EventTileData> eventTilesData, List<List<int>> columns, int e) {
   for (int i = 0; i < columns.length; i++) {
     bool spaceAvailable = true;
 
     for (int other in columns[i]) {
-      if (eventTilesData[event].overlapping(eventTilesData[other])) {
+      if (eventTilesData[e].overlapping(eventTilesData[other])) {
         spaceAvailable = false;
         break;
       }
@@ -125,11 +124,11 @@ List<List<int>> collectLeftOverlaps(List<EventTileData> eventTilesData, List<Lis
   }
   // Construct leftOverlaps so that the events are sorted in order of column proximity. 
   for (int i = 0; i < columns.length; i++) {
-    for (int event in columns[i]) {
+    for (int e in columns[i]) {
       for (int k = 0; k < i; k++) {
-        for (int leftEvent in columns[k]) {
-          if (eventTilesData[event].overlapping(eventTilesData[leftEvent])) {
-            leftOverlaps[event].add(leftEvent);
+        for (int lefte in columns[k]) {
+          if (eventTilesData[e].overlapping(eventTilesData[lefte])) {
+            leftOverlaps[e].add(lefte);
           }
         }
       }
@@ -169,20 +168,18 @@ List<List<int>> collectLeftOverlaps(List<EventTileData> eventTilesData, List<Lis
     connected.add(List.filled(numEvents, false));
   }
   // For each event, connect each overlapping event on it's left to it.
-  for (int i = 1; i < columns.length; i++) {
-    for (final event in columns[i]) {
-      for (int j = leftOverlaps[event].length - 1; j >= 0; j--) {
-        final left = leftOverlaps[event][j];
-
-        if (connected[event][left]) continue;
-        connected[event][left] = true;
+  for (int c = 1; c < columns.length; c++) {
+    for (final e in columns[c]) {
+      for (final lefte in leftOverlaps[e].reversed) {
+        if (connected[e][lefte]) continue;
+        connected[e][lefte] = true;
 
         // Copy over all that are connected to the left event to the newly connected event.
         for (int i = 0; i < numEvents; i++) {
-          connected[event][i] = connected[event][i] || connected[left][i];
+          connected[e][i] = connected[e][i] || connected[lefte][i];
         }
-        adjList[left].add(event);
-        invAdjList[event].add(left);
+        adjList[lefte].add(e);
+        invAdjList[e].add(lefte);
       }
     }
   }
@@ -300,14 +297,14 @@ void increaseWidths(List<double> widths, Bounds bounds, List<int> path, List<boo
   double left = lb;
   
   for (int i = spanStart; i <= spanEnd; i++) {
-    final event = path[sectStart + i];
+    final e = path[sectStart + i];
     // Check if increasing to newWidth would violate right bound.
-    if (newWidth >= bounds.right[event] - left) {
-      double subWidthTotal = bounds.right[event] - lb;
+    if (newWidth >= bounds.right[e] - left) {
+      double subWidthTotal = bounds.right[e] - lb;
       increaseSubSpanWidths(widths, fixed, spanStart, i, subWidthTotal);
       spanStart = i+1;
       widthTotal -= subWidthTotal;
-      lb = bounds.right[event];
+      lb = bounds.right[e];
       left = lb;
       newWidth = widthTotal / ((spanEnd - i + 1));
     } else if (i == spanEnd) {

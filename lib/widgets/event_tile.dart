@@ -1,3 +1,4 @@
+import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/util/event_tile_arranger.dart';
 import 'package:flutter/material.dart';
@@ -5,16 +6,23 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 class EventTile extends StatelessWidget {
+  final Event event;
   final EventTileData eventTileData;
-  final EventTileAnimationNotifier eventTileAnimationNotifier;
+  final EventTileAnimationNotifier animationNotifier;
   final Size size;
   final int index;
-  const EventTile({super.key, required this.eventTileData, required this.eventTileAnimationNotifier, required this.size, required this.index});
+  final bool transition;
+  const EventTile({super.key, required this.event, required this.eventTileData,required this.animationNotifier, 
+    required this.size, required this.index, required this.transition});
 
-  double left(bool collapse, bool onLeft) {
-    if (eventTileAnimationNotifier.eventId == eventTileData.event.id) {
+  static const double collapseThreshold = 40;
+  static const double horzPadding = 6;
+  static const double borderWidth = 0.7;
+
+  double left(bool collapse, bool onLeft, bool isExpanded) {
+    if (isExpanded) {
       return eventTileData.left == 0 ? 0 : 2;
-    } else if (eventTileAnimationNotifier.expanded && collapse) {
+    } else if (animationNotifier.expanded && collapse) {
       if (onLeft) {
         return 0;
       } else {
@@ -25,45 +33,61 @@ class EventTile extends StatelessWidget {
     }
   }
 
-  double width(bool collapse) {
-    if (eventTileAnimationNotifier.eventId == eventTileData.event.id) {
-      if (eventTileData.left == 0 || eventTileData.left + eventTileData.width >= size.width) {
-        return size.width - 2;
-      } else {
+  double maxContentWidth() {
+    double maxWidth;
+    if (eventTileData.width >= collapseThreshold) {
+      maxWidth = eventTileData.width;
+    }
+    else if (eventTileData.left > 0 && eventTileData.left + eventTileData.width < size.width) {
+      maxWidth = size.width - 4;
+    } else {
+      maxWidth = size.width - 2;
+    }
+    return maxWidth -= (horzPadding + borderWidth) * 2;
+  }
+
+  double width(bool collapse, bool isExpanded) {
+    if (isExpanded) {
+      if (eventTileData.left > 0 && eventTileData.left + eventTileData.width < size.width) {
         return size.width - 4;
+      } else {
+        return size.width - 2;
       }
-    } else if (eventTileAnimationNotifier.expanded && collapse) {
+    } else if (animationNotifier.expanded && collapse) {
       return 2;
     } else {
       return eventTileData.width;
     }
   }
 
-  onTap(BuildContext context) {
-    if (eventTileAnimationNotifier.eventId == eventTileData.event.id || eventTileData.width >= 40) {
-      context.push("/timetable/event/${eventTileData.event.id}");
+  onTap(BuildContext context, bool isExpanded) {
+    if (isExpanded || eventTileData.width >= collapseThreshold) {
+      context.push("/timetable/event/${event.id}");
     } else {
-      eventTileAnimationNotifier.expand(eventTileData.event.id, index);
+      animationNotifier.expand(event.id, index);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
-    return ListenableBuilder(listenable: eventTileAnimationNotifier, 
+    return ListenableBuilder(listenable: animationNotifier, 
       builder: (context, child) {
-        bool collapse = eventTileAnimationNotifier.collapse[index];
-        bool onLeft = eventTileAnimationNotifier.onLeft[index];
+        bool collapse = animationNotifier.collapse[index];
+        bool onLeft = animationNotifier.onLeft[index];
+        bool isExpanded = animationNotifier.isExpanded(event.id);
+        print("${index} ${eventTileData.width} ${width(collapse, isExpanded)}");
+        print("${animationNotifier.shrunk} ${isExpanded} ${(animationNotifier.shrunk && !isExpanded)}");
         return AnimatedPositioned(
           duration: Duration(milliseconds: 150),
           top: eventTileData.top,
-          left: left(collapse, onLeft),
+          left: left(collapse, onLeft, isExpanded),
           child: TapRegion(
             onTapOutside: (details) {
-              if (eventTileAnimationNotifier.eventId == eventTileData.event.id) eventTileAnimationNotifier.shrink();
+              if (isExpanded) animationNotifier.shrink();
             },
             child: GestureDetector(
-              onTap: () => onTap(context),
+              onTap: () => onTap(context, isExpanded),
               // TODO: extract, share with `listView`
               child: ShaderMask(
                 shaderCallback: (Rect bounds) {
@@ -78,30 +102,37 @@ class EventTile extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 150),
                   decoration: BoxDecoration(
-                    border: Border.all(width: 0.7, color: colorScheme.primary),
+                    border: Border.all(width: borderWidth, color: colorScheme.primary),
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                     color: colorScheme.onPrimary),
-                  width: width(collapse),
+                  width: width(collapse, isExpanded),
                   height: eventTileData.height,
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: horzPadding, vertical: 4),
                     child: ClipRect(
                       child: OverflowBox(
-                        alignment: Alignment.centerLeft,
-                        maxWidth: double.infinity,
+                        alignment: Alignment.topLeft,
+                        maxWidth: maxContentWidth(),
+                        maxHeight: double.infinity,
                         child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: transition ? [] : [
                           Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant),
-                            eventTileData.event.title),
+                            event.title),
                           Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant), 
                             "Hey")
                         ]))).animate(
-                          target: eventTileAnimationNotifier.eventId == eventTileData.event.id || eventTileData.width >= 40 
+                          autoPlay: false,
+                          // onInit: (controller) {
+                            
+                          // },
+                          // value: animationNotifier.shrunk ? 1.0 : 0.0,
+                          // value: animationNotifier.shrunk && (!isExpanded || eventTileData.width >= collapseThreshold) ? 1.0 : 0.0,
+                          target: isExpanded || eventTileData.width >= collapseThreshold 
                             ? 1.0 : 0.0)
                           .shimmer(
                             angle: 0,
                             curve: Curves.linear,
-                            duration: Duration(milliseconds: 150),
+                            duration: Duration(milliseconds: 500),
                             blendMode: BlendMode.dstIn,
                             colors: [Colors.white, const Color.fromARGB(0, 255, 255, 255)]))))));
       });

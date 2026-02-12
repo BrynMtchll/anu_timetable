@@ -57,17 +57,21 @@ class MonthBarAnimationNotifier extends ChangeNotifier {
 
 class EventTileAnimationNotifier extends ChangeNotifier {
   bool expanded = false;
+  bool shrunk = false;
   String? eventId;
-  int dayIndex;
   late List<bool> onLeft;
   late List<bool> collapse;
   int numEvents;
   late List<List<int>> adjList;
   late List<List<int>> invAdjList;
 
-  EventTileAnimationNotifier({required this.adjList, required this.invAdjList, required this.dayIndex, required this.numEvents}) {
+  EventTileAnimationNotifier({required this.adjList, required this.invAdjList, required this.numEvents}) {
     onLeft = List.filled(numEvents, false);
     collapse = List.filled(numEvents, false);
+  }
+
+  bool isExpanded(String eventId) {
+    return this.eventId == eventId;
   }
 
   void collapseAdjacents(List<List<int>> adjList, List<bool>visited, int index, bool leftSide) {
@@ -94,6 +98,7 @@ class EventTileAnimationNotifier extends ChangeNotifier {
   void expand(String newEventId, int index) {
     if (newEventId == eventId) return;
     expanded = true;
+    shrunk = true;
     eventId = newEventId;
     setCollapsed(index);
     notifyListeners();

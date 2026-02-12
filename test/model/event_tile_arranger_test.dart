@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
 
   // helper builders
-  EventTileData fullDay() => EventTileData(event: Event(title: "", startTime: DateTime(1, 1, 1, 0), endTime: DateTime(1, 1, 1, 24)));
-  EventTileData firstHalf() => EventTileData(event: Event(title: "", startTime: DateTime(1, 1, 1, 0), endTime: DateTime(1, 1, 1, 12)));
-  EventTileData secondHalf() => EventTileData(event: Event(title: "", startTime: DateTime(1, 1, 1, 12), endTime: DateTime(1, 1, 1, 24)));
+  EventTileData fullDay() => EventTileData(lbakjdfglkaj: Event(title: "", startTime: DateTime(1, 1, 1, 0), endTime: DateTime(1, 1, 1, 24)));
+  EventTileData firstHalf() => EventTileData(lbakjdfglkaj: Event(title: "", startTime: DateTime(1, 1, 1, 0), endTime: DateTime(1, 1, 1, 12)));
+  EventTileData secondHalf() => EventTileData(lbakjdfglkaj: Event(title: "", startTime: DateTime(1, 1, 1, 12), endTime: DateTime(1, 1, 1, 24)));
   // small helpers for commonly used event shapes
 
   group("countOverlaps (existing)", () {
@@ -108,7 +108,7 @@ Event(title: '', startTime: DateTime(2026,01,14,11), endTime: DateTime(2026,01,1
 Event(title: '', startTime: DateTime(2026,01,14,15), endTime: DateTime(2026,01,14,16)),
 ];
 
-      final eventTilesData = [for (var e in events) EventTileData(event: e)];
+      final eventTilesData = [for (var e in events) EventTileData(lbakjdfglkaj: e)];
       // Use a realistic available width similar to the logs the user pasted
       final availableWidth = 304.0;
 
@@ -120,7 +120,7 @@ Event(title: '', startTime: DateTime(2026,01,14,15), endTime: DateTime(2026,01,1
         expect(etd.width, greaterThan(0));
         expect(etd.left >= 0, isTrue);
         if (!(etd.left + etd.width <= availableWidth + 1e-6)) {
-          fail('Event $idx ${etd.event.startTime}..${etd.event.endTime} exceeds available width: left=${etd.left}, width=${etd.width}, sum=${etd.left + etd.width}, available=$availableWidth');
+          fail('Event $idx ${etd.lbakjdfglkaj.startTime}..${etd.lbakjdfglkaj.endTime} exceeds available width: left=${etd.left}, width=${etd.width}, sum=${etd.left + etd.width}, available=$availableWidth');
         }
       }
 
@@ -131,7 +131,7 @@ Event(title: '', startTime: DateTime(2026,01,14,15), endTime: DateTime(2026,01,1
             // they should not occupy identical horizontal spans
             final sameSpan = (eventTilesData[i].left == eventTilesData[j].left) && (eventTilesData[i].width == eventTilesData[j].width);
             final a = eventTilesData[i], b = eventTilesData[j];
-            final reason = 'Overlapping events $i (${a.event.startTime.hour}:${a.event.endTime.hour}) and $j (${b.event.startTime.hour}:${b.event.endTime.hour}) share identical span: left=${a.left}, width=${a.width} vs left=${b.left}, width=${b.width}';
+            final reason = 'Overlapping events $i (${a.lbakjdfglkaj.startTime.hour}:${a.lbakjdfglkaj.endTime.hour}) and $j (${b.lbakjdfglkaj.startTime.hour}:${b.lbakjdfglkaj.endTime.hour}) share identical span: left=${a.left}, width=${a.width} vs left=${b.left}, width=${b.width}';
             expect(sameSpan, isFalse, reason: reason);
           }
         }

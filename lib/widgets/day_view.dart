@@ -58,14 +58,15 @@ class _DayPageView extends StatelessWidget {
             child: Consumer<TimetableVM>(
             builder: (context, timetableModel, child) {
               int pageOverride = timetableModel.dayViewPageController.overridePage(page);
-              return _DayItem(page: pageOverride);
+              return _DayItem(page: pageOverride, transition: pageOverride != page);
             }))));
   }
 }
 
 class _DayItem extends StatelessWidget {
   final int page;
-  const _DayItem({required this.page});
+  final bool transition;
+  const _DayItem({required this.page, required this.transition});
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +84,7 @@ class _DayItem extends StatelessWidget {
               child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent)),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child:  EventTiles(dayIndex: page, events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize)),
+              child:  EventTiles(events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize, transition: transition)),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin,
               child: IgnorePointer(child: LiveTimeIndicator(size: TimetableLayout.innerSize))),
