@@ -211,6 +211,7 @@ class TimetableVM extends ChangeNotifier {
   }
 
   void syncTListView({bool jump = false}) {
+    if (jump) tListViewItemScrollController.isScrolling = false;
     if (!tListViewItemScrollController.isAttached || tListViewItemScrollController.isScrolling) return;
     int newActiveDayIndex = getDayIndex(activeDay);
     jump ? tListViewItemScrollController.jumpTo(index: newActiveDayIndex) :
@@ -218,7 +219,8 @@ class TimetableVM extends ChangeNotifier {
   }
 
 
-  void synchronise({bool jumpWeekBar = false, bool jumpMonthBar = false, bool jumpTListView = false}) {
+  void synchronise({bool jumpWeekBar = false, bool jumpMonthBar = false, bool jumpTListView = false, bool interruptTListView = false}) {
+    if (interruptTListView) tListViewItemScrollController.isScrolling = false;
     syncDayView();
     syncWeekBar(jump: jumpWeekBar);
     syncWeekView();
@@ -240,7 +242,7 @@ class TimetableVM extends ChangeNotifier {
   void handleWeekBarPageChanged(BuildContext context) {
     if (!weekBarPageController.isScrolling) return;
     activeDay = dayOfWeek(weekBarPageController.page!.round(), activeDay.weekday);
-    synchronise();
+    synchronise(interruptTListView: true);
   }
 
   void handleWeekViewPageChanged(BuildContext context) {
@@ -267,14 +269,15 @@ class TimetableVM extends ChangeNotifier {
   /// Handler for the onTap event of the [WeekBar]'s weekday items.
   void handleWeekBarDayTap(BuildContext context, DateTime day) {
     activeDay = day;
-    synchronise();
+    synchronise(jumpTListView: false, interruptTListView: true);
   }
 
   /// Handler for the onTap event of the [MonthBar]'s weekday items.
   void handleMonthBarDayTap(BuildContext context, DateTime day) {
     int diff = dayDiff(day, activeDay);
     activeDay = day;
-    synchronise(jumpTListView: diff >= 7);
+    // synchronise(jumpTListView: diff >= 7);
+    synchronise(jumpTListView: diff >= 7, interruptTListView: true);
   }
 
   void handleMonthListMonthTap(BuildContext context, DateTime month) {
@@ -282,7 +285,7 @@ class TimetableVM extends ChangeNotifier {
     DateTime newActiveDay = getNewActiveDayForMonth(month, currentDay);
     int diff = dayDiff(newActiveDay, activeDay);
     activeDay = newActiveDay;
-    synchronise(jumpWeekBar: true, jumpMonthBar: true, jumpTListView: diff >= 7);
+    synchronise(jumpWeekBar: true, jumpMonthBar: true, jumpTListView: diff >= 7, interruptTListView: true);
   }
 
   void handleTodayTap(BuildContext context) {

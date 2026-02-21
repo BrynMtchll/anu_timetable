@@ -1,9 +1,9 @@
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/timetable.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/tab_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
@@ -13,7 +13,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
-      leadingWidth: 115,
+      leadingWidth: 70,
       leading: _PickerButton(),
       backgroundColor: colorScheme.surfaceContainerLow,
       titleSpacing: 0,
@@ -87,6 +87,6 @@ class _PickerButtonText extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.w500,
           fontSize: 13),
-        TimetableLayout.monthString(timetableModel.activeDay.month)));
+        DateFormat.MMM().format(timetableModel.activeDay)));
   }
 }

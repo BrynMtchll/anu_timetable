@@ -122,17 +122,12 @@ class EventTile extends StatelessWidget {
                             "Hey")
                         ]))).animate(
                           autoPlay: false,
-                          // onInit: (controller) {
-                            
-                          // },
-                          // value: animationNotifier.shrunk ? 1.0 : 0.0,
-                          // value: animationNotifier.shrunk && (!isExpanded || eventTileData.width >= collapseThreshold) ? 1.0 : 0.0,
                           target: isExpanded || eventTileData.width >= collapseThreshold 
                             ? 1.0 : 0.0)
                           .shimmer(
                             angle: 0,
                             curve: Curves.linear,
-                            duration: Duration(milliseconds: 500),
+                            duration: Duration(milliseconds: 250),
                             blendMode: BlendMode.dstIn,
                             colors: [Colors.white, const Color.fromARGB(0, 255, 255, 255)]))))));
       });
