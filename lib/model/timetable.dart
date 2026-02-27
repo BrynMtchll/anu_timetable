@@ -291,7 +291,7 @@ class TimetableVM extends ChangeNotifier {
   void handleTodayTap(BuildContext context) {
     DateTime currentDay = Provider.of<CurrentDay>(context, listen: false).value;
     activeDay = currentDay;
-    synchronise();
+    synchronise(interruptTListView: true);
   }
 
   bool onWeekBarNotification(UserScrollNotification notification) {

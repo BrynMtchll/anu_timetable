@@ -76,8 +76,6 @@ class EventTile extends StatelessWidget {
         bool collapse = animationNotifier.collapse[index];
         bool onLeft = animationNotifier.onLeft[index];
         bool isExpanded = animationNotifier.isExpanded(event.id);
-        print("${index} ${eventTileData.width} ${width(collapse, isExpanded)}");
-        print("${animationNotifier.shrunk} ${isExpanded} ${(animationNotifier.shrunk && !isExpanded)}");
         return AnimatedPositioned(
           duration: Duration(milliseconds: 150),
           top: eventTileData.top,

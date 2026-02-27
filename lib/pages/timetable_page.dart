@@ -35,7 +35,7 @@ class _TimetablePageState extends State<TimetablePage> {
       appBar: MyAppBar(),
       body: LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) =>
-        OverflowBox( 
+        OverflowBox(
           maxHeight: double.infinity,
           alignment: Alignment.topCenter,
           minHeight: 0,

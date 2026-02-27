@@ -14,7 +14,7 @@ class Event {
     required this.endTime,
     this.location,
   }) {
-    this.id = Uuid().v4();
+    id = Uuid().v4();
   }
 
   bool overlapping(Event other) => 

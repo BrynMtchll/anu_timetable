@@ -71,6 +71,7 @@ class DayViewPageController extends PageController with PageLinker{
   }
 
   int overridePage(int page) => page == _adjacentPage ? _pageOverride! : page;
+
   DayViewPageController({
     super.initialPage,
     super.keepPage,

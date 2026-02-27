@@ -8,7 +8,7 @@ import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/pages/event_page.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:anu_timetable/pages/home.dart';
+import 'package:anu_timetable/pages/home_page.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
 import 'package:anu_timetable/pages/messages_page.dart';
 import 'package:provider/provider.dart';
@@ -81,7 +81,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
                     path: "event/:id",
                     builder: (BuildContext context, GoRouterState state) {
                       final id = state.pathParameters['id']!;
-                      print(id);
                       final eventVM = EventVM(eventRepository: context.read());
                       eventVM.loadEvent.execute(id);
                       return EventPage(eventVM: eventVM, id: id);
