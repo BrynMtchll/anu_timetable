@@ -120,6 +120,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
           colorScheme: ColorScheme.fromSeed(
             // 255, 190, 135, 43
             seedColor: const Color.fromARGB(255, 58, 43, 190),
+            surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
             brightness: Brightness.dark,
             dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
           useMaterial3: true),

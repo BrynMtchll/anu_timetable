@@ -7,7 +7,6 @@ import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/widgets/event_list_item.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -79,39 +78,31 @@ class _DayItem extends StatelessWidget {
       int startOrder = a.startTime.compareTo(b.startTime);
       return startOrder == 0 ? a.endTime.compareTo(b.endTime) : startOrder;
     });
-    return ShaderMask(
-      shaderCallback: (Rect bounds) {
-        return LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 226, 168, 255)])
-            .createShader(bounds);
-      },
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-        child: Column(
-          children: [
-            Consumer<CurrentDay>(builder: (context, currentDay, child) {
-              bool dayIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
-              return Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(bottom: events.isNotEmpty ? 10 : 7),
-                padding: EdgeInsets.only(left: 15, right: 15, bottom: 2),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: dayColor(dayIsCurrent, colorScheme, events), 
-                      width: 0.4))),
-                child: Text(
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
-                    color: dayColor(dayIsCurrent, colorScheme, events)),
-                  DateFormat('EEEE dd MMM').format(day).toUpperCase()));
-            }),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                children: [for (final event in events) EventItem(event: event)]))
-          ])));
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      child: Column(
+        children: [
+          Consumer<CurrentDay>(builder: (context, currentDay, child) {
+            bool dayIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
+            return Container(
+              width: double.infinity,
+              margin: EdgeInsets.only(bottom: events.isNotEmpty ? 10 : 7),
+              padding: EdgeInsets.only(left: 15, right: 15, bottom: 2),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: dayColor(dayIsCurrent, colorScheme, events), 
+                    width: 0.4))),
+              child: Text(
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                  color: dayColor(dayIsCurrent, colorScheme, events)),
+                DateFormat('EEEE dd MMM').format(day).toUpperCase()));
+          }),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              children: [for (final event in events) EventItem(event: event)]))
+        ]));
   }
 }
 

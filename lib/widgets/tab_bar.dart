@@ -25,13 +25,13 @@ class MyTabBar extends StatelessWidget {
               indicatorPadding: EdgeInsets.symmetric(horizontal: 1.5, vertical: 1.5),
               labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
               unselectedLabelStyle: TextStyle(
-                fontSize: 13, 
-                fontWeight: FontWeight.w500, 
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
                 color: colorScheme.onSurface),
               indicator: BoxDecoration(
                 borderRadius: BorderRadius.circular(50),
                 color: colorScheme.surface),
               controller: tabController,
-              tabs: [Tab(text: "list"), Tab(text: "day"),Tab(text: "week")])));
+              tabs: [Tab(text: "list"), Tab(text: "day"), Tab(text: "week")])));
   }
 }

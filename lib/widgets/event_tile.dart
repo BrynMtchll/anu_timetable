@@ -1,6 +1,7 @@
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/util/event_tile_arranger.dart';
+import 'package:anu_timetable/util/shaders.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +18,7 @@ class EventTile extends StatelessWidget {
 
   static const double collapseThreshold = 40;
   static const double horzPadding = 6;
-  static const double borderWidth = 0.7;
+  static const double borderWidth = 0.5;
 
   double left(bool collapse, bool onLeft, bool isExpanded) {
     if (isExpanded) {
@@ -86,23 +87,14 @@ class EventTile extends StatelessWidget {
             },
             child: GestureDetector(
               onTap: () => onTap(context, isExpanded),
-              // TODO: extract, share with `listView`
               child: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    // TODO: use color scheme
-                    // burnt orange: 255, 255, 204, 168
-                    colors: [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 226, 168, 255)])
-                      .createShader(bounds);
-                },
+                shaderCallback: (Rect bounds) => eventTileShader(bounds),
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 150),
                   decoration: BoxDecoration(
                     border: Border.all(width: borderWidth, color: colorScheme.primary),
                     borderRadius: BorderRadius.all(Radius.circular(8)),
-                    color: colorScheme.onPrimary),
+                    color: colorScheme.surfaceContainerHighest),
                   width: width(collapse, isExpanded),
                   height: eventTileData.height,
                   padding: EdgeInsets.symmetric(horizontal: horzPadding, vertical: 4),
@@ -111,23 +103,36 @@ class EventTile extends StatelessWidget {
                         alignment: Alignment.topLeft,
                         maxWidth: maxContentWidth(),
                         maxHeight: double.infinity,
-                        child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: transition ? [] : [
-                          Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant),
-                            event.title),
-                          Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant), 
-                            "Hey")
-                        ]))).animate(
-                          autoPlay: false,
-                          target: isExpanded || eventTileData.width >= collapseThreshold 
-                            ? 1.0 : 0.0)
-                          .shimmer(
-                            angle: 0,
-                            curve: Curves.linear,
-                            duration: Duration(milliseconds: 250),
-                            blendMode: BlendMode.dstIn,
-                            colors: [Colors.white, const Color.fromARGB(0, 255, 255, 255)]))))));
+                        child: EventTileContent(event: event, transition: transition,)))
+                      .animate(
+                        autoPlay: false,
+                        target: isExpanded || eventTileData.width >= collapseThreshold 
+                          ? 1.0 : 0.0)
+                      .shimmer(
+                        angle: 0,
+                        curve: Curves.linear,
+                        duration: Duration(milliseconds: 250),
+                        blendMode: BlendMode.dstIn,
+                        colors: [Colors.white, const Color.fromARGB(0, 255, 255, 255)]))))));
       });
+  }
+}
+
+class EventTileContent extends StatelessWidget {
+  final Event event;
+  final bool transition;
+  const EventTileContent({super.key, required this.event, required this.transition});
+
+  @override
+  Widget build(BuildContext context) {
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: transition ? [] : [
+        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant),
+          event.title),
+        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant), 
+          "Hey")
+      ]);
   }
 }

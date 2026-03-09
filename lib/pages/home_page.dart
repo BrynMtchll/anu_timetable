@@ -23,9 +23,7 @@ class HomePage extends StatelessWidget {
               _DateWidget(day: currentDay.value),
               UpcomingClasses(day: currentDay.value),
               SizedBox(height: 30),
-              _friends()
-            ]),
-        ),
+            ])),
       ));
   }
 
@@ -93,10 +91,10 @@ class Profile extends StatelessWidget {
         borderRadius: BorderRadius.circular(30)),
       child: Center(
         child: Text(
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 16),
-              "BM"),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 16),
+          "BM"),
       ));
   }
 }
@@ -105,37 +103,85 @@ class _DateWidget extends StatelessWidget {
   final DateTime day;
   const _DateWidget({required this.day});
 
+  String daySuffix(DateTime day) {
+    int lastDigit = day.day % 10;
+    if (lastDigit == 1 && day.day != 11) {
+      return "st";
+    } else if (lastDigit == 2 && day.day != 12) {
+      return "nd";
+    } else if (lastDigit == 3 && day.day != 13) {
+      return "rd";
+    } else {
+      return "th";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Center(
-        child: Column(
-          children: [
-            Row(
+    return Center(
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+        return LinearGradient(
+            begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [const Color.fromARGB(255, 255, 255, 255), colorScheme.primary])
+            .createShader(bounds);
+      },
+        child: Container(
+          width: 150,
+          height: 150,
+          margin: EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(30)),
+            color: colorScheme.surfaceContainerHigh,
+            // border: Border.all(color: colorScheme.onSurface, width: 0.4)
+            // border: Border(
+              // bottom: BorderSide(color: colorScheme.onSurface, width: 0.4)
+              // ),
+          ),
+          child: Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: colorScheme.onSurface,
-                    fontSize: 16),
-                  DateFormat("EEEE").format(day)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurface,
+                        fontSize: 20),
+                      DateFormat("EEEE").format(day)),
+                  ]),
+                Row(
+                  textBaseline: TextBaseline.alphabetic,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  children: [
+                    Text(
+                      style: TextStyle(
+                        height: 1,
+                        color: colorScheme.primary,
+                        fontSize: 50),
+                      day.day.toString()),
+                    // Text(
+                    //   style: TextStyle(
+                    //     fontWeight: FontWeight.w400,
+                    //     color: colorScheme.secondary,
+                    //     fontSize: 20),
+                    //   daySuffix(day)),
+                  ]),
                 Text(
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
-                    color: colorScheme.secondary,
-                    fontSize: 16),
-                  DateFormat(", MMM").format(day)),
-              ]),
-            Text(
-              style: TextStyle(
-                height: 1,
-                color: colorScheme.onSurface,
-                fontSize: 50),
-              day.day.toString()),
-          ])));
+                    color: colorScheme.onSurface,
+                    fontSize: 20),
+                  DateFormat("MMMM").format(day)),
+              ])),
+        ),
+      ),
+    );
   }
 }
 
@@ -151,24 +197,14 @@ class UpcomingClasses extends StatelessWidget {
       children: [
         Container(
           margin: EdgeInsets.only(bottom: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface),
-                "upcomming".toUpperCase()),
-              Text(
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                  color: colorScheme.primary),
-                "see all"),
-            ])),
-        Consumer<EventsVM> (
-          builder: (context, eventsVM, child) { 
+          child: Text(
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface),
+            "COMING UP".toUpperCase())),
+        Consumer<EventsVM>(
+          builder: (context, eventsVM, child) {
             List<Event> events = eventsVM.getEventsOnDay(TimetableVM.getDayIndex(day));
             return Column(
               children: [for (final event in events) EventItem(event: event)]);
