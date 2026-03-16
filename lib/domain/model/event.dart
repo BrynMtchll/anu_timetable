@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class Event {
@@ -17,6 +16,6 @@ class Event {
     id = Uuid().v4();
   }
 
-  bool overlapping(Event other) => 
+  bool overlapping(Event other) =>
     startTime.compareTo(other.endTime) < 0 && other.startTime.compareTo(endTime) < 0;
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "330684126054",
+    "project_id": "anu-timetable",
+    "storage_bucket": "anu-timetable.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330684126054:android:a2f1e7af1b40ae1910aea7",
+        "android_client_info": {
+          "package_name": "com.example.anu_timetable"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDI1DDGLKijqPyUhMFW0iHUza5RVZIrpT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

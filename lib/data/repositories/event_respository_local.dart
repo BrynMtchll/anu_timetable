@@ -19,12 +19,11 @@ class EventRespositoryLocal implements EventRepository {
 
   @override
   Future<Result<Event>> getEvent(String id) async {
-      if (!_events.containsKey(id)) {
-        print("event should already exist if we're going to its page!");
-      // _events[id] = await _createEventsForDay(day);
-      }
+    if (!_events.containsKey(id)) {
+      print("event should already exist if we're going to its page!");
+    // _events[id] = await _createEventsForDay(day);
+    }
     return Result.ok(_events[id]!);
-    
   }
 
   @override

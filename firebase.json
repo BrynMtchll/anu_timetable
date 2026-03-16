@@ -1,0 +1,53 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "anu-timetable",
+          "appId": "1:330684126054:android:a2f1e7af1b40ae1910aea7",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "anu-timetable",
+          "appId": "1:330684126054:ios:2cf38c7014cdc97810aea7",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "anu-timetable",
+          "appId": "1:330684126054:ios:2cf38c7014cdc97810aea7",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "anu-timetable",
+          "configurations": {
+            "android": "1:330684126054:android:a2f1e7af1b40ae1910aea7",
+            "ios": "1:330684126054:ios:2cf38c7014cdc97810aea7",
+            "macos": "1:330684126054:ios:2cf38c7014cdc97810aea7",
+            "web": "1:330684126054:web:b6733b1cba7bc59610aea7",
+            "windows": "1:330684126054:web:160525369a2db67910aea7"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  }
+}

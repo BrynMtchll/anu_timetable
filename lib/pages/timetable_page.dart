@@ -55,8 +55,7 @@ class _TimetablePageState extends State<TimetablePage> {
                           monthBarAnimationNotifier.open = false;
                         }
                       },
-                      child: child
-                    )),
+                      child: child)),
                 child: TabBarView(
                   controller: Provider.of<ViewTabController>(context, listen: false),
                   physics: NeverScrollableScrollPhysics(),

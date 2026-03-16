@@ -21,67 +21,18 @@ class HomePage extends StatelessWidget {
             children: [
               Profile(),
               _DateWidget(day: currentDay.value),
-              UpcomingClasses(day: currentDay.value),
-              SizedBox(height: 30),
+              _UpcomingClasses(day: currentDay.value),
             ])),
       ));
   }
-
-  Column _friends() {
-    return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20),
-                  "Friends"),
-                Text("plus icon")
-              ]),
-            SizedBox(height: 5),
-            Column(
-              children: [
-                Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(5))),
-                SizedBox(height: 5),
-                Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(5))),
-                SizedBox(height: 5),
-                Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(5)))
-              ]),
-            SizedBox(height: 10),
-            Container(
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.grey[20]),
-              child: Align(
-                alignment: Alignment.center,
-                child: Text("See All Friends")))
-          ]);
-  }
 }
+
 class Profile extends StatelessWidget {
   const Profile({super.key});
 
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     return Container(
       height: 40,
       width: 40,
@@ -94,8 +45,7 @@ class Profile extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 16),
-          "BM"),
-      ));
+          "BM")));
   }
 }
 
@@ -122,24 +72,19 @@ class _DateWidget extends StatelessWidget {
     return Center(
       child: ShaderMask(
         shaderCallback: (Rect bounds) {
-        return LinearGradient(
+          return LinearGradient(
             begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [const Color.fromARGB(255, 255, 255, 255), colorScheme.primary])
-            .createShader(bounds);
-      },
+            end: Alignment.bottomRight,
+            colors: [const Color.fromARGB(255, 255, 255, 255), colorScheme.primary])
+              .createShader(bounds);
+        },
         child: Container(
           width: 150,
           height: 150,
           margin: EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(30)),
-            color: colorScheme.surfaceContainerHigh,
-            // border: Border.all(color: colorScheme.onSurface, width: 0.4)
-            // border: Border(
-              // bottom: BorderSide(color: colorScheme.onSurface, width: 0.4)
-              // ),
-          ),
+            color: colorScheme.surfaceContainerHigh),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -165,12 +110,6 @@ class _DateWidget extends StatelessWidget {
                         color: colorScheme.primary,
                         fontSize: 50),
                       day.day.toString()),
-                    // Text(
-                    //   style: TextStyle(
-                    //     fontWeight: FontWeight.w400,
-                    //     color: colorScheme.secondary,
-                    //     fontSize: 20),
-                    //   daySuffix(day)),
                   ]),
                 Text(
                   style: TextStyle(
@@ -178,16 +117,13 @@ class _DateWidget extends StatelessWidget {
                     color: colorScheme.onSurface,
                     fontSize: 20),
                   DateFormat("MMMM").format(day)),
-              ])),
-        ),
-      ),
-    );
+              ])))));
   }
 }
 
-class UpcomingClasses extends StatelessWidget {
+class _UpcomingClasses extends StatelessWidget {
   final DateTime day;
-  const UpcomingClasses({super.key, required this.day});
+  const _UpcomingClasses({required this.day});
 
   @override
   Widget build(BuildContext context) {

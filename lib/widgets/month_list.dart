@@ -1,8 +1,6 @@
 import 'package:anu_timetable/model/animation.dart';
-import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/month_list_layout.dart';
-import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -113,7 +111,7 @@ class _MonthButton extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: monthIsActive ? colorScheme.inverseSurface : null,
-                border: Border.all(color: colorScheme.onSurface, width: 0.5),
+                border: Border.all(color: colorScheme.onSurface, width: 0.4),
                 borderRadius: BorderRadius.circular(7)),
                 child: Text(
                   style: TextStyle(

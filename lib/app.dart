@@ -5,25 +5,23 @@ import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/event.dart';
 import 'package:anu_timetable/model/events.dart';
-import 'package:anu_timetable/pages/event_page.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:anu_timetable/pages/home_page.dart';
-import 'package:anu_timetable/pages/timetable_page.dart';
-import 'package:anu_timetable/pages/messages_page.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/model/controller.dart';
 import 'package:go_router/go_router.dart';
 
 class App extends StatefulWidget {
-  const App({super.key});
+  const App({super.key, required this.router});
+
+  final GoRouter router;
 
   @override
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> with SingleTickerProviderStateMixin{
+class _AppState extends State<App> with SingleTickerProviderStateMixin {
   late int currentPageIndex = 0;
 
   final DateTime currentDate = DateTime.now();
@@ -55,48 +53,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
     weekViewScrollController.dispose();
   }
 
-  final _router = GoRouter(
-    initialLocation: '/timetable',
-    routes: <RouteBase>[
-      StatefulShellRoute.indexedStack(
-        builder: (BuildContext context, GoRouterState state, 
-          StatefulNavigationShell navigationShell) =>
-          ScaffoldWithNavBar(navigationShell: navigationShell),
-        branches: <StatefulShellBranch>[
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/home',
-                builder: (BuildContext context, GoRouterState state) => 
-                  const HomePage()),
-            ]),
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/timetable',
-                builder: (BuildContext context, GoRouterState state) => 
-                  const TimetablePage(),
-                routes: <RouteBase>[
-                  GoRoute(
-                    path: "event/:id",
-                    builder: (BuildContext context, GoRouterState state) {
-                      final id = state.pathParameters['id']!;
-                      final eventVM = EventVM(eventRepository: context.read());
-                      eventVM.loadEvent.execute(id);
-                      return EventPage(eventVM: eventVM, id: id);
-                    }),
-                ]),
-            ]),
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/messages',
-                builder: (BuildContext context, GoRouterState state) => 
-                  const MessagesPage()),
-            ])
-        ])
-    ]);
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -124,7 +80,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin{
             brightness: Brightness.dark,
             dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
           useMaterial3: true),
-        routerConfig: _router));
+        routerConfig: widget.router));
   }
 }
 
