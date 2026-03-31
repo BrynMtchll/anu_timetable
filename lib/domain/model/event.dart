@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class Event {
@@ -8,12 +9,28 @@ class Event {
   final String? location;
 
   Event({
+    required this.id,
     required this.title,
     required this.startTime,
     required this.endTime,
     this.location,
-  }) {
-    id = Uuid().v4();
+  });
+
+ factory Event.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
+    final data = snapshot.data()!;
+
+    return Event(id: data['id'], title: data['title'], startTime: data['startTime'], endTime: data['endTime'], 
+      location: data['location']);
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'title': title,
+      'startTime': startTime,
+      'endTime': endTime,
+      'location': location
+    };
   }
 
   bool overlapping(Event other) =>

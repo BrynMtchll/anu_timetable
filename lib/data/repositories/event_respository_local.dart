@@ -5,7 +5,7 @@ import 'package:anu_timetable/data/services/local/local_event_service.dart';
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/util/result.dart';
 import 'package:calendar_view/calendar_view.dart';
-import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class EventRespositoryLocal implements EventRepository {
   EventRespositoryLocal({required LocalEventService localEventService})
@@ -103,8 +103,13 @@ class EventRespositoryLocal implements EventRepository {
       int e = s + 1 + random.nextInt(5);
       DateTime st = day.add(Duration(hours: s));
       DateTime et = day.add(Duration(hours: e));
-      events.add(Event(title: "blah", startTime: st, endTime: et));
+      events.add(Event(id: Uuid().v4(), title: "blah", startTime: st, endTime: et));
     }
     return events;
+  }
+
+  @override
+  Future<Result<List<Event>>> getAllEvents() {
+    throw UnimplementedError();
   }
 }

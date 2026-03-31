@@ -3,6 +3,7 @@ import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/widgets/event_list_item.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -22,16 +23,20 @@ class HomePage extends StatelessWidget {
               Profile(),
               _DateWidget(day: currentDay.value),
               _UpcomingClasses(day: currentDay.value),
-            ])),
-      ));
+            ]))));
   }
 }
+
+String getInitials(String name) => name.isNotEmpty
+    ? name.trim().split(RegExp(' +')).map((s) => s[0]).take(2).join() : '';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final name = FirebaseAuth.instance.currentUser!.displayName;
+
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       height: 40,
@@ -45,7 +50,7 @@ class Profile extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 16),
-          "BM")));
+          getInitials(name!))));
   }
 }
 
@@ -53,6 +58,7 @@ class _DateWidget extends StatelessWidget {
   final DateTime day;
   const _DateWidget({required this.day});
 
+  // TODO: move to a util file
   String daySuffix(DateTime day) {
     int lastDigit = day.day % 10;
     if (lastDigit == 1 && day.day != 11) {
