@@ -8,10 +8,7 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:uuid/uuid.dart';
 
 class EventRespositoryLocal implements EventRepository {
-  EventRespositoryLocal({required LocalEventService localEventService})
-    : _localEventService = localEventService;
-
-  final LocalEventService _localEventService;
+  EventRespositoryLocal();
 
   final Map<DateTime, List<String>> _eventsOnDay = {};
 
@@ -110,6 +107,12 @@ class EventRespositoryLocal implements EventRepository {
 
   @override
   Future<Result<List<Event>>> getAllEvents() {
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<Result<List<Event>>> getEvents(List<String> eventIds) {
+    // TODO: implement getEvents
     throw UnimplementedError();
   }
 }

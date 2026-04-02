@@ -12,7 +12,7 @@ class UserRepositoryFirebase implements UserRepository {
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
     final credential = firebase_auth.GoogleAuthProvider.credential(idToken: googleAuth.idToken);
     final userCredential = await firebase_auth.FirebaseAuth.instance.signInWithCredential(credential);
-    return userCredential.additionalUserInfo!.isNewUser 
+    return userCredential.additionalUserInfo!.isNewUser
       ? await addNewUser(userCredential)
       : await getUser(userCredential.user!.uid);
   }
@@ -20,13 +20,15 @@ class UserRepositoryFirebase implements UserRepository {
   @override
   Future<Result<User>> getUser(String uid) async {
     final db = FirebaseFirestore.instance;
+    // await db.collection('users').doc("1").set(User(uid: "1", displayName: "test", email: "").toMap()).onError((error, stackTrace) => print(error),);
     final snapshot = await db.collection('users').doc(uid)
       .withConverter(
         fromFirestore: User.fromFirestore,
         toFirestore: (user, _) => user.toMap())
       .get();
     final user = snapshot.data();
-    return user == null 
+    print(user);
+    return user == null
       ? Result.error(Exception("User not found"))
       : Result.ok(user);
   }

@@ -6,9 +6,8 @@ import 'package:anu_timetable/util/result.dart';
 import 'package:flutter/material.dart';
 
 class EventsVM extends ChangeNotifier {
-  EventsVM({
-    required EventRepository eventRepository,
-  }) : _eventRepository = eventRepository {
+  EventsVM({required EventRepository eventRepository})
+    : _eventRepository = eventRepository {
     loadDay = Command1(_loadDay);
     loadWeek = Command1(_loadWeek);
     loadYear = Command1(_loadYear);

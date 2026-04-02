@@ -2,14 +2,27 @@ import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/timetable.dart';
+import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/widgets/event_list_item.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserVM>().loadCurrentUser();
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +48,6 @@ class Profile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = FirebaseAuth.instance.currentUser!.displayName;
-
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       height: 40,
@@ -46,11 +57,12 @@ class Profile extends StatelessWidget {
         color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(30)),
       child: Center(
-        child: Text(
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 16),
-          getInitials(name!))));
+        child: Consumer<UserVM>(
+          builder: (context, userVM, child) => Text(
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16),
+            getInitials(userVM.currentUser?.displayName ?? '')))));
   }
 }
 

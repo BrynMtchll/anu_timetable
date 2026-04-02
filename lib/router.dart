@@ -56,7 +56,6 @@ class MyRouter {
             ])
         ]),
     ],
-
     
     redirect: (BuildContext context, GoRouterState state) {
       final bool loggedIn = FirebaseAuth.instance.currentUser != null;

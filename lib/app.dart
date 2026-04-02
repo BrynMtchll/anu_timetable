@@ -1,10 +1,12 @@
 import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/data/repositories/event_respository_local.dart';
-import 'package:anu_timetable/data/services/local/local_event_service.dart';
+import 'package:anu_timetable/data/repositories/user_repository.dart';
+import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/event.dart';
 import 'package:anu_timetable/model/events.dart';
+import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,8 +59,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider.value(value: LocalEventService()),
-        Provider(create:(context) => EventRespositoryLocal(localEventService: context.read()) as EventRepository),
+        Provider(create:(context) => EventRespositoryLocal() as EventRepository),
+        Provider(create:(context) => UserRepositoryFirebase() as UserRepository),
         ChangeNotifierProvider(create: (context) => CurrentDay()),
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
@@ -68,7 +70,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
         ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
         ChangeNotifierProvider<EventsVM>(create: (context) => EventsVM(eventRepository: context.read())),
-        ChangeNotifierProvider<EventVM>(create: (context) => EventVM(eventRepository: context.read()))
+        ChangeNotifierProvider<EventVM>(create: (context) => EventVM(eventRepository: context.read())),
+        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read()))
       ],
       child: MaterialApp.router(
         title: 'Flutter Demo',

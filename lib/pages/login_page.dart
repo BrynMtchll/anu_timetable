@@ -1,20 +1,27 @@
+import 'package:anu_timetable/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 
 Future<UserCredential> signInWithGoogle() async {
   // Trigger the authentication flow
-  final GoogleSignInAccount? googleUser = await GoogleSignIn.instance.authenticate();
+  final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
 
   // Obtain the auth details from the request
-  final GoogleSignInAuthentication googleAuth = googleUser!.authentication;
+  final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
   // Create a new credential
   final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
 
   // Once signed in, return the UserCredential
-  return await FirebaseAuth.instance.signInWithCredential(credential);
+  final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+  if (userCredential.additionalUserInfo!.isNewUser) {
+    
+  }
+  return userCredential; 
 }
 
 Future<UserCredential> signInWithMicrosoft() async {
@@ -47,12 +54,16 @@ class LoginPage extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 "Login"),
-                ElevatedButton(
-                  child: Text("Sign in with Microsoft"),
-                  onPressed: () {
-                    signInWithGoogle();
-                    // signInWithMicrosoft();
-                  })
+                Consumer<UserVM>(
+                  builder: (context, userVM, child) => 
+
+                  ElevatedButton(
+                    child: Text("Sign in with Microsoft"),
+                    onPressed: () {
+                      userVM.signInWithGoogle();
+                      // signInWithMicrosoft();
+                    }),
+                )
               ])))));
   }
 }

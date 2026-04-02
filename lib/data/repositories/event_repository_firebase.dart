@@ -50,5 +50,4 @@ class EventRepositoryFirebase implements EventRepository {
     // TODO: implement getEventsOnYear
     throw UnimplementedError();
   }
-
 }
