@@ -14,7 +14,7 @@ class EventItem extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        context.push("/timetable/event/${event.id}");
+        context.push("/timetable/event/${event.ruleId}");
       },
       child: ShaderMask(
         shaderCallback: (Rect bounds) => eventTileShader(bounds),
@@ -38,9 +38,9 @@ class EventItem extends StatelessWidget {
                 ]),
             Column(
               children: [
-                Text(DateFormat("hh:mma").format(event.startTime),
+                Text(DateFormat("hh:mma").format(event.startDate),
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
-                Text(DateFormat("hh:mma").format(event.endTime),
+                Text(DateFormat("hh:mma").format(event.endDate),
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
               ])
             ])),

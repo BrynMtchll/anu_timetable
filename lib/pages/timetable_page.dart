@@ -1,6 +1,8 @@
 
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
+import 'package:anu_timetable/model/events.dart';
+import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
 import 'package:anu_timetable/widgets/list_view.dart';
@@ -18,10 +20,25 @@ class TimetablePage extends StatefulWidget {
   State<TimetablePage> createState() => _TimetablePageState();
 }
 
+
+void startup(BuildContext context) async {
+  // TODO all to view model
+  final userVM = context.read<UserVM>();
+  await userVM.loadCurrentUser.execute();
+  final eventIds = userVM.currentUser!.eventIds;
+  context.read<UserEventsVM>().loadEvents.execute(eventIds);
+
+  print("hey ${context.read<UserVM>().currentUser?.displayName}");
+}
+
 class _TimetablePageState extends State<TimetablePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      startup(context);
+      
+    });
   }
 
   @override

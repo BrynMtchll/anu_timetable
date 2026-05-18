@@ -5,13 +5,13 @@ class User {
   late String uid;
   late String displayName;
   late String email;
-  final List<String> eventIds = [];
+  final List<String> eventRuleIds = [];
   late String? photoUrl;
 
   User({required this.uid, required this.displayName, required this.email, 
-    this.photoUrl, List<String>? eventIds}) {
-    if (eventIds != null) {
-      this.eventIds.addAll(eventIds);
+    this.photoUrl, List<String>? eventRuleIds}) {
+    if (eventRuleIds != null) {
+      this.eventRuleIds.addAll(eventRuleIds);
     }
   }
 
@@ -24,7 +24,7 @@ class User {
     final data = snapshot.data()!;
 
     return User(uid: data['uid'], displayName: data['displayName'], email: data['email'], 
-      photoUrl: data['photoUrl'], eventIds: List<String>.from(data['eventIds']));
+      photoUrl: data['photoUrl'], eventRuleIds: List<String>.from(data['eventRuleIds']));
   }
 
   Map<String, dynamic> toMap() {
@@ -33,7 +33,7 @@ class User {
       'email': email,
       'photoUrl': photoUrl,
       'displayName': displayName,
-      'eventIds': eventIds
+      'eventRuleIds': eventRuleIds
     };
   }
 }

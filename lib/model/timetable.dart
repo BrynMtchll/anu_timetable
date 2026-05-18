@@ -78,6 +78,10 @@ class TimetableVM extends ChangeNotifier {
     return DateTime(week.year, week.month, week.day + weekdayIndex - 1);
   }
 
+  /// Returns the day without timestamp of the given date.
+  static DateTime dateWithoutTime(DateTime date) 
+    => DateTime(date.year, date.month, date.day);
+
   /// Returns the monday of the week of the given date.
   static DateTime weekOfDay(DateTime day) 
     => DateTime(day.year, day.month, day.day - day.weekday + 1);
@@ -98,7 +102,8 @@ class TimetableVM extends ChangeNotifier {
   static int getMonthIndex(DateTime month)
     => (month.year - hashDate.year) * 12 + month.month - hashDate.month;
 
-  static bool dayEquiv(DateTime day1, DateTime day2) => day1 == day2;
+  static bool dayEquiv(DateTime day1, DateTime day2)
+    => dateWithoutTime(day1) == dateWithoutTime(day2);
 
   // Checks if two days are of the same month and year
   static bool weekEquiv(DateTime day1, DateTime day2)

@@ -41,7 +41,7 @@ class _TListViewState extends State<TListView> {
         timetableModel.handleTListViewDayChanged(context, TimetableVM.getDay(newActiveDayIndex));
       }
     });
-    return Consumer<EventsVM> (
+    return Consumer<UserEventsVM> (
       builder: (context, eventsVM, child) => NotificationListener<UserScrollNotification>(
       onNotification: timetableModel.onTListNotification,
       child: ScrollablePositionedList.builder(
@@ -59,7 +59,7 @@ class _TListViewState extends State<TListView> {
 
 class _DayItem extends StatelessWidget {
   final int index;
-  final EventsVM eventsVM;
+  final UserEventsVM eventsVM;
 
   Color dayColor(bool dayIsCurrent, ColorScheme colorScheme, List<Event> events) {
     if (dayIsCurrent) return colorScheme.primary;
@@ -75,8 +75,8 @@ class _DayItem extends StatelessWidget {
     ColorScheme colorScheme = ColorScheme.of(context);
     List<Event> events = eventsVM.getEventsOnDay(index);
     events.sort((a, b) {
-      int startOrder = a.startTime.compareTo(b.startTime);
-      return startOrder == 0 ? a.endTime.compareTo(b.endTime) : startOrder;
+      int startOrder = a.startDate.compareTo(b.startDate);
+      return startOrder == 0 ? a.endDate.compareTo(b.endDate) : startOrder;
     });
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),

@@ -69,9 +69,10 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
         ChangeNotifierProvider.value(value: dayViewScrollController),
         ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
-        ChangeNotifierProvider<EventsVM>(create: (context) => EventsVM(eventRepository: context.read())),
+        ChangeNotifierProvider<UserEventsVM>(create: (context) => UserEventsVM(eventRepository: context.read())),
         ChangeNotifierProvider<EventVM>(create: (context) => EventVM(eventRepository: context.read())),
-        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read()))
+        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read())
+          ..loadCurrentUser.execute())
       ],
       child: MaterialApp.router(
         title: 'Flutter Demo',

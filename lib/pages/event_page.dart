@@ -29,10 +29,10 @@ class EventPage extends StatelessWidget {
                   event.title),
                 Text(
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-                  DateFormat('EEEE, MMMM d, yyyy').format(event.startTime)),
+                  DateFormat('EEEE, MMMM d, yyyy').format(event.startDate)),
                 Text(
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-                  "${DateFormat('hh:mma').format(event.startTime)} - ${DateFormat('hh:mma').format(event.endTime)}"),
+                  "${DateFormat('hh:mma').format(event.startDate)} - ${DateFormat('hh:mma').format(event.endDate)}"),
                 Text(
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
                   '[rm 204, Hannah Neumann building]'),

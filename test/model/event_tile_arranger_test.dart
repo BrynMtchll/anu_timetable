@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
 
   // helper builders
-  EventTileData fullDay() => EventTileData(lbakjdfglkaj: Event(title: "", startTime: DateTime(1, 1, 1, 0), endTime: DateTime(1, 1, 1, 24)));
-  EventTileData firstHalf() => EventTileData(lbakjdfglkaj: Event(title: "", startTime: DateTime(1, 1, 1, 0), endTime: DateTime(1, 1, 1, 12)));
-  EventTileData secondHalf() => EventTileData(lbakjdfglkaj: Event(title: "", startTime: DateTime(1, 1, 1, 12), endTime: DateTime(1, 1, 1, 24)));
+  EventTileData fullDay() => EventTileData(lbakjdfglkaj: Event(title: "", startDate: DateTime(1, 1, 1, 0), endDate: DateTime(1, 1, 1, 24)));
+  EventTileData firstHalf() => EventTileData(lbakjdfglkaj: Event(title: "", startDate: DateTime(1, 1, 1, 0), endDate: DateTime(1, 1, 1, 12)));
+  EventTileData secondHalf() => EventTileData(lbakjdfglkaj: Event(title: "", startDate: DateTime(1, 1, 1, 12), endDate: DateTime(1, 1, 1, 24)));
   // small helpers for commonly used event shapes
 
   group("countOverlaps (existing)", () {
@@ -89,23 +89,23 @@ void main() {
     test("regression: real-world multi-overlap case (user)", () {
   // events from user logs on 2026-01-07
       final events = [
-Event(title: '', startTime: DateTime(2026,01,14,09), endTime: DateTime(2026,01,14,13)),
-Event(title: '', startTime: DateTime(2026,01,14,10), endTime: DateTime(2026,01,14,14)),
-Event(title: '', startTime: DateTime(2026,01,14,11), endTime: DateTime(2026,01,14,14)),
-Event(title: '', startTime: DateTime(2026,01,14,13), endTime: DateTime(2026,01,14,15)),
-Event(title: '', startTime: DateTime(2026,01,14,14), endTime: DateTime(2026,01,14,16)),
-Event(title: '', startTime: DateTime(2026,01,14,09), endTime: DateTime(2026,01,14,13)),
-Event(title: '', startTime: DateTime(2026,01,14,10), endTime: DateTime(2026,01,14,14)),
-Event(title: '', startTime: DateTime(2026,01,14,10), endTime: DateTime(2026,01,14,13)),
-Event(title: '', startTime: DateTime(2026,01,14,13), endTime: DateTime(2026,01,14,15)),
-Event(title: '', startTime: DateTime(2026,01,14,11), endTime: DateTime(2026,01,14,15)),
-Event(title: '', startTime: DateTime(2026,01,14,15), endTime: DateTime(2026,01,14,16)),
-Event(title: '', startTime: DateTime(2026,01,14,08), endTime: DateTime(2026,01,14,10)),
-Event(title: '', startTime: DateTime(2026,01,14,09), endTime: DateTime(2026,01,14,12)),
-Event(title: '', startTime: DateTime(2026,01,14,13), endTime: DateTime(2026,01,14,16)),
-Event(title: '', startTime: DateTime(2026,01,14,12), endTime: DateTime(2026,01,14,14)),
-Event(title: '', startTime: DateTime(2026,01,14,11), endTime: DateTime(2026,01,14,12)),
-Event(title: '', startTime: DateTime(2026,01,14,15), endTime: DateTime(2026,01,14,16)),
+Event(title: '', startDate: DateTime(2026,01,14,09), endDate: DateTime(2026,01,14,13)),
+Event(title: '', startDate: DateTime(2026,01,14,10), endDate: DateTime(2026,01,14,14)),
+Event(title: '', startDate: DateTime(2026,01,14,11), endDate: DateTime(2026,01,14,14)),
+Event(title: '', startDate: DateTime(2026,01,14,13), endDate: DateTime(2026,01,14,15)),
+Event(title: '', startDate: DateTime(2026,01,14,14), endDate: DateTime(2026,01,14,16)),
+Event(title: '', startDate: DateTime(2026,01,14,09), endDate: DateTime(2026,01,14,13)),
+Event(title: '', startDate: DateTime(2026,01,14,10), endDate: DateTime(2026,01,14,14)),
+Event(title: '', startDate: DateTime(2026,01,14,10), endDate: DateTime(2026,01,14,13)),
+Event(title: '', startDate: DateTime(2026,01,14,13), endDate: DateTime(2026,01,14,15)),
+Event(title: '', startDate: DateTime(2026,01,14,11), endDate: DateTime(2026,01,14,15)),
+Event(title: '', startDate: DateTime(2026,01,14,15), endDate: DateTime(2026,01,14,16)),
+Event(title: '', startDate: DateTime(2026,01,14,08), endDate: DateTime(2026,01,14,10)),
+Event(title: '', startDate: DateTime(2026,01,14,09), endDate: DateTime(2026,01,14,12)),
+Event(title: '', startDate: DateTime(2026,01,14,13), endDate: DateTime(2026,01,14,16)),
+Event(title: '', startDate: DateTime(2026,01,14,12), endDate: DateTime(2026,01,14,14)),
+Event(title: '', startDate: DateTime(2026,01,14,11), endDate: DateTime(2026,01,14,12)),
+Event(title: '', startDate: DateTime(2026,01,14,15), endDate: DateTime(2026,01,14,16)),
 ];
 
       final eventTilesData = [for (var e in events) EventTileData(lbakjdfglkaj: e)];

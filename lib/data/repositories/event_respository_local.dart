@@ -30,8 +30,8 @@ class EventRespositoryLocal implements EventRepository {
       _eventsOnDay[day] = [];
       events = await _createEventsForDay(day);
       for (final e in events) {
-        _eventsOnDay[day]!.add(e.id);
-        _events[e.id] = e;
+        _eventsOnDay[day]!.add(e.ruleId);
+        _events[e.ruleId] = e;
       }
     } else {
       for (final id in _eventsOnDay[day]!) {
@@ -51,8 +51,8 @@ class EventRespositoryLocal implements EventRepository {
         _eventsOnDay[day] = [];
         events = await _createEventsForDay(day);
         for (final e in events) {
-          _eventsOnDay[day]!.add(e.id);
-          _events[e.id] = e;
+          _eventsOnDay[day]!.add(e.ruleId);
+          _events[e.ruleId] = e;
         }
       } else {
       for (final id in _eventsOnDay[day]!) {
@@ -73,8 +73,8 @@ class EventRespositoryLocal implements EventRepository {
         _eventsOnDay[day] = [];
         events = await _createEventsForDay(day);
         for (final e in events) {
-          _eventsOnDay[day]!.add(e.id);
-          _events[e.id] = e;
+          _eventsOnDay[day]!.add(e.ruleId);
+          _events[e.ruleId] = e;
         }
       } else {
       for (final id in _eventsOnDay[day]!) {
@@ -100,7 +100,7 @@ class EventRespositoryLocal implements EventRepository {
       int e = s + 1 + random.nextInt(5);
       DateTime st = day.add(Duration(hours: s));
       DateTime et = day.add(Duration(hours: e));
-      events.add(Event(id: Uuid().v4(), title: "blah", startTime: st, endTime: et));
+      events.add(Event(ruleId: Uuid().v4(), title: "blah", startDate: st, endDate: et));
     }
     return events;
   }

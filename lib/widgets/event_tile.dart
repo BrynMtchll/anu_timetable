@@ -63,9 +63,9 @@ class EventTile extends StatelessWidget {
 
   onTap(BuildContext context, bool isExpanded) {
     if (isExpanded || eventTileData.width >= collapseThreshold) {
-      context.push("/timetable/event/${event.id}");
+      context.push("/timetable/event/${event.ruleId}");
     } else {
-      animationNotifier.expand(event.id, index);
+      animationNotifier.expand(event.ruleId, index);
     }
   }
 
@@ -76,7 +76,7 @@ class EventTile extends StatelessWidget {
       builder: (context, child) {
         bool collapse = animationNotifier.collapse[index];
         bool onLeft = animationNotifier.onLeft[index];
-        bool isExpanded = animationNotifier.isExpanded(event.id);
+        bool isExpanded = animationNotifier.isExpanded(event.ruleId);
         return AnimatedPositioned(
           duration: Duration(milliseconds: 150),
           top: eventTileData.top,

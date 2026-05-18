@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserVM>().loadCurrentUser();
+      context.read<UserVM>().loadCurrentUser.execute();
     });
     super.initState();
   }
@@ -157,7 +157,7 @@ class _UpcomingClasses extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface),
             "COMING UP".toUpperCase())),
-        Consumer<EventsVM>(
+        Consumer<UserEventsVM>(
           builder: (context, eventsVM, child) {
             List<Event> events = eventsVM.getEventsOnDay(TimetableVM.getDayIndex(day));
             return Column(

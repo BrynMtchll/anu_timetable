@@ -10,6 +10,7 @@ import 'result.dart';
 
 typedef CommandAction0<T> = Future<Result<T>> Function();
 typedef CommandAction1<T, A> = Future<Result<T>> Function(A);
+typedef CommandAction3<T, A, B, C> = Future<Result<T>> Function(A, B, C);
 
 /// Facilitates interaction with a ViewModel.
 ///
@@ -92,5 +93,19 @@ class Command1<T, A> extends Command<T> {
   /// Executes the action with the argument.
   Future<void> execute(A argument) async {
     await _execute(() => _action(argument));
+  }
+}
+
+// TODO: abstract to pattern for any number of arguments
+/// [Command] with three arguments.
+/// Takes a [CommandAction3] as action.
+class Command3<T, A, B, C> extends Command<T> {
+  Command3(this._action);
+
+  final CommandAction3<T, A, B, C> _action;
+
+  /// Executes the action with the argument.
+  Future<void> execute(A argument1, B argument2, C argument3) async {
+    await _execute(() => _action(argument1, argument2, argument3));
   }
 }

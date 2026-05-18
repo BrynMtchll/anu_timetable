@@ -60,7 +60,7 @@ class _WeekPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TimetableVM timetableModel = Provider.of<TimetableVM>(context, listen: false);
-    final EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
+    final UserEventsVM eventsVM = Provider.of<UserEventsVM>(context, listen: false);
     return ClipRect(
       clipper: HorizontalClipper(),
       child: SizedBox(

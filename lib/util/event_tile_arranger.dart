@@ -16,8 +16,8 @@ class EventTileData {
   late int overlapCount = 0;
 
   EventTileData({required Event event}) {
-    top = TimetableLayout.vertOffset(event.startTime.getTotalMinutes);
-    bottom = TimetableLayout.vertOffset(event.endTime.getTotalMinutes);
+    top = TimetableLayout.vertOffset(event.startDate.getTotalMinutes);
+    bottom = TimetableLayout.vertOffset(event.endDate.getTotalMinutes);
     height = bottom - top;
   }
 

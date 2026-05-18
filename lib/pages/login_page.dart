@@ -60,7 +60,7 @@ class LoginPage extends StatelessWidget {
                   ElevatedButton(
                     child: Text("Sign in with Microsoft"),
                     onPressed: () {
-                      userVM.signInWithGoogle();
+                      userVM.signInWithGoogle.execute();
                       // signInWithMicrosoft();
                     }),
                 )

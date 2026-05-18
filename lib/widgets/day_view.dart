@@ -70,7 +70,7 @@ class _DayItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final EventsVM eventsVM = Provider.of<EventsVM>(context, listen: false);
+    final UserEventsVM eventsVM = Provider.of<UserEventsVM>(context, listen: false);
     final DateTime day = TimetableVM.getDay(page);
     return Consumer<CurrentDay>(
       builder: (context, currentDay, child) { 
