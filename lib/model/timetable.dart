@@ -23,12 +23,12 @@ class TimetableVM extends ChangeNotifier {
   /// the week and day pages align.
   /// It also needs to be within the first month of the year because
   /// the [MonthList] will start from january. 
-  static final DateTime hashDate = weekOfDay(DateTime(2024, 1, 7));
+  static final DateTime hashDate = weekOfDay(DateTime.utc(2024, 1, 7));
 
   /// Is solely used as the endpoint of the [MonthList]. 
   /// It does not impose a limit on any other element.
   /// TODO: either enforce the end date globally or make [MonthList] infinite.
-  static final DateTime endDate = DateTime(2035, 1, 1);
+  static final DateTime endDate = DateTime.utc(2035, 1, 1);
 
   late DayViewPageController dayViewPageController;
   late WeekViewPageController weekViewPageController;
@@ -43,7 +43,7 @@ class TimetableVM extends ChangeNotifier {
 
   TimetableVM() {
     final currentDay = DateTime.now();
-    _activeDay = DateTime(currentDay.year, currentDay.month, currentDay.day);
+    _activeDay = DateTime.utc(currentDay.year, currentDay.month, currentDay.day);
     createWeekViewController();
     createDayViewController();
     tListViewItemScrollController = TListViewItemScrollController();
@@ -59,44 +59,48 @@ class TimetableVM extends ChangeNotifier {
 
   /// Returns the day corrosponding to the given day view page.
   static DateTime getDay(int dayIndex)
-    => DateTime(hashDate.year, hashDate.month, hashDate.day + dayIndex);
+    => DateTime.utc(hashDate.year, hashDate.month, hashDate.day + dayIndex);
 
   /// Returns the monday of the week corrosponding to the given 
   /// week bar page.
   static DateTime getWeek(int weekIndex) {
     int dayOffset = hashDate.day + (weekIndex * 7);
-    return DateTime(hashDate.year, hashDate.month, dayOffset);
+    return DateTime.utc(hashDate.year, hashDate.month, dayOffset);
   }
 
   /// Returns the month corresponding to the given month page.
   static DateTime getMonth(int monthIndex)
-    => DateTime(hashDate.year, hashDate.month + monthIndex);
+    => DateTime.utc(hashDate.year, hashDate.month + monthIndex);
 
   /// Returns the day of the given week and weekday index.
   static DateTime dayOfWeek(int weekIndex, int weekdayIndex) {
     DateTime week = TimetableVM.getWeek(weekIndex);
-    return DateTime(week.year, week.month, week.day + weekdayIndex - 1);
+    return DateTime.utc(week.year, week.month, week.day + weekdayIndex - 1);
   }
 
   /// Returns the day without timestamp of the given date.
   static DateTime dateWithoutTime(DateTime date) 
-    => DateTime(date.year, date.month, date.day);
+    => DateTime.utc(date.year, date.month, date.day);
 
+  /// Returns the day with the given time.
+  static DateTime dateWithTime(DateTime date, DateTime time) 
+    => DateTime.utc(date.year, date.month, date.day).add(Duration(hours: time.hour, minutes: time.minute));
+  
   /// Returns the monday of the week of the given date.
   static DateTime weekOfDay(DateTime day) 
-    => DateTime(day.year, day.month, day.day - day.weekday + 1);
+    => DateTime.utc(day.year, day.month, day.day - day.weekday + 1);
 
   /// Returns the monday of the week that the given date is in.
-  static DateTime monthOfDay(DateTime day) => DateTime(day.year, day.month);
+  static DateTime monthOfDay(DateTime day) => DateTime.utc(day.year, day.month);
 
   /// Returns the day view index corrosponding to the given date.
   static int getDayIndex(DateTime day) {
-    return ((day.difference(hashDate).inHours / 24).round()).toInt();
+    return ((dateWithoutTime(day).difference(hashDate).inHours / 24).round()).toInt();
   }
 
   /// Returns the week index corrosponding to the given date.
   static int getWeekIndex(DateTime week) {
-    return (((week.difference(hashDate).inHours / 24).round()) / 7).toInt();
+    return (((dateWithoutTime(week).difference(hashDate).inHours / 24).round()) / 7).toInt();
   }
 
   static int getMonthIndex(DateTime month)

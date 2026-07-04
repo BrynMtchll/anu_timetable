@@ -27,7 +27,7 @@ class MyRouter {
             routes: <RouteBase>[
               GoRoute(
                 path: '/home',
-                builder: (BuildContext context, GoRouterState state) => 
+                builder: (BuildContext context, GoRouterState state) =>
                   const HomePage()),
             ]),
           StatefulShellBranch(

@@ -21,13 +21,13 @@ class UserRepositoryFirebase implements UserRepository {
   Future<Result<User>> getUser(String uid) async {
     final db = FirebaseFirestore.instance;
     // await db.collection('users').doc("1").set(User(uid: "1", displayName: "test", email: "").toMap()).onError((error, stackTrace) => print(error),);
+    // final snapshot = await db.collection('users').doc(uid).delete();
     final snapshot = await db.collection('users').doc(uid)
       .withConverter(
         fromFirestore: User.fromFirestore,
         toFirestore: (user, _) => user.toMap())
       .get();
     final user = snapshot.data();
-    print(user);
     return user == null
       ? Result.error(Exception("User not found"))
       : Result.ok(user);
@@ -36,7 +36,7 @@ class UserRepositoryFirebase implements UserRepository {
   @override
   Future<Result<User>> addNewUser(firebase_auth.UserCredential userCredential) async {
     final db = FirebaseFirestore.instance;
-
+    print("adding new user");
     User user = User.fromAuth(userCredential: userCredential);
     // TODO: handle error
     Exception? e;

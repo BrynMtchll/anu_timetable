@@ -159,7 +159,7 @@ class _UpcomingClasses extends StatelessWidget {
             "COMING UP".toUpperCase())),
         Consumer<UserEventsVM>(
           builder: (context, eventsVM, child) {
-            List<Event> events = eventsVM.getEventsOnDay(TimetableVM.getDayIndex(day));
+            List<Event> events = eventsVM.getEventsOnDay(day);
             return Column(
               children: [for (final event in events) EventItem(event: event)]);
           })

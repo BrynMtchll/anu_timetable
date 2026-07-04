@@ -2,6 +2,7 @@ import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 
 class UserVM extends ChangeNotifier {
@@ -24,6 +25,8 @@ class UserVM extends ChangeNotifier {
     switch(result) {
       case Ok():
         currentUser = result.value;
+        print(currentUser == null ? "current user is null" : "current user is not null");
+        print(firebase_auth.FirebaseAuth.instance.currentUser);
         notifyListeners();
         return result;
       case Error():
@@ -38,7 +41,8 @@ class UserVM extends ChangeNotifier {
       case Ok():
         currentUser = result.value;
       case Error():
-        throw result.error;
+      currentUser = null;
+        return Result.error(result.error);
     }
     notifyListeners();
     return Result.ok(currentUser);

@@ -17,12 +17,11 @@ class User {
 
   factory User.fromAuth({required UserCredential userCredential}) {
     return User(uid: userCredential.user!.uid, displayName: userCredential.user!.displayName!, 
-      email: userCredential.user!.email!, photoUrl: userCredential.user!.photoURL);
+      email: userCredential.user!.email!, photoUrl: userCredential.user!.photoURL, eventRuleIds: []);
   }
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
-
     return User(uid: data['uid'], displayName: data['displayName'], email: data['email'], 
       photoUrl: data['photoUrl'], eventRuleIds: List<String>.from(data['eventRuleIds']));
   }

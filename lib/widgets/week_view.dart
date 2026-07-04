@@ -91,7 +91,7 @@ class _WeekPageView extends StatelessWidget {
                           for (int i = 0; i < 7; i++)
                             Positioned(
                               left: size.width / 7 * i,
-                              child: EventTiles(events: eventsVM.getEventsOnDay(dayIndex + i), size: Size(size.width / 7, size.height), 
+                              child: EventTiles(events: eventsVM.getEventsOnDay(TimetableVM.getDay(dayIndex + i)), size: Size(size.width / 7, size.height), 
                                 transition: false)),
                         if (pageIsCurrent) IgnorePointer(child: LiveTimeIndicator(size: size))
                       ]);

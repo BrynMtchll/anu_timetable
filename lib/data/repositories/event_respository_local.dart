@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/data/services/local/local_event_service.dart';
 import 'package:anu_timetable/domain/model/event.dart';
+import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/util/result.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:uuid/uuid.dart';
@@ -100,7 +101,7 @@ class EventRespositoryLocal implements EventRepository {
       int e = s + 1 + random.nextInt(5);
       DateTime st = day.add(Duration(hours: s));
       DateTime et = day.add(Duration(hours: e));
-      events.add(Event(ruleId: Uuid().v4(), title: "blah", startDate: st, endDate: et));
+      events.add(Event(ruleId: Uuid().v4(), title: "blah", startDate: st, endDate: et, isAllDay: false, duration: 0));
     }
     return events;
   }
@@ -113,6 +114,18 @@ class EventRespositoryLocal implements EventRepository {
   @override
   Future<Result<List<Event>>> getEvents(List<String> eventIds) {
     // TODO: implement getEvents
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Result<List<EventRule>>> getAllEventRules() {
+    // TODO: implement getAllEventRules
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Result<List<EventRule>>> getEventRules(List<String> eventRuleIds) {
+    // TODO: implement getEventRules
     throw UnimplementedError();
   }
 }

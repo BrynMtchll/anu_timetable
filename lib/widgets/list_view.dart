@@ -73,7 +73,7 @@ class _DayItem extends StatelessWidget {
   Widget build(BuildContext context) {
     DateTime day = TimetableVM.getDay(index);
     ColorScheme colorScheme = ColorScheme.of(context);
-    List<Event> events = eventsVM.getEventsOnDay(index);
+    List<Event> events = eventsVM.getEventsOnDay(day);
     events.sort((a, b) {
       int startOrder = a.startDate.compareTo(b.startDate);
       return startOrder == 0 ? a.endDate.compareTo(b.endDate) : startOrder;

@@ -84,7 +84,7 @@ class _DayItem extends StatelessWidget {
               child: HourLines(size: TimetableLayout.innerSize, pageIsCurrent: pageIsCurrent)),
             Positioned(
               left: TimetableLayout.leftMargin,
-              child:  EventTiles(events: eventsVM.getEventsOnDay(page), size: TimetableLayout.innerSize, transition: transition)),
+              child:  EventTiles(events: eventsVM.getEventsOnDay(day), size: TimetableLayout.innerSize, transition: transition)),
             if (pageIsCurrent) Positioned(
               left: TimetableLayout.leftMargin,
               child: IgnorePointer(child: LiveTimeIndicator(size: TimetableLayout.innerSize))),

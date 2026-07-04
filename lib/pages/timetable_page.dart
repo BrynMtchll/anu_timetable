@@ -25,10 +25,10 @@ void startup(BuildContext context) async {
   // TODO all to view model
   final userVM = context.read<UserVM>();
   await userVM.loadCurrentUser.execute();
-  final eventIds = userVM.currentUser!.eventIds;
-  context.read<UserEventsVM>().loadEvents.execute(eventIds);
+  // final eventRuleIds = userVM.currentUser!.eventRuleIds;
+  // context.read<UserEventsVM>().loadEvents.execute(eventRuleIds, DateTime(DateTime.now().year), DateTime(DateTime.now().year + 1));
 
-  print("hey ${context.read<UserVM>().currentUser?.displayName}");
+  // print("hey ${context.read<UserVM>().currentUser?.displayName}");
 }
 
 class _TimetablePageState extends State<TimetablePage> {
@@ -37,7 +37,6 @@ class _TimetablePageState extends State<TimetablePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       startup(context);
-      
     });
   }
 
