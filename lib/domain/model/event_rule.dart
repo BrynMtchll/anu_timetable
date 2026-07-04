@@ -14,6 +14,16 @@ enum Freq {
       default: throw Error;
     }
   }
+
+  @override
+  String toString() {
+    switch (this) {
+      case Freq.daily: return 'daily';
+      case Freq.weekly: return 'weekly';
+      case Freq.monthly: return 'monthly';
+      case Freq.yearly: return 'yearly';
+    }
+  }
 }
 
 class RecurrencePattern {
@@ -25,10 +35,8 @@ class RecurrencePattern {
   DateTime? until;
   // TODO: will need to assert valid input for byDay and byMonth
   /// tuple (instance, weekday) where weekday is 1 through 7, and instance is the nth occurrence
-  /// in either the the month or year, depending on [Freq].
-  /// If instance is null, then it applies to all occurrences.
-  /// Instance should be null when using with [Freq.weekly].
-  /// be mindful of 1 indexing for weekday here.
+  /// in either the the month or year, depending on [Freq]. If instance is null, then it applies to all occurrences.
+  /// Instance should be null when using with [Freq.weekly]. be mindful of 1 indexing for weekday here.
   List<({int? instance, int weekday})>? byDay = [];
   List<int>? byMonthDay = [];
   List<int>? byYearDay = [];
@@ -52,9 +60,24 @@ class RecurrencePattern {
 
   factory RecurrencePattern.fromFirestore(Map<String, dynamic> recurrence) {
     return RecurrencePattern(freq: Freq.fromString(recurrence['freq']), interval: recurrence['interval'] ?? 1, 
-      count: recurrence['count'], until: recurrence['until'], byDay: recurrence['byDay'], byMonthDay: recurrence['byMonthDay'], 
+      count: recurrence['count'], until: recurrence['until'].toDate(), byDay: recurrence['byDay'], byMonthDay: recurrence['byMonthDay'], 
       byYearDay: recurrence['byYearDay'], bySetPos: recurrence['bySetPos'], byWeek: recurrence['byWeek'], 
       byMonth: recurrence['byMonth']);
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'freq': freq.toString(),
+      'interval': interval,
+      'count': count,
+      'until': until,
+      'byDay': byDay,
+      'byMonthDay': byMonthDay,
+      'byYearDay': byYearDay,
+      'bySetPos': bySetPos,
+      'byWeek': byWeek,
+      'byMonth': byMonth,
+    };
   }
 }
 
@@ -70,6 +93,13 @@ class EventRule {
   final bool isRecurring;
   final RecurrencePattern recurrencePattern;
   final String location;
+  final List<String> userIds;
+
+  get isByDay => recurrencePattern.byDay != null && recurrencePattern.byDay!.isNotEmpty;
+  get isByMonthDay => recurrencePattern.byMonthDay != null && recurrencePattern.byMonthDay!.isNotEmpty;
+  get isByYearDay => recurrencePattern.byYearDay != null && recurrencePattern.byYearDay!.isNotEmpty;
+  get isByWeek => recurrencePattern.byWeek != null && recurrencePattern.byWeek!.isNotEmpty;
+  get isByMonth => recurrencePattern.byMonth != null && recurrencePattern.byMonth!.isNotEmpty;
 
   EventRule({
     required this.id,
@@ -81,14 +111,15 @@ class EventRule {
     required this.isRecurring,
     required this.recurrencePattern,
     required this.location,
+    required this.userIds,
   });
 
   factory EventRule.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
 
-    return EventRule(id: data['id'], title: data['title'], startDate: data['startDate'], endDate: data['endDate'], 
+    return EventRule(id: data['id'], title: data['title'], startDate: data['startDate'].toDate(), endDate: data['endDate'].toDate(), 
       isAllDay: data['isAllDay'], duration: data['duration'], isRecurring: data['isRecurring'],
-      recurrencePattern: RecurrencePattern.fromFirestore(data['recurrence']), location: data['location']);
+      recurrencePattern: RecurrencePattern.fromFirestore(data['recurrencePattern']), location: data['location'], userIds: data['userIds'].cast<String>());
   }
 
   Map<String, dynamic> toMap() {
@@ -100,8 +131,9 @@ class EventRule {
       'isAllDay': isAllDay,
       'duration': duration,
       'isRecurring': isRecurring,
-      'recurrencePattern': recurrencePattern,
-      'location': location
+      'recurrencePattern': recurrencePattern.toMap(),
+      'location': location,
+      'userIds': userIds
     };
   }
 }

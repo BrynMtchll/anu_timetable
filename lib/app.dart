@@ -1,5 +1,5 @@
 import 'package:anu_timetable/data/repositories/event_repository.dart';
-import 'package:anu_timetable/data/repositories/event_respository_local.dart';
+import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
 import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/model/animation.dart';
@@ -59,7 +59,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider(create:(context) => EventRespositoryLocal() as EventRepository),
+        Provider(create:(context) => EventRepositoryFirebase() as EventRepository),
         Provider(create:(context) => UserRepositoryFirebase() as UserRepository),
         ChangeNotifierProvider(create: (context) => CurrentDay()),
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
@@ -69,10 +69,9 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
         ChangeNotifierProvider.value(value: dayViewScrollController),
         ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
-        ChangeNotifierProvider<UserEventsVM>(create: (context) => UserEventsVM(eventRepository: context.read())),
+        ChangeNotifierProvider<UserEventsVM>(create: (context) => UserEventsVM(eventRepository: context.read(), userRepository: context.read())),
         ChangeNotifierProvider<EventVM>(create: (context) => EventVM(eventRepository: context.read())),
-        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read())
-          ..loadCurrentUser.execute())
+        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read()))
       ],
       child: MaterialApp.router(
         title: 'Flutter Demo',

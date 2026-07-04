@@ -128,4 +128,16 @@ class EventRespositoryLocal implements EventRepository {
     // TODO: implement getEventRules
     throw UnimplementedError();
   }
+  
+  @override
+  Future<Result<List<EventRule>>> addEventRules(List<EventRule> eventRules) {
+    // TODO: implement addEventRules
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<Result<EventRule>> addEventRule(EventRule eventRule) {
+    // TODO: implement addEventRule
+    throw UnimplementedError();
+  }
 }

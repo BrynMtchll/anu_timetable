@@ -24,7 +24,6 @@ class EventRepositoryFirebase implements EventRepository {
   @override
   Future<Result<List<EventRule>>> getAllEventRules() async {
     final db = FirebaseFirestore.instance;
-    // await db.collection('users').doc("1").set(User(uid: "1", displayName: "test", email: "").toMap()).onError((error, stackTrace) => print(error),);
     final snapshot = await db.collection('eventRules')
       .withConverter(
         fromFirestore: EventRule.fromFirestore,
@@ -36,13 +35,32 @@ class EventRepositoryFirebase implements EventRepository {
       : Result.ok(eventRules);
   }
 
-  // @override
-  // Future<Result<List<Event>>> getEventRules(DateTime start, DateTime end) {
-  //   final db = FirebaseFirestore.instance;
-
-  //   throw UnimplementedError();
-  // }
+  @override
+  Future<Result<List<EventRule>>> addEventRules(List<EventRule> eventRules) async {
+    final db = FirebaseFirestore.instance;
+    Exception? e;
+    for (final eventRule in eventRules) {
+      await db.collection('eventRules').doc(eventRule.id).set(eventRule.toMap())
+      .onError((error, _) {
+        e = Exception(error);
+      });
+    }
+    return e != null ? Result.error(e!) : Result.ok(eventRules);
+  }
   
+  @override
+  Future<Result<EventRule>> addEventRule(EventRule eventRule) async {
+    print(eventRule.toMap());
+    print(eventRule);
+    final db = FirebaseFirestore.instance;
+    Exception? e;
+      await db.collection('eventRules').doc(eventRule.id).set(eventRule.toMap())
+      .onError((error, _) {
+        e = Exception(error);
+      });
+    return e != null ? Result.error(e!) : Result.ok(eventRule);
+  }
+
   @override
   Future<Result<List<Event>>> getAllEvents() {
     // TODO: implement getEvent

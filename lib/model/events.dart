@@ -1,4 +1,5 @@
 import 'package:anu_timetable/data/repositories/event_repository.dart';
+import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/model/timetable.dart';
@@ -9,13 +10,16 @@ import 'package:flutter/material.dart';
 
 class UserEventsVM extends ChangeNotifier {
   final EventRepository _eventRepository;
+  final UserRepository _userRepository;
   late Command3<void, List<String>, DateTime, DateTime> loadEvents;
+  late Command1<void, List<EventRule>> addEventRules;
 
-  UserEventsVM({required EventRepository eventRepository})
-    : _eventRepository = eventRepository {
+  UserEventsVM({required UserRepository userRepository, required EventRepository eventRepository})
+    : _eventRepository = eventRepository, _userRepository = userRepository {
     loadEvents = Command3(_loadEvents);
+    addEventRules = Command1(_addEventRules);
   }
-  Map<DateTime, List<Event>> _events = {};
+  final Map<DateTime, List<Event>> _events = {};
 
   Event _genEventFromRecurrence(EventRule eventRule, int dayOffset) {
     /// could alternatively use duration property?
@@ -25,154 +29,175 @@ class UserEventsVM extends ChangeNotifier {
       endDate: endDate, isAllDay: eventRule.isAllDay, duration: eventRule.duration);
   }
 
+  Future<Result> _addEventRules(List<EventRule> eventRules) async {
+    try {
+      for (final eventRule in eventRules) {
+        final result = await _eventRepository.addEventRule(eventRule);
+        switch(result) {
+          case Ok<EventRule>():
+            for (final userId in eventRule.userIds) {
+              final resultAddUser = await _userRepository.addEventRuleToUser(userId, eventRule.id);
+              switch(resultAddUser) {
+                case Ok<void>():
+                  break;
+                case Error<void>():
+                  throw resultAddUser.error;
+              }
+            }
+          case Error<EventRule>():
+            throw result.error;
+        }
+      }
+      return Result.ok(null);
+    } finally {
+      notifyListeners();
+    }
+  }
+
   void _addEvent(Event event) {
     DateTime day = TimetableVM.dateWithoutTime(event.startDate);
-        if (!_events.containsKey(day)) {
-          _events[day] = [event];
+    if (!_events.containsKey(day)) {
+      _events[day] = [event];
+    }
+    else if (!_events[day]!.contains(event)) {
+      _events[day]!.add(event);
+    }
+  }
+
+  void _expandDailyEvent(num count, int interval, EventRule eventRule, DateTime from, DateTime to) {
+    for (int i = 0; i < count; i++) {
+      final dayOffset = i*interval;
+      final event = _genEventFromRecurrence(eventRule, dayOffset);
+      _addEvent(event);
+    }
+  }
+
+  void _expandWeeklyEvent(num count, int interval, EventRule eventRule, DateTime from, DateTime to) {
+    /// if byDay is not set, then the event occurs on the same day of the week as the startDate
+    if (eventRule.recurrencePattern.byDay == null) {
+      for (int i = 0; i < count; i++) {
+        final dayOffset = i*7*interval;
+        final event = _genEventFromRecurrence(eventRule, dayOffset);
+        if (event.startDate.isBefore(from)) continue;
+        if (event.endDate.isAfter(to)) break;
+        _addEvent(event);
+      }
+    }
+    /// otherwise event occurs on each weekday specified in byDay between startDate and endDate.
+    else {
+      int weekOffset = 0;
+      int currCount = 0;
+      DateTime weekStart = eventRule.endDate.firstDayOfWeek().add(Duration(days: weekOffset*7));
+      while (currCount < count && !weekStart.isAfter(eventRule.recurrencePattern.until!) && !weekStart.isAfter(to)) {
+        for (final byDay in eventRule.recurrencePattern.byDay!) {
+          if (currCount == count) break;
+          /// TODO: raise warning if byDay.instance is not null.
+          final dayOffset = weekOffset*7 + byDay.weekday - eventRule.startDate.weekday;
+          final event = _genEventFromRecurrence(eventRule, dayOffset);
+          if (event.startDate.isBefore(from) || event.endDate.isAfter(to)) continue;
+          _addEvent(event);
+          currCount++;
         }
-        else if (!_events[day]!.contains(event)) {
-          _events[day]!.add(event);
+        weekOffset += 1*interval;
+      }
+    }
+  }
+
+  bool _common(DateTime day, EventRule eventRule, DateTime from, DateTime to, List<int> currInstance, int currCount) {
+    final dayOffset = eventRule.startDate.getDayDifference(day);
+    final event = _genEventFromRecurrence(eventRule, dayOffset);
+    if (event.startDate.isBefore(from)) return false;
+    if (event.endDate.isAfter(to)) return true;
+    if (eventRule.recurrencePattern.byDay != null) {
+      for (int i = 0; i < eventRule.recurrencePattern.byDay!.length; i++) {
+        final byDay = eventRule.recurrencePattern.byDay![i];
+        if (byDay.weekday == day.weekday) {
+          if (currInstance[i] == byDay.instance) {
+            _addEvent(event);
+            currCount++;
+          } 
+          currInstance[i]++;
         }
+        if (currCount == eventRule.recurrencePattern.count) return false;
+      }
+    }
+    else {
+      _addEvent(event);
+      currCount++;
+    }
+    return false;
+  }
+
+  void _expandMonthlyEvent(num count, int interval, EventRule eventRule, DateTime from, DateTime to) {
+    int currCount = 0;
+    RecurrencePattern recurrence = eventRule.recurrencePattern;
+    DateTime day = eventRule.startDate.withoutTime;
+    List<int> currInstance = List.filled(recurrence.byDay?.length ?? 0, 1);
+
+    while(currCount < count && day.isBefore(recurrence.until!) && day.isBefore(to)) {
+      if (day.day == 1) {
+        currInstance = List.filled(recurrence.byDay?.length ?? 0, 1);
+      }
+
+      if ((eventRule.isByMonthDay && !recurrence.byMonthDay!.contains(day.day))) {
+        day = day.add(Duration(days: 1));
+        continue;
+      }
+      _common(day, eventRule, from, to, currInstance, currCount);
+    }
+  }
+
+  void _expandYearlyEvent(num count, int interval, EventRule eventRule, DateTime from, DateTime to) {
+    int currCount = 0;
+    RecurrencePattern recurrence = eventRule.recurrencePattern;
+    DateTime day = eventRule.startDate.withoutTime;
+    List<int> currInstance = List.filled(recurrence.byDay?.length ?? 0, 1);
+
+    while(currCount < count && day.isBefore(recurrence.until!) && day.isBefore(to)) {
+      if (day.month == 1 && day.day == 1) {
+        currInstance = List.filled(recurrence.byDay?.length ?? 0, 1);
+      }
+      if (eventRule.isByMonth && !recurrence.byMonth!.contains(day.month)) {
+        day = DateTime(day.year, day.month + 1, 1);
+        continue;
+      }
+      int yearDay = day.getDayDifference(DateTime.utc(day.year)) + 1;
+
+      if ((eventRule.isByMonthDay && !recurrence.byMonthDay!.contains(day.day))
+        || (eventRule.isByYearDay && !recurrence.byYearDay!.contains(yearDay))) {
+        day = day.add(Duration(days: 1));
+        continue;
+      }
+      _common(day, eventRule, from, to, currInstance, currCount);
+    }
   }
 
   /// possibly expensive expanding all events for each query if they fall within the window, rather than memoising.
   /// but otherwise would need logic to resume expansion from previous query in the case of infinitely recurring events
   /// which cannot be fully expanded. Or maybe could mark those specifically as infinite? But also might have events that 
   /// aren't infinite but repeat every day for a hundred years.
+  /// TODO: something about duration, 
   void _expandEventRules(List<EventRule> eventRules, DateTime from, DateTime to) {
+    print("expanding event rules from $from to $to");
     for (final EventRule eventRule in eventRules) {
       if (eventRule.recurrencePattern.until!.isBefore(from) || eventRule.startDate.isAfter(to)) continue;
       if (!eventRule.isRecurring) {
-        // TODO: check about using local? what if overseas checking timetable, might need to always be anu local.
-        Event event = Event(ruleId: eventRule.id, title: eventRule.title, startDate: eventRule.startDate,
-          endDate: eventRule.endDate, isAllDay: eventRule.isAllDay, duration: eventRule.duration);
+        final event = _genEventFromRecurrence(eventRule, 0);
         _addEvent(event);
       }
       else {
         final count = eventRule.recurrencePattern.count ?? 1e9;
         final interval = eventRule.recurrencePattern.interval;
         switch (eventRule.recurrencePattern.freq) {
-          case Freq.daily: {
-            for (int i = 0; i < count; i++) {
-              final dayOffset = i*interval;
-              final event = _genEventFromRecurrence(eventRule, dayOffset);
-              if (event.startDate.isBefore(from) || event.endDate.isAfter(to)) continue;
-              _addEvent(event);
-            }
-          }
+          case Freq.daily: _expandDailyEvent(count, interval, eventRule, from, to);
           case Freq.weekly: {
-            /// if byDay is not set, then the event occurs on the same day of the week as the startDate
-            if (eventRule.recurrencePattern.byDay == null) {
-              for (int i = 0; i < count; i++) {
-                final dayOffset = i*7*interval;
-                final event = _genEventFromRecurrence(eventRule, dayOffset);
-                if (event.startDate.isBefore(from) || event.endDate.isAfter(to)) continue;
-                _addEvent(event);
-              }
-            }
-            /// otherwise event occurs on each weekday specified in byDay between startDate and endDate.
-            else {
-              int weekOffset = 0;
-              int currCount = 0;
-              DateTime weekStart = eventRule.endDate.firstDayOfWeek().add(Duration(days: weekOffset*7));
-              while (currCount < count && !weekStart.isAfter(eventRule.recurrencePattern.until!) && !weekStart.isAfter(to)) {
-                for (final byDay in eventRule.recurrencePattern.byDay!) {
-                  if (currCount == count) break;
-                  /// TODO: raise warning if byDay.instance is not null.
-                  final dayOffset = weekOffset*7 + byDay.weekday - eventRule.startDate.weekday;
-                  final event = _genEventFromRecurrence(eventRule, dayOffset);
-                  if (event.startDate.isBefore(from) || event.endDate.isAfter(to)) continue;
-                  _addEvent(event);
-                  currCount++;
-                }
-                weekOffset += 1*interval;
-              }
-            }
+              _expandWeeklyEvent(count, interval, eventRule, from, to);
           }
           case Freq.monthly: {
-            int monthOffset = 0;
-            int currCount = 0;
-            DateTime monthStart = DateTime(eventRule.startDate.year, eventRule.startDate.month);
-
-            while (monthStart.isBefore(eventRule.recurrencePattern.until!) && currCount < count && monthStart.isBefore(to)) {
-              List<int> currInstance = List.filled(eventRule.recurrencePattern.byDay?.length ?? 0, 1);
-
-              for (int monthDay = 1; monthDay <= 31; monthDay++) {
-                if ((monthOffset == 0 && monthDay < eventRule.startDate.day)
-                  || (eventRule.recurrencePattern.byMonthDay != null && !eventRule.recurrencePattern.byMonthDay!.contains(monthDay))
-                  || (DateTime(monthStart.year, monthStart.month + 1, 0).isBefore(DateTime(monthStart.year, monthStart.month, monthStart.day + monthDay)))) {
-                  continue;
-                }
-
-                DateTime day = monthStart.add(Duration(days: monthDay));
-                // careful about hours here, should be fine since day should have same time as startDate
-                final dayOffset = eventRule.startDate.getDayDifference(day);
-                final event = _genEventFromRecurrence(eventRule, dayOffset);
-                if (event.startDate.isBefore(from) || event.endDate.isAfter(to)) continue;
-                if (eventRule.recurrencePattern.byDay != null) {
-                  for (int i = 0; i < eventRule.recurrencePattern.byDay!.length; i++) {
-                    final byDay = eventRule.recurrencePattern.byDay![i];
-                    if (byDay.weekday == day.weekday) {
-                      if (currInstance[i] == byDay.instance) {
-                        _addEvent(event);
-                        currCount++;
-                      } 
-                      currInstance[i]++;
-                    }
-                  }
-                }
-                else {
-                  _addEvent(event);
-                  currCount++;
-                }
-              }
-              monthOffset++;
-              monthStart = DateTime(monthStart.year, monthStart.month + 1);
-            }
+            _expandMonthlyEvent(count, interval, eventRule, from, to);
           }
           case Freq.yearly: {
-            int yearOffset = 0;
-            int currCount = 0;
-            DateTime yearStart = DateTime(eventRule.startDate.year);
-            while (yearStart.isBefore(eventRule.recurrencePattern.until!) && currCount < count && yearStart.isBefore(to)) {
-              List<int> currInstance = List.filled(eventRule.recurrencePattern.byDay?.length ?? 0, 1);
-
-              for (int month = 1; month <= 12; month++) {
-                if ((yearOffset == 0 && month < eventRule.startDate.month)
-                  || (eventRule.recurrencePattern.byMonth != null && !eventRule.recurrencePattern.byMonth!.contains(month))) {
-                  continue;
-                }
-                DateTime monthStart = DateTime(yearStart.year, month);
-                for (int monthDay = 1; monthDay <= 31; monthDay++) {
-                  if ((yearOffset == 0 && month == eventRule.startDate.month && monthDay < eventRule.startDate.day)
-                    || (eventRule.recurrencePattern.byMonthDay != null && !eventRule.recurrencePattern.byMonthDay!.contains(monthDay))
-                    || (eventRule.recurrencePattern.byYearDay != null && !eventRule.recurrencePattern.byYearDay!.contains(yearStart.getDayDifference(monthStart.add(Duration(days: monthDay))) + 1))
-                    || (DateTime(monthStart.year, monthStart.month + 1, 0).isBefore(DateTime(monthStart.year, monthStart.month, monthStart.day + monthDay)))) {
-                    continue;
-                  }
-                  DateTime day = monthStart.add(Duration(days: monthDay));
-                  final dayOffset = eventRule.startDate.getDayDifference(day);
-                  final event = _genEventFromRecurrence(eventRule, dayOffset);
-                  if (event.startDate.isBefore(from) || event.endDate.isAfter(to)) continue;
-                  if (eventRule.recurrencePattern.byDay != null) {
-                  for (int i = 0; i < eventRule.recurrencePattern.byDay!.length; i++) {
-                    final byDay = eventRule.recurrencePattern.byDay![i];
-                    if (byDay.weekday == day.weekday) {
-                      if (currInstance[i] == byDay.instance) {
-                        _addEvent(event);
-                        currCount++;
-                      } 
-                      currInstance[i]++;
-                    }
-                  }
-                }
-                else {
-                  _addEvent(event);
-                  currCount++;
-                }
-                }
-              }
-            }
+            _expandYearlyEvent(count, interval, eventRule, from, to);
           }
         }
       }
@@ -180,23 +205,13 @@ class UserEventsVM extends ChangeNotifier {
   }
 
   // wipe events when expanding rules?
-  // store range queryable? complex to maintain... or store sorted 
+  // store range queryable? complex to maintain... or store sorted
 
   Future<Result> _loadEvents(List<String> eventRuleIds, DateTime from, DateTime to) async {
     try {
       final result = await _eventRepository.getEventRules(eventRuleIds);
       switch(result) {
         case Ok<List<EventRule>>():
-          // for (final event in result.value) {
-          //   int dayIndexStart = TimetableVM.getDayIndex(event.startTime);
-          //   int dayIndexEnd = TimetableVM.getDayIndex(event.endTime);
-          //   if (_events.dayIndex)
-
-          //   if (dayIndexStart != dayIndexEnd) {
-          //     _events
-          //   }
-          // }
-
           _expandEventRules(result.value, from, to);
           return result;
         case Error<List<EventRule>>():
@@ -205,7 +220,6 @@ class UserEventsVM extends ChangeNotifier {
     } finally {
       notifyListeners();
     }
-    
   }
 
   Map<DateTime, List<Event>> getEvents() {
@@ -220,78 +234,4 @@ class UserEventsVM extends ChangeNotifier {
     DateTime dayWithoutTime = TimetableVM.dateWithoutTime(day);
     return _events.containsKey(dayWithoutTime) ? _events[dayWithoutTime]! : [];
   }
-
-  // List<Event> getEventsOnDay(int dayIndex) {
-  //   if (_events.containsKey(dayIndex)) {
-  //     return _events[dayIndex]!;
-  //   }
-  //   // TODO: log error
-  //   print("no event found!");
-  //   DateTime day = TimetableVM.getDay(dayIndex);
-  //   loadYear.execute(DateTime(day.year));
-  //   return [];
-  // }
-  // List<List<Event>> getEventsOnWeek(int weekIndex) {
-  //   List<List<Event>> weekEvents = [];
-  //   DateTime week = TimetableVM.getWeek(weekIndex);
-  //   int dayIndex = TimetableVM.getDayIndex(week);
-  //   for (int weekdayIndex = dayIndex; weekdayIndex < dayIndex + 7; weekdayIndex++) {
-  //     if (_events.containsKey(weekdayIndex)) {
-  //       weekEvents.add(_events[weekdayIndex]!);
-  //     }
-  //     else {
-  //       // TODO: log error
-  //       weekEvents.add([]);
-  //     }
-  //   }
-  //   return [];
-  // }
-
-  // Future<Result> _loadDay(DateTime day) async {
-  //   int i = TimetableVM.getDayIndex(day);
-  //   try {
-  //     final resultLoadDay = await _eventRepository.getEventsOnDay(day);
-  //     switch(resultLoadDay) {
-  //       case Ok<List<Event>>():
-  //         _events[i] = resultLoadDay.value;
-  //       case Error<List<Event>>():
-  //     }
-  //     return resultLoadDay;
-  //   } finally {
-  //     notifyListeners();
-  //   }
-  // }
-
-  // Future<Result> _loadWeek(DateTime week) async {
-  //   int dayIndex = TimetableVM.getDayIndex(week);
-  //   try {
-  //     final resultLoadWeek = await _eventRepository.getEventsOnWeek(week);
-  //     switch(resultLoadWeek) {
-  //       case Ok<List<List<Event>>>():
-  //         for (final (i, e) in resultLoadWeek.value.indexed) {
-  //           _events[dayIndex + i] = e;
-  //         }
-  //       case Error<List<List<Event>>>():
-  //     }
-  //     return resultLoadWeek;
-  //   } finally {
-  //     notifyListeners();
-  //   }
-  // }
-  // Future<Result> _loadYear(DateTime year) async {
-  //   int dayIndex = TimetableVM.getDayIndex(year);
-  //   try {
-  //     final resultLoadYear = await _eventRepository.getEventsOnYear(year);
-  //     switch(resultLoadYear) {
-  //       case Ok<List<List<Event>>>():
-  //         for (final (i, e) in resultLoadYear.value.indexed) {
-  //           _events[dayIndex + i] = e;
-  //         }
-  //       case Error<List<List<Event>>>():
-  //     }
-  //     return resultLoadYear;
-  //   } finally {
-  //     notifyListeners();
-  //   }
-  // }
 }

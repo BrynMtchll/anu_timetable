@@ -2,7 +2,6 @@ import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 
 class UserVM extends ChangeNotifier {
@@ -20,13 +19,11 @@ class UserVM extends ChangeNotifier {
   
   User? currentUser;
 
-  Future<Result> _signInWithGoogle() async {
+  Future<Result<void>> _signInWithGoogle() async {
     final result = await _userRepository.signInWithGoogle();
     switch(result) {
       case Ok():
         currentUser = result.value;
-        print(currentUser == null ? "current user is null" : "current user is not null");
-        print(firebase_auth.FirebaseAuth.instance.currentUser);
         notifyListeners();
         return result;
       case Error():
@@ -34,17 +31,20 @@ class UserVM extends ChangeNotifier {
     }
   }
 
-  Future<Result> _loadCurrentUser() async {
-    notifyListeners();
+  Future<Result<void>> _loadCurrentUser() async {
     final result = await _userRepository.getCurrentUser();
+    print(result);
     switch(result) {
       case Ok():
         currentUser = result.value;
+        print("current user loaded");
+        notifyListeners();
       case Error():
-      currentUser = null;
-        return Result.error(result.error);
+        currentUser = null;
+        print(result.error);
+        notifyListeners();
+        return result;
     }
-    notifyListeners();
-    return Result.ok(currentUser);
+    return Result.ok(null);
   }
 }

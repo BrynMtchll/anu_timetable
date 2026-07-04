@@ -1,7 +1,6 @@
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
-import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/widgets/event_list_item.dart';
 import 'package:flutter/material.dart';

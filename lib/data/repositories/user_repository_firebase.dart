@@ -20,14 +20,13 @@ class UserRepositoryFirebase implements UserRepository {
   @override
   Future<Result<User>> getUser(String uid) async {
     final db = FirebaseFirestore.instance;
-    // await db.collection('users').doc("1").set(User(uid: "1", displayName: "test", email: "").toMap()).onError((error, stackTrace) => print(error),);
-    // final snapshot = await db.collection('users').doc(uid).delete();
     final snapshot = await db.collection('users').doc(uid)
       .withConverter(
         fromFirestore: User.fromFirestore,
         toFirestore: (user, _) => user.toMap())
       .get();
     final user = snapshot.data();
+    print ("user: $user");
     return user == null
       ? Result.error(Exception("User not found"))
       : Result.ok(user);
@@ -36,9 +35,7 @@ class UserRepositoryFirebase implements UserRepository {
   @override
   Future<Result<User>> addNewUser(firebase_auth.UserCredential userCredential) async {
     final db = FirebaseFirestore.instance;
-    print("adding new user");
     User user = User.fromAuth(userCredential: userCredential);
-    // TODO: handle error
     Exception? e;
     await db.collection('users').doc(user.uid).set(user.toMap())
     .onError((error, _) {
@@ -55,6 +52,29 @@ class UserRepositoryFirebase implements UserRepository {
       return Future.value(Result.error(Exception("No user currently signed in")));
     }
     final uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+    print(uid);
     return await getUser(uid);
+  }
+  
+  @override
+  Future<Result<void>> addEventRuleToUser(String userId, String eventRuleId) async {
+    final db = FirebaseFirestore.instance;
+    Exception? e;
+    final userRef = db.collection('users').doc(userId)
+      .withConverter(
+        fromFirestore: User.fromFirestore,
+        toFirestore: (user, _) => user.toMap());
+    await db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(userRef);
+      final user = snapshot.data();
+      if (user == null) {
+        throw Exception("User not found");
+      }
+      user.eventRuleIds.add(eventRuleId);
+      transaction.update(userRef, user.toMap());
+    }).onError((error, _) {
+      e = Exception(error);
+    });
+    return e != null ? Result.error(e!) : Result.ok(null);
   }
 }

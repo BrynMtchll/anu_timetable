@@ -54,7 +54,10 @@ abstract class Command<T> extends ChangeNotifier {
   Future<void> _execute(CommandAction0<T> action) async {
     // Ensure the action can't launch multiple times.
     // e.g. avoid multiple taps on button
-    if (_running) return;
+    if (_running) {
+      print("Command is already running, ignoring execute call");
+      return;
+    };
 
     // Notify listeners.
     // e.g. button shows loading state
