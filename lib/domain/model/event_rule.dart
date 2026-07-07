@@ -21,7 +21,7 @@ enum Freq {
       case Freq.daily: return 'daily';
       case Freq.weekly: return 'weekly';
       case Freq.monthly: return 'monthly';
-      case Freq.yearly: return 'yearly';
+        case Freq.yearly: return 'yearly';
     }
   }
 }
@@ -33,11 +33,11 @@ class RecurrencePattern {
   int? count;
   /// must be careful that one of until and count are set
   DateTime? until;
-  // TODO: will need to assert valid input for byDay and byMonth
+  // TODO: will need to assert valid input for byWeekday and byMonth
   /// tuple (instance, weekday) where weekday is 1 through 7, and instance is the nth occurrence
   /// in either the the month or year, depending on [Freq]. If instance is null, then it applies to all occurrences.
   /// Instance should be null when using with [Freq.weekly]. be mindful of 1 indexing for weekday here.
-  List<({int? instance, int weekday})>? byDay = [];
+  List<({int? instance, int weekday})>? byWeekday = [];
   List<int>? byMonthDay = [];
   List<int>? byYearDay = [];
   List<int>? bySetPos = [];
@@ -50,7 +50,7 @@ class RecurrencePattern {
     required this.interval,
     this.count,
     this.until,
-    this.byDay,
+    this.byWeekday,
     this.byMonthDay,
     this.byYearDay,
     this.bySetPos,
@@ -60,7 +60,7 @@ class RecurrencePattern {
 
   factory RecurrencePattern.fromFirestore(Map<String, dynamic> recurrence) {
     return RecurrencePattern(freq: Freq.fromString(recurrence['freq']), interval: recurrence['interval'] ?? 1, 
-      count: recurrence['count'], until: recurrence['until'].toDate(), byDay: recurrence['byDay'], byMonthDay: recurrence['byMonthDay'], 
+      count: recurrence['count'], until: recurrence['until'].toDate(), byWeekday: recurrence['byWeekday'], byMonthDay: recurrence['byMonthDay'], 
       byYearDay: recurrence['byYearDay'], bySetPos: recurrence['bySetPos'], byWeek: recurrence['byWeek'], 
       byMonth: recurrence['byMonth']);
   }
@@ -71,13 +71,48 @@ class RecurrencePattern {
       'interval': interval,
       'count': count,
       'until': until,
-      'byDay': byDay,
+      'byWeekday': byWeekday,
       'byMonthDay': byMonthDay,
       'byYearDay': byYearDay,
       'bySetPos': bySetPos,
       'byWeek': byWeek,
       'byMonth': byMonth,
     };
+  }
+
+  bool get isByWeekday => byWeekday != null && byWeekday!.isNotEmpty;
+  bool get isByMonthDay => (freq == Freq.yearly || freq == Freq.monthly) && byMonthDay != null && byMonthDay!.isNotEmpty;
+  bool get isByYearDay => freq == Freq.yearly && byYearDay != null && byYearDay!.isNotEmpty;
+  bool get isByWeek => freq == Freq.yearly && byWeek != null && byWeek!.isNotEmpty;
+  bool get isByMonth => freq == Freq.yearly && byMonth != null && byMonth!.isNotEmpty;
+
+  bool get isFirstDayPeriodic => !isByWeekday && !isByMonthDay && !isByYearDay;
+
+  bool isPeriodStart(DateTime day, DateTime firstDay) {
+    switch (freq) {
+      case Freq.daily: return true;
+      case Freq.weekly: return day.weekday == firstDay.weekday;
+      case Freq.monthly: return day.day == 1;
+      case Freq.yearly: return day.day == 1 && day.month == 1;
+    }
+  }
+
+  DateTime periodStart(DateTime day) {
+    switch (freq) {
+      case Freq.daily: return(DateTime.utc(day.year, day.month, day.day));
+      case Freq.weekly: return(DateTime.utc(day.year, day.month, day.day));
+      case Freq.monthly: return(DateTime.utc(day.year, day.month));
+      case Freq.yearly: return(DateTime.utc(day.year));
+    }
+  }
+
+  DateTime nextPeriod(DateTime day) {
+    switch (freq) {
+      case Freq.daily: return(DateTime.utc(day.year, day.month, day.day + 1));
+      case Freq.weekly: return(DateTime.utc(day.year, day.month, day.day + 7));
+      case Freq.monthly: return(DateTime.utc(day.year, day.month + 1));
+      case Freq.yearly: return(DateTime.utc(day.year + 1));
+    }
   }
 }
 
@@ -94,12 +129,6 @@ class EventRule {
   final RecurrencePattern recurrencePattern;
   final String location;
   final List<String> userIds;
-
-  get isByDay => recurrencePattern.byDay != null && recurrencePattern.byDay!.isNotEmpty;
-  get isByMonthDay => recurrencePattern.byMonthDay != null && recurrencePattern.byMonthDay!.isNotEmpty;
-  get isByYearDay => recurrencePattern.byYearDay != null && recurrencePattern.byYearDay!.isNotEmpty;
-  get isByWeek => recurrencePattern.byWeek != null && recurrencePattern.byWeek!.isNotEmpty;
-  get isByMonth => recurrencePattern.byMonth != null && recurrencePattern.byMonth!.isNotEmpty;
 
   EventRule({
     required this.id,

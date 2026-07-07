@@ -23,7 +23,6 @@ class TimetablePage extends StatefulWidget {
   State<TimetablePage> createState() => _TimetablePageState();
 }
 
-
 void startup(BuildContext context) async {
   // TODO all to view model
   final userVM = context.read<UserVM>();
