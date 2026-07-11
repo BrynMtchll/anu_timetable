@@ -14,7 +14,7 @@ class EventItem extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        context.push("/timetable/event/${event.ruleId}");
+        context.push("/event/${event.id}", extra: event);
       },
       child: ShaderMask(
         shaderCallback: (Rect bounds) => eventTileShader(bounds),
@@ -25,25 +25,29 @@ class EventItem extends StatelessWidget {
           margin: EdgeInsets.only(bottom: 6),
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           width: double.infinity,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
-                    event.title),
-                  Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant),
-                    "Hey"),
-                ]),
-            Column(
+          child: LayoutBuilder(
+            builder:(context, constraints) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(DateFormat("hh:mma").format(event.startDate),
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
-                Text(DateFormat("hh:mma").format(event.endDate),
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
-              ])
-            ])),
-      ));
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                      event.title),
+                    SizedBox(
+                      width: constraints.maxWidth - 60,
+                      child: Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant, overflow: TextOverflow.fade),
+                        overflow: TextOverflow.visible, maxLines: 1, event.summary)),
+                  ]),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(DateFormat("hh:mma").format(event.startDate),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
+                    Text(DateFormat("hh:mma").format(event.endDate),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
+                  ])
+              ])))));
   }
 }

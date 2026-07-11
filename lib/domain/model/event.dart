@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Event {
-  late String ruleId;
+  late String id;
   final String title;
+  final String? key;
+  final String summary;
+  final String description;
   final DateTime startDate;
   final DateTime endDate;
   final bool isAllDay;
@@ -10,8 +11,11 @@ class Event {
   final String? location;
 
   Event({
-    required this.ruleId,
+    required this.id,
     required this.title,
+    required this.key,
+    required this.summary,
+    required this.description,
     required this.startDate,
     required this.endDate,
     required this.isAllDay,

@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class UserRepositoryFirebase implements UserRepository {
+  User? currentUser;
+  
   @override
   Future<Result<User>> signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
@@ -36,15 +38,15 @@ class UserRepositoryFirebase implements UserRepository {
   Future<Result<User>> addNewUser(firebase_auth.UserCredential userCredential) async {
     final db = FirebaseFirestore.instance;
     User user = User.fromAuth(userCredential: userCredential);
-    Exception? e;
-    await db.collection('users').doc(user.uid).set(user.toMap())
-    .onError((error, _) {
-      e = Exception(error);
-    });
-    return e != null ? Result.error(e!) : Result.ok(user);
+    try {
+      await db.collection('users').doc(user.uid).set(user.toMap());
+      return Result.ok(user);
+    } 
+    catch(e) {
+      return Result.error(Exception(e));
+    }
   }
   
-  // TODO: consider moving to view model and find a way to do with just one request.
   @override
   Future<Result<User>> getCurrentUser() async {
     final authUser = firebase_auth.FirebaseAuth.instance.currentUser;
@@ -55,26 +57,42 @@ class UserRepositoryFirebase implements UserRepository {
     print(uid);
     return await getUser(uid);
   }
+
+  @override
+  Future<Result<void>> addEventRulesToUser(String userId, Set<String> eventRuleKeys) async {
+    final db = FirebaseFirestore.instance;
+    try {
+      final userRef = db.collection('users').doc(userId)
+        .withConverter(
+          fromFirestore: User.fromFirestore,
+          toFirestore: (user, _) => user.toMap());
+      await db.runTransaction((transaction) async {
+        final snapshot = await transaction.get(userRef);
+        final user = snapshot.data();
+        if (user == null) {
+          throw Exception("User not found");
+        }
+        user.eventRuleKeys.addAll(eventRuleKeys);
+        transaction.update(userRef, user.toMap());
+      });
+      return Result.ok(null);
+    }
+    catch (e) {
+      return Result.error(Exception(e));
+    }
+  }
   
   @override
-  Future<Result<void>> addEventRuleToUser(String userId, String eventRuleId) async {
+  Future<Result> addUserToGroup(User user, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
-    Exception? e;
-    final userRef = db.collection('users').doc(userId)
-      .withConverter(
-        fromFirestore: User.fromFirestore,
-        toFirestore: (user, _) => user.toMap());
-    await db.runTransaction((transaction) async {
-      final snapshot = await transaction.get(userRef);
-      final user = snapshot.data();
-      if (user == null) {
-        throw Exception("User not found");
+    try {
+      for (final key in keys) {
+        await db.collection('groups').doc(key).collection('members').doc(user.uid).set({"userId": user.uid});
       }
-      user.eventRuleIds.add(eventRuleId);
-      transaction.update(userRef, user.toMap());
-    }).onError((error, _) {
-      e = Exception(error);
-    });
-    return e != null ? Result.error(e!) : Result.ok(null);
+      return Result.ok(null);
+    }
+    catch (e) {
+      return Result.error(Exception(e));
+    }
   }
 }

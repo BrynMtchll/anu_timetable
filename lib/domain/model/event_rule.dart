@@ -1,6 +1,8 @@
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:enough_icalendar/enough_icalendar.dart';
+import 'package:uuid/uuid.dart';
 
 enum Freq {
   daily, weekly, monthly, yearly;
@@ -57,6 +59,10 @@ class RecurrencePattern {
     this.byWeek,
     this.byMonth,
   });
+
+  // factory RecurrencePattern.fromIcs(String icsStr) {
+
+  // }
 
   factory RecurrencePattern.fromFirestore(Map<String, dynamic> recurrence) {
     return RecurrencePattern(freq: Freq.fromString(recurrence['freq']), interval: recurrence['interval'] ?? 1, 
@@ -118,7 +124,16 @@ class RecurrencePattern {
 
 class EventRule {
   final String id;
+  /// For eventRules that belong to the same rule.
+  /// They should be the same rule but rule inference is too much effort
+  /// right now when converting from the ics file that MyTimetable provides.
+  /// the description is used as the key.
+  /// Using a key means group membership doesn't need to be duplicated for
+  /// every event instance.
+  final String? key;
   final String title;
+  final String summary;
+  final String description;
   final DateTime startDate;
   /// referring to when an event instance finishes, not the last event occurence, 
   /// which is rather referred to by [RecurrencePattern.until]
@@ -126,13 +141,15 @@ class EventRule {
   final bool isAllDay;
   final int duration;
   final bool isRecurring;
-  final RecurrencePattern recurrencePattern;
+  final RecurrencePattern? recurrencePattern;
   final String location;
-  final List<String> userIds;
 
   EventRule({
     required this.id,
+    required this.key,
     required this.title,
+    required this.summary,
+    required this.description,
     required this.startDate,
     required this.endDate,
     required this.isAllDay,
@@ -140,29 +157,62 @@ class EventRule {
     required this.isRecurring,
     required this.recurrencePattern,
     required this.location,
-    required this.userIds,
   });
+
+  /// a list of events of the same class (since ANU provides them as individual events
+  /// rather than as a rule). The rule must be inferred.
+  /// Most typically will be weekly, but can also be multi weekly or fortnightly.
+  /// TODO: kicking rule inference down the road, events will be individual for now
+  /// TODO: duration is a dummy property too.
+  factory EventRule.fromIcs(VEvent icsEvent) {
+    return EventRule(
+      id: Uuid().v4(),
+      key: icsEvent.description!,
+      title: icsEvent.description!.substring(0, 8),
+      summary: icsEvent.summary!,
+      description: icsEvent.description!,
+      startDate: icsEvent.start!.toUtc(),
+      endDate: icsEvent.end!.toUtc(),
+      isAllDay: icsEvent.isAllDayEvent ?? false,
+      duration: 0,
+      isRecurring: false,
+      recurrencePattern: null,
+      location: icsEvent.location!,
+    );
+  }
 
   factory EventRule.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
 
-    return EventRule(id: data['id'], title: data['title'], startDate: data['startDate'].toDate(), endDate: data['endDate'].toDate(), 
-      isAllDay: data['isAllDay'], duration: data['duration'], isRecurring: data['isRecurring'],
-      recurrencePattern: RecurrencePattern.fromFirestore(data['recurrencePattern']), location: data['location'], userIds: data['userIds'].cast<String>());
+    return EventRule(
+      id: data['id'], 
+      key: data['key'],
+      title: data['title'], 
+      summary: data['summary'], 
+      description: data['description'], 
+      startDate: data['startDate'].toDate(), 
+      endDate: data['endDate'].toDate(), 
+      isAllDay: data['isAllDay'], 
+      duration: data['duration'], 
+      isRecurring: data['isRecurring'],
+      recurrencePattern: data['recurrencePattern'] == null ? null : RecurrencePattern.fromFirestore(data['recurrencePattern']), 
+      location: data['location']);
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
+      'key': key,
       'title': title,
+      'summary': summary,
+      'description': description,
       'startDate': startDate,
       'endDate': endDate, 
       'isAllDay': isAllDay,
       'duration': duration,
       'isRecurring': isRecurring,
-      'recurrencePattern': recurrencePattern.toMap(),
+      'recurrencePattern': recurrencePattern?.toMap(),
       'location': location,
-      'userIds': userIds
     };
   }
 }

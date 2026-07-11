@@ -77,7 +77,7 @@ class FakeUserRepository implements UserRepository {
   Future<Result<User>> getCurrentUser() async => Result.error(Exception('Not implemented'));
 
   @override
-  Future<Result<void>> addEventRuleToUser(String userId, String eventRuleId) async => Result.ok(null);
+  Future<Result<void>> addEventRulesToUser(String userId, String eventRuleKey) async => Result.ok(null);
 }
 
 EventRule _buildEventRule({

@@ -5,25 +5,25 @@ class User {
   late String uid;
   late String displayName;
   late String email;
-  final List<String> eventRuleIds = [];
+  final List<String> eventRuleKeys = [];
   late String? photoUrl;
 
   User({required this.uid, required this.displayName, required this.email, 
-    this.photoUrl, List<String>? eventRuleIds}) {
-    if (eventRuleIds != null) {
-      this.eventRuleIds.addAll(eventRuleIds);
+    this.photoUrl, List<String>? eventRuleKeys}) {
+    if (eventRuleKeys != null) {
+      this.eventRuleKeys.addAll(eventRuleKeys);
     }
   }
 
   factory User.fromAuth({required UserCredential userCredential}) {
     return User(uid: userCredential.user!.uid, displayName: userCredential.user!.displayName!, 
-      email: userCredential.user!.email!, photoUrl: userCredential.user!.photoURL, eventRuleIds: []);
+      email: userCredential.user!.email!, photoUrl: userCredential.user!.photoURL, eventRuleKeys: []);
   }
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
     return User(uid: data['uid'], displayName: data['displayName'], email: data['email'], 
-      photoUrl: data['photoUrl'], eventRuleIds: List<String>.from(data['eventRuleIds']));
+      photoUrl: data['photoUrl'], eventRuleKeys: List<String>.from(data['eventRuleKeys']));
   }
 
   Map<String, dynamic> toMap() {
@@ -32,7 +32,7 @@ class User {
       'email': email,
       'photoUrl': photoUrl,
       'displayName': displayName,
-      'eventRuleIds': eventRuleIds
+      'eventRuleKeys': eventRuleKeys
     };
   }
 }

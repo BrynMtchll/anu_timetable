@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:anu_timetable/data/repositories/event_repository.dart';
-import 'package:anu_timetable/data/services/local/local_event_service.dart';
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/util/result.dart';
@@ -52,8 +51,8 @@ class EventRespositoryLocal implements EventRepository {
         _eventsOnDay[day] = [];
         events = await _createEventsForDay(day);
         for (final e in events) {
-          _eventsOnDay[day]!.add(e.ruleId);
-          _events[e.ruleId] = e;
+          _eventsOnDay[day]!.add(e.id);
+          _events[e.id] = e;
         }
       } else {
       for (final id in _eventsOnDay[day]!) {
@@ -88,22 +87,7 @@ class EventRespositoryLocal implements EventRepository {
   }
 
   Future<List<Event>> _createEventsForDay(DateTime day) async {
-    Random random = Random();
-    List<Event> events = [];
-
-    int nEvents = random.nextInt(3) + 1;
-    if (day.weekday == DateTime.saturday || day.weekday == DateTime.sunday) {
-      nEvents = random.nextInt(6);
-    }
-
-    for (int i = 0; i < nEvents; i++) {
-      int s = random.nextInt(9) + 8;
-      int e = s + 1 + random.nextInt(5);
-      DateTime st = day.add(Duration(hours: s));
-      DateTime et = day.add(Duration(hours: e));
-      events.add(Event(ruleId: Uuid().v4(), title: "blah", startDate: st, endDate: et, isAllDay: false, duration: 0));
-    }
-    return events;
+    throw UnimplementedError();
   }
 
   @override

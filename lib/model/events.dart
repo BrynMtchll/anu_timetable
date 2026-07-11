@@ -6,7 +6,9 @@ import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
 import 'package:calendar_view/calendar_view.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class UserEventsVM extends ChangeNotifier {
   final EventRepository _eventRepository;
@@ -25,33 +27,42 @@ class UserEventsVM extends ChangeNotifier {
     /// could alternatively use duration property?
     DateTime startDate = eventRule.startDate.add(Duration(days: dayOffset));
     DateTime endDate = eventRule.endDate.add(Duration(days: dayOffset));
-    return Event(ruleId: eventRule.id, title: eventRule.title, startDate: startDate,
-      endDate: endDate, isAllDay: eventRule.isAllDay, duration: eventRule.duration);
+    return Event(
+      id: Uuid().v4(),
+      key: eventRule.key,
+      title: eventRule.title,
+      summary: eventRule.summary,
+      description: eventRule.description,
+      startDate: startDate,
+      endDate: endDate,
+      isAllDay: eventRule.isAllDay,
+      duration: eventRule.duration);
   }
 
   Future<Result> _addEventRules(List<EventRule> eventRules) async {
-    try {
-      for (final eventRule in eventRules) {
-        final result = await _eventRepository.addEventRule(eventRule);
-        switch(result) {
-          case Ok<EventRule>():
-            for (final userId in eventRule.userIds) {
-              final resultAddUser = await _userRepository.addEventRuleToUser(userId, eventRule.id);
-              switch(resultAddUser) {
-                case Ok<void>():
-                  break;
-                case Error<void>():
-                  throw resultAddUser.error;
-              }
-            }
-          case Error<EventRule>():
-            throw result.error;
-        }
-      }
-      return Result.ok(null);
-    } finally {
-      notifyListeners();
-    }
+    throw UnimplementedError();
+    // try {
+    //   for (final eventRule in eventRules) {
+    //     final result = await _eventRepository.addEventRule(eventRule);
+    //     switch(result) {
+    //       case Ok<EventRule>():
+    //         for (final userId in eventRule.userIds) {
+    //           final resultAddUser = await _userRepository.addEventRulesToUser(userId, eventRule.key!);
+    //           switch(resultAddUser) {
+    //             case Ok<void>():
+    //               break;
+    //             case Error<void>():
+    //               throw resultAddUser.error;
+    //           }
+    //         }
+    //       case Error<EventRule>():
+    //         throw result.error;
+    //     }
+    //   }
+    //   return Result.ok(null);
+    // } finally {
+    //   notifyListeners();
+    // }
   }
 
   void _addEvent(Event event) {
@@ -59,7 +70,7 @@ class UserEventsVM extends ChangeNotifier {
     if (!_events.containsKey(day)) {
       _events[day] = [event];
     }
-    else if (!_events[day]!.contains(event)) {
+    else if (_events[day]!.firstWhereOrNull((e) => e.startDate == event.startDate && e.description == event.description) == null) {
       _events[day]!.add(event);
     }
   }
@@ -96,11 +107,11 @@ class UserEventsVM extends ChangeNotifier {
     return byMonthDayFail || byYearDayFail || byWeekdayFail || byPeriodFail;
   }
 
-  /// TODO: negative indexing, bySetPos
+  /// TODO: negative indexing, bySetPos, exclusions etc.
   /// TODO: closer consideration of defaults, duration??
   /// NOTE: from is treated as start of day and to is treated as end of day
   void _expandRecurring(EventRule eventRule, DateTime from, DateTime to) {
-    final rec = eventRule.recurrencePattern;
+    final rec = eventRule.recurrencePattern!;
     final count = rec.count ?? 1e9;
     final firstDay = eventRule.startDate.withoutTime;
     DateTime day = rec.periodStart(firstDay);
@@ -147,8 +158,8 @@ class UserEventsVM extends ChangeNotifier {
   void _expandEventRules(List<EventRule> eventRules, DateTime from, DateTime to) {
     print("expanding event rules from $from to $to");
     for (final EventRule eventRule in eventRules) {
-      final recurrenceUntil = eventRule.recurrencePattern.until;
-      if (eventRule.isRecurring && recurrenceUntil != null && recurrenceUntil.isBefore(from) || eventRule.startDate.isAfter(to)) continue;
+      if (eventRule.isRecurring && eventRule.recurrencePattern!.until != null 
+        && eventRule.recurrencePattern!.until!.isBefore(from) || eventRule.startDate.isAfter(to)) continue;
       if (!eventRule.isRecurring) {
         final event = _genEventFromRecurrence(eventRule, 0);
         _addEvent(event);
@@ -160,9 +171,10 @@ class UserEventsVM extends ChangeNotifier {
 
   // wipe events when expanding rules?
   // store range queryable? complex to maintain... or store sorted
-  Future<Result> _loadEvents(List<String> eventRuleIds, DateTime from, DateTime to) async {
+  Future<Result> _loadEvents(List<String> eventRuleKeys, DateTime from, DateTime to) async {
+
     try {
-      final result = await _eventRepository.getEventRules(eventRuleIds);
+      final result = await _eventRepository.getEventRules(eventRuleKeys);
       switch(result) {
         case Ok<List<EventRule>>():
           _expandEventRules(result.value, from, to);
@@ -173,6 +185,15 @@ class UserEventsVM extends ChangeNotifier {
     } finally {
       notifyListeners();
     }
+  }
+
+  Event getEvent(DateTime day, String eventId) {
+    Event? event;
+    if (_events.containsKey(day)) {
+      event = _events[day]!.firstWhereOrNull((event) => event.id == eventId);
+    }
+    return event ?? (throw Exception("event not found! eventId: $eventId"));
+
   }
 
   Map<DateTime, List<Event>> getEvents() {

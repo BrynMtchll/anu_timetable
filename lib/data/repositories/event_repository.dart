@@ -7,7 +7,7 @@ abstract class EventRepository {
   Future<Result<EventRule>> addEventRule(EventRule eventRule);
   Future<Result<List<EventRule>>> addEventRules(List<EventRule> eventRules);
   Future<Result<List<EventRule>>> getAllEventRules();
-  Future<Result<List<EventRule>>> getEventRules(List<String> eventRuleIds);
+  Future<Result<List<EventRule>>> getEventRules(List<String> eventRuleKeys);
   Future<Result<Event>> getEvent(String id);
   Future<Result<List<Event>>> getEventsOnDay(DateTime day);
   Future<Result<List<List<Event>>>> getEventsOnWeek(DateTime week);

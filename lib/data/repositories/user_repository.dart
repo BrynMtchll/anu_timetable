@@ -7,5 +7,6 @@ abstract class UserRepository {
   Future<Result> addNewUser(firebase_auth.UserCredential userCredentials);
   Future<Result<User>> getUser(String uid);
   Future<Result<User>> getCurrentUser();
-  Future<Result<void>> addEventRuleToUser(String userId, String eventRuleId);
+  Future<Result> addUserToGroup(User user, Set<String> keys);
+  Future<Result> addEventRulesToUser(String userId, Set<String> eventRuleKeys);
 }
