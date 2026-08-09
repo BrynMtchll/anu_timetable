@@ -8,5 +8,7 @@ abstract class UserRepository {
   Future<Result<User>> getUser(String uid);
   Future<Result<User>> getCurrentUser();
   Future<Result> addUserToGroup(User user, Set<String> keys);
-  Future<Result> addEventRulesToUser(String userId, Set<String> eventRuleKeys);
+  Future<Result<(Set<String>, Set<String>)>> setUserEventRuleKeys(String userId, Set<String> keys);
+  Future<Result> setUserGroups(User user, Set<String> keysRemoved, Set<String> keysAdded);
+
 }

@@ -5,6 +5,7 @@ import 'package:anu_timetable/util/shaders.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class EventTile extends StatelessWidget {
   final Event event;
@@ -128,11 +129,15 @@ class EventTileContent extends StatelessWidget {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 2,
       children: transition ? [] : [
-        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant),
+        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: colorScheme.onSurfaceVariant),
           event.title),
-        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant), 
-          event.summary)
+        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colorScheme.onSurfaceVariant), 
+          event.summary),
+        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colorScheme.onSurfaceVariant),
+          "${DateFormat("h:mma").format(event.startDate)} to ${DateFormat("h:mma").format(event.endDate)}".toLowerCase()),
+        
       ]);
   }
 }

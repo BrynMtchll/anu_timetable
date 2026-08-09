@@ -5,6 +5,7 @@ import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
@@ -25,8 +26,8 @@ class SyncAnuVM extends ChangeNotifier {
   bool get authorised => _authorised;
 
   set authorised(newVal) {
-    if (authorised != newVal) {
-      authorised = newVal;
+    if (_authorised != newVal) {
+      _authorised = newVal;
       notifyListeners();
     }
   }
@@ -34,57 +35,48 @@ class SyncAnuVM extends ChangeNotifier {
   Future<Result> _loadAndSyncIcs(Uri iCalUrl) async {
     final iCalResult = await _icsService.fetchIcs(iCalUrl);
     switch (iCalResult) {
-      case Ok<String>(): 
-        break;
       case Error<String>():
         throw iCalResult.error;
+      case Ok<String>():
     }
-    final eventRulesResult = await _icsService.parseIcs(iCalResult.value);
+    final parseResult = await _icsService.parseIcs(iCalResult.value);
 
-    switch(eventRulesResult) {
-      case Ok<List<EventRule>>():
-      break;
+    switch(parseResult) {
       case Error<List<EventRule>>():
-        throw eventRulesResult.error;
-    }
-
-    final eventRulesAddedResult = await _eventRepository.addEventRules(eventRulesResult.value);
-    switch(eventRulesAddedResult) {
+        throw parseResult.error;
       case Ok<List<EventRule>>():
-        break;
-      case Error<List<EventRule>>():
-        throw eventRulesAddedResult.error;
+    }
+    final eventRules = parseResult.value;
+    final setRulesResult = await _eventRepository.setEventRules(eventRules);
+    switch(setRulesResult) {
+      case Error():
+        throw setRulesResult.error;
+      case Ok():
     }
 
-    final eventRulesAdded = eventRulesAddedResult.value;
-
-    if (eventRulesAdded.isEmpty) {
-      print("already synced!");
-      return Result.ok(null);
-    }
-    
     final userResult = await _userRepository.getCurrentUser();
     switch(userResult) {
-      case Ok<User>():
-        break;
       case Error<User>():
         throw userResult.error;
+      case Ok<User>():
     }
-    Set<String> eventRulesAddedKeys = eventRulesResult.value.map((eventRule) => eventRule.key!).toSet();
-    final addedToUserResult = await _userRepository.addEventRulesToUser(userResult.value.uid, eventRulesAddedKeys);
-    switch(addedToUserResult) {
+    final user = userResult.value;
+    Set<String> keys = eventRules.map((eventRule) => eventRule.key!).toSet();
+    final setUserKeysResult = await _userRepository.setUserEventRuleKeys(user.uid, keys);
+    switch(setUserKeysResult) {
       case Ok():
         break;
       case Error():
-        throw addedToUserResult.error;
+        throw setUserKeysResult.error;
     }
-
-    final addedToGroupResult = await _userRepository.addUserToGroup(userResult.value, eventRulesAddedKeys);
-    switch(addedToGroupResult) {
+    final (keysRemoved, keysAdded) = setUserKeysResult.value;
+    
+    final setUserGroupsResult = await _userRepository.setUserGroups(user, keysRemoved, keys);
+    switch(setUserGroupsResult) {
       case Ok():
         return Result.ok(null);
       case Error():
-        throw addedToGroupResult.error;
+        throw setUserGroupsResult.error;
     }
   }
 

@@ -25,21 +25,22 @@ class EventRespositoryLocal implements EventRepository {
 
   @override
   Future<Result<List<Event>>> getEventsOnDay(DateTime day) async {
-    List<Event> events = [];
-    if (!_eventsOnDay.containsKey(day)) {
-      _eventsOnDay[day] = [];
-      events = await _createEventsForDay(day);
-      for (final e in events) {
-        _eventsOnDay[day]!.add(e.ruleId);
-        _events[e.ruleId] = e;
-      }
-    } else {
-      for (final id in _eventsOnDay[day]!) {
-        events.add(_events[id]!);
-      }
-    }
-    return Result.ok(events);
+    // List<Event> events = [];
+    // if (!_eventsOnDay.containsKey(day)) {
+    //   _eventsOnDay[day] = [];
+    //   events = await _createEventsForDay(day);
+    //   for (final e in events) {
+    //     _eventsOnDay[day]!.add(e.ruleId);
+    //     _events[e.ruleId] = e;
+    //   }
+    // } else {
+    //   for (final id in _eventsOnDay[day]!) {
+    //     events.add(_events[id]!);
+    //   }
+    // }
+    // return Result.ok(events);
     
+    throw UnimplementedError();
   }
   @override
   Future<Result<List<List<Event>>>> getEventsOnWeek(DateTime week) async {
@@ -65,25 +66,26 @@ class EventRespositoryLocal implements EventRepository {
   }
   @override
   Future<Result<List<List<Event>>>> getEventsOnYear(DateTime year) async {
-    List<List<Event>> yearEvents = [];
-    for (int wd = 0; wd < year.getDayDifference(DateTime(year.year + 1)); wd++) {
-      DateTime day = DateTime(year.year, year.month, year.day + wd);
-      List<Event> events = [];
-      if (!_eventsOnDay.containsKey(day)) {
-        _eventsOnDay[day] = [];
-        events = await _createEventsForDay(day);
-        for (final e in events) {
-          _eventsOnDay[day]!.add(e.ruleId);
-          _events[e.ruleId] = e;
-        }
-      } else {
-      for (final id in _eventsOnDay[day]!) {
-        events.add(_events[id]!);
-      }
-    }
-      yearEvents.add(events);
-    }
-    return Result.ok(yearEvents);
+    // List<List<Event>> yearEvents = [];
+    // for (int wd = 0; wd < year.getDayDifference(DateTime(year.year + 1)); wd++) {
+    //   DateTime day = DateTime(year.year, year.month, year.day + wd);
+    //   List<Event> events = [];
+    //   if (!_eventsOnDay.containsKey(day)) {
+    //     _eventsOnDay[day] = [];
+    //     events = await _createEventsForDay(day);
+    //     for (final e in events) {
+    //       _eventsOnDay[day]!.add(e.ruleId);
+    //       _events[e.ruleId] = e;
+    //     }
+    //   } else {
+    //   for (final id in _eventsOnDay[day]!) {
+    //     events.add(_events[id]!);
+    //   }
+    // }
+    //   yearEvents.add(events);
+    // }
+    // return Result.ok(yearEvents);
+    throw UnimplementedError();
   }
 
   Future<List<Event>> _createEventsForDay(DateTime day) async {
@@ -122,6 +124,18 @@ class EventRespositoryLocal implements EventRepository {
   @override
   Future<Result<EventRule>> addEventRule(EventRule eventRule) {
     // TODO: implement addEventRule
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<Result<List<EventRule>>> updateEventRules(List<EventRule> eventRules) {
+    // TODO: implement updateEventRules
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<Result<void>> setEventRules(List<EventRule> eventRules) {
+    // TODO: implement setEventRules
     throw UnimplementedError();
   }
 }

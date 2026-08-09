@@ -19,35 +19,37 @@ class EventItem extends StatelessWidget {
       child: ShaderMask(
         shaderCallback: (Rect bounds) => eventTileShader(bounds),
         child: Container(
+          height: 50,
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.all(Radius.circular(8))),
           margin: EdgeInsets.only(bottom: 6),
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           width: double.infinity,
-          child: LayoutBuilder(
-            builder:(context, constraints) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
                       event.title),
-                    SizedBox(
-                      width: constraints.maxWidth - 60,
-                      child: Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant, overflow: TextOverflow.fade),
-                        overflow: TextOverflow.visible, maxLines: 1, event.summary)),
+                    Text(style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w400,color: colorScheme.onSurfaceVariant),
+                      overflow: TextOverflow.ellipsis, softWrap: false, maxLines: 1, event.summary),
                   ]),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(DateFormat("hh:mma").format(event.startDate),
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
-                    Text(DateFormat("hh:mma").format(event.endDate),
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
-                  ])
-              ])))));
+              ),
+              SizedBox(width: 10),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(DateFormat("hh:mma").format(event.startDate),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
+                  Text(DateFormat("hh:mma").format(event.endDate),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: colorScheme.onSurfaceVariant)),
+                ])
+            ]))));
   }
 }

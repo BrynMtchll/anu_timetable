@@ -167,7 +167,7 @@ class EventRule {
   factory EventRule.fromIcs(VEvent icsEvent) {
     return EventRule(
       id: Uuid().v4(),
-      key: icsEvent.description!,
+      key: icsEvent.description!.hashCode.toString(),
       title: icsEvent.description!.substring(0, 8),
       summary: icsEvent.summary!,
       description: icsEvent.description!,
@@ -183,7 +183,6 @@ class EventRule {
 
   factory EventRule.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
-
     return EventRule(
       id: data['id'], 
       key: data['key'],

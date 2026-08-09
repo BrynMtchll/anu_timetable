@@ -6,6 +6,7 @@ import 'package:anu_timetable/util/result.dart';
 abstract class EventRepository {
   Future<Result<EventRule>> addEventRule(EventRule eventRule);
   Future<Result<List<EventRule>>> addEventRules(List<EventRule> eventRules);
+  Future<Result<void>> setEventRules(List<EventRule> eventRules);
   Future<Result<List<EventRule>>> getAllEventRules();
   Future<Result<List<EventRule>>> getEventRules(List<String> eventRuleKeys);
   Future<Result<Event>> getEvent(String id);

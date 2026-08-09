@@ -70,7 +70,8 @@ class UserEventsVM extends ChangeNotifier {
     if (!_events.containsKey(day)) {
       _events[day] = [event];
     }
-    else if (_events[day]!.firstWhereOrNull((e) => e.startDate == event.startDate && e.description == event.description) == null) {
+    else if (_events[day]!.firstWhereOrNull((e) 
+      => e.startDate == event.startDate && e.description == event.description) == null) {
       _events[day]!.add(event);
     }
   }
@@ -156,6 +157,8 @@ class UserEventsVM extends ChangeNotifier {
   /// which cannot be fully expanded. Or maybe could mark those specifically as infinite? But also might have events that 
   /// aren't infinite but repeat every day for a hundred years.
   void _expandEventRules(List<EventRule> eventRules, DateTime from, DateTime to) {
+    print(eventRules.length);
+
     print("expanding event rules from $from to $to");
     for (final EventRule eventRule in eventRules) {
       if (eventRule.isRecurring && eventRule.recurrencePattern!.until != null 

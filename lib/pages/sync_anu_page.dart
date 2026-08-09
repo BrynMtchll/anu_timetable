@@ -13,7 +13,7 @@ class SyncAnuPage extends StatelessWidget {
       child: Consumer<SyncAnuVM>(
         builder: (BuildContext context, SyncAnuVM syncAnuVMLive, Widget? child)
           => Visibility(
-            visible: !syncAnuVMLive.authorised,
+            visible: true,
             child: child!),
         child: InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri('https://mytimetable.anu.edu.au/even/student')),

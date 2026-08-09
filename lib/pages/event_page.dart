@@ -14,25 +14,40 @@ class EventPage extends StatelessWidget {
       body: Container(
         margin: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 5,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600), 
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800), 
               event.title),
-            Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
+            Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500), 
               event.summary),
-            Text(
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-              DateFormat('EEEE, MMMM d, yyyy').format(event.startDate)),
-            Text(
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-              "${DateFormat('hh:mma').format(event.startDate)} - ${DateFormat('hh:mma').format(event.endDate)}"),
-            Text(
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-              '[rm 204, Hannah Neumann building]'),
-            Text(
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: colorScheme.primary), 
-              "[The address blee bloue blah ln 21324]"),
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                spacing: 10,
+                children: [
+                  Icon(Icons.date_range_outlined, color: colorScheme.primary),
+                  Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
+                    "${DateFormat("h:mma, EE, MMM d, yyyy").format(event.startDate)} \u{2014} \n${DateFormat("h:mma, EEE, MMM d, yyyy").format(event.endDate)}"),
+                ])),
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                spacing: 10,
+                children: [
+                  Icon(Icons.location_pin, color: colorScheme.primary),
+                  Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
+                    '[rm 204, Hannah Neumann building]')
+                ])),
           ])));
     }
 }

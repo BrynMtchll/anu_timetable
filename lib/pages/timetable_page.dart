@@ -1,4 +1,3 @@
-import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
 import 'package:anu_timetable/model/events.dart';
@@ -24,7 +23,7 @@ class TimetablePage extends StatelessWidget {
       builder: (context, child) {
         final user = userVM.currentUser!;
         Provider.of<UserEventsVM>(context, listen: false)
-          .loadEvents.execute(user.eventRuleKeys, DateTime(DateTime.now().year), DateTime(DateTime.now().year + 1));
+          .loadEvents.execute(user.eventRuleKeys.toList(), DateTime(DateTime.now().year), DateTime(DateTime.now().year + 1));
         return child!;
       },
       child: Scaffold(

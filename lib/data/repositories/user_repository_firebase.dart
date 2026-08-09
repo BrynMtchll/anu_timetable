@@ -54,14 +54,15 @@ class UserRepositoryFirebase implements UserRepository {
       return Future.value(Result.error(Exception("No user currently signed in")));
     }
     final uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
-    print(uid);
     return await getUser(uid);
   }
 
   @override
-  Future<Result<void>> addEventRulesToUser(String userId, Set<String> eventRuleKeys) async {
+  Future<Result<(Set<String>, Set<String>)>> setUserEventRuleKeys(String userId, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
     try {
+      Set<String>? keysRemoved;
+      Set<String>? keysAdded;
       final userRef = db.collection('users').doc(userId)
         .withConverter(
           fromFirestore: User.fromFirestore,
@@ -72,16 +73,36 @@ class UserRepositoryFirebase implements UserRepository {
         if (user == null) {
           throw Exception("User not found");
         }
-        user.eventRuleKeys.addAll(eventRuleKeys);
+        keysRemoved = user.eventRuleKeys.difference(keys);
+        keysAdded = keys.difference(user.eventRuleKeys);
+        user.eventRuleKeys.clear();
+        user.eventRuleKeys.addAll(keys);
         transaction.update(userRef, user.toMap());
       });
-      return Result.ok(null);
+      return Result.ok((keysRemoved!, keysAdded!));
     }
     catch (e) {
       return Result.error(Exception(e));
     }
   }
   
+  @override
+  Future<Result> setUserGroups(User user, Set<String> keysRemoved, Set<String> keysAdded) async {
+    final db = FirebaseFirestore.instance;
+    try {
+      // TODO: check for empty groups and remove (including associated eventRules)
+      for (final key in keysRemoved) {
+        await db.collection('groups').doc(key).collection('members').doc(user.uid).delete();
+      }
+      for (final key in keysAdded) {
+        await db.collection('groups').doc(key).collection('members').doc(user.uid).set({"userId": user.uid});
+      }
+      return Result.ok(null);
+    }
+    catch (e) {
+      return Result.error(Exception(e));
+    }
+  }
   @override
   Future<Result> addUserToGroup(User user, Set<String> keys) async {
     final db = FirebaseFirestore.instance;

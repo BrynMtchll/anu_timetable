@@ -3,6 +3,7 @@ import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/util/result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EventRepositoryFirebase implements EventRepository {
   @override
@@ -40,6 +41,7 @@ class EventRepositoryFirebase implements EventRepository {
     }
   }
 
+  /// Adds [EventRule]s to firebase if [EventRule.key]s are not already present
   @override
   Future<Result<List<EventRule>>> addEventRules(List<EventRule> eventRules) async {
     final db = FirebaseFirestore.instance;
@@ -63,6 +65,48 @@ class EventRepositoryFirebase implements EventRepository {
     catch (e) {
       return Result.error(Exception(e));
     }
+  }
+
+  /// deletes all pre existing [EventRule] instances with an [EventRule.key]
+  /// contained in [eventRules] and adds all [eventRules].
+  @override
+  Future<Result<void>> setEventRules(List<EventRule> eventRules) async {
+    print("hi9");
+
+    final db = FirebaseFirestore.instance;
+    final keys = eventRules.map((eventRule) => eventRule.key!).toSet();
+    // print(keys);
+    try {
+      final snapshots = await Future.wait([for (final key in keys) 
+        db.collection('eventRules') .where('key', isEqualTo: key).get()]);
+      final batch = db.batch();
+      // TODO: will run into issues here if more than 500 results
+      for (final snapshot in snapshots) {
+        for (final doc in snapshot.docs) {
+        
+        batch.delete(doc.reference);
+        }
+      }
+      await batch.commit();
+      for(final key in keys) {
+        final snapshot = await db.collection('eventRules')
+          .where('key', isEqualTo: key).get();
+        if (snapshot.docs.isEmpty) continue;
+        final batch = db.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      }
+      for (final eventRule in eventRules) {
+        await db.collection('eventRules').doc(eventRule.id).set(eventRule.toMap());
+      }
+      return Result.ok(null);
+    }
+    catch(e) {
+      return Result.error(Exception(e));
+    }
+
   }
   
   @override
