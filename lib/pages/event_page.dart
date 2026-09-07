@@ -19,7 +19,7 @@ class EventPage extends StatelessWidget {
           children: [
             Text(
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800), 
-              event.title),
+              "${event.title} - ${event.type}"),
             Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500), 
               event.summary),
             Container(
@@ -46,7 +46,7 @@ class EventPage extends StatelessWidget {
                 children: [
                   Icon(Icons.location_pin, color: colorScheme.primary),
                   Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-                    '[rm 204, Hannah Neumann building]')
+                    event.location ?? "")
                 ])),
           ])));
     }

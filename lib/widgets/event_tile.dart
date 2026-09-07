@@ -2,6 +2,7 @@ import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/util/event_tile_arranger.dart';
 import 'package:anu_timetable/util/shaders.dart';
+import 'package:anu_timetable/util/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +19,7 @@ class EventTile extends StatelessWidget {
     required this.size, required this.index, required this.transition});
 
   static const double collapseThreshold = 40;
-  static const double horzPadding = 6;
+  static const double horzPadding = 4;
   static const double borderWidth = 0.5;
 
   double left(bool collapse, bool onLeft, bool isExpanded) {
@@ -62,7 +63,7 @@ class EventTile extends StatelessWidget {
     }
   }
 
-  onTap(BuildContext context, bool isExpanded) {
+  void onTap(BuildContext context, bool isExpanded) {
     if (isExpanded || eventTileData.width >= collapseThreshold) {
       context.push("/event/${event.id}", extra: event);
     } else {
@@ -72,7 +73,7 @@ class EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.of(context);
+    final eventColorScheme = Theme.of(context).extension<CalendarTheme>()!.eventColors[event.type.typeEnum]!;
     return ListenableBuilder(listenable: animationNotifier, 
       builder: (context, child) {
         bool collapse = animationNotifier.collapse[index];
@@ -89,16 +90,17 @@ class EventTile extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onTap(context, isExpanded),
               child: ShaderMask(
-                shaderCallback: (Rect bounds) => eventTileShader(bounds),
+                shaderCallback: (Rect bounds) => eventTileShader(bounds, eventColorScheme.shade),
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 150),
                   decoration: BoxDecoration(
-                    border: Border.all(width: borderWidth, color: colorScheme.primary),
+                    border: Border.all(width: borderWidth, color: eventColorScheme.border),
+
                     borderRadius: BorderRadius.all(Radius.circular(8)),
-                    color: colorScheme.surfaceContainerHighest),
+                    color: eventColorScheme.background),
                   width: width(collapse, isExpanded),
                   height: eventTileData.height,
-                  padding: EdgeInsets.symmetric(horizontal: horzPadding, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: horzPadding, vertical: 3),
                     child: ClipRect(
                       child: OverflowBox(
                         alignment: Alignment.topLeft,
@@ -126,18 +128,16 @@ class EventTileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    EventColorScheme eventColorScheme = Theme.of(context).extension<CalendarTheme>()!.eventColors[event.type.typeEnum]!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 2,
       children: transition ? [] : [
-        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: colorScheme.onSurfaceVariant),
+        Text(style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: eventColorScheme.text),
           event.title),
-        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colorScheme.onSurfaceVariant), 
-          event.summary),
-        Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colorScheme.onSurfaceVariant),
-          "${DateFormat("h:mma").format(event.startDate)} to ${DateFormat("h:mma").format(event.endDate)}".toLowerCase()),
-        
+        Text(style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: eventColorScheme.text), 
+          event.type.typeStrFull),
+        // Text(style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colorScheme.onSurfaceVariant),
+        //   "${DateFormat("h:mma").format(event.startDate)} to ${DateFormat("h:mma").format(event.endDate)}".toLowerCase()),
       ]);
   }
 }

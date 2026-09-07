@@ -1,26 +1,30 @@
+import 'package:anu_timetable/domain/model/event_rule.dart';
+
 class Event {
   late String id;
   final String title;
   final String? key;
+  final EventType type;
   final String summary;
   final String description;
   final DateTime startDate;
   final DateTime endDate;
   final bool isAllDay;
   final int duration;
-  final String? location;
+  final String location;
 
   Event({
     required this.id,
     required this.title,
     required this.key,
+    required this.type,
     required this.summary,
     required this.description,
     required this.startDate,
     required this.endDate,
     required this.isAllDay,
     required this.duration,
-    this.location
+    required this.location
   });
 
 //  factory Event.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {

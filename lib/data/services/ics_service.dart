@@ -25,8 +25,8 @@ class IcsService {
 
   // all those with same description belong to the same rule
   Future<Result<List<EventRule>>> parseIcs(String icsStr) async {
-    // print(icsStr);
-    final icalendar = VComponent.parse(icsStr) as VCalendar;
+    final vcomp = VComponent.parse(icsStr);
+    final icalendar = vcomp as VCalendar;
     final List<EventRule> eventRules = [];
     for (final child in icalendar.children) {
       if (child.name == "VEVENT") {

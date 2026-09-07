@@ -4,6 +4,46 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enough_icalendar/enough_icalendar.dart';
 import 'package:uuid/uuid.dart';
 
+enum EventTypeEnum {
+  lec, dro, asm, com, tut, wor, preLec, sem, pra, stu, let, other;
+}
+
+class EventType {
+  final EventTypeEnum typeEnum;
+  final String typeStr;
+  final String item;
+  final String typeStrFull;
+
+  EventType({required this.typeEnum, required this.typeStr, required this.item, required this.typeStrFull});
+
+  /// Seems to always be a 3 letter abbreviation, followed by single letter item.
+  /// will subscribe to the more general rule of the last space being the item, and everything before that being the typeStr.
+  /// NOTE: Extending this will implicate [CalendarTheme] in [theme_extension.dart].
+  static EventType fromString(String str) {
+    final typeStr = str.substring(0, str.length - 1);
+    final item = str.substring(str.length - 1);
+    switch(typeStr) {
+      case 'Lec': return EventType(typeEnum: EventTypeEnum.lec, typeStr: typeStr, item: item, typeStrFull: 'Lecture');
+      case 'Tut': return EventType(typeEnum: EventTypeEnum.tut, typeStr: typeStr, item: item, typeStrFull: 'Tutorial');
+      case 'Dro': return EventType(typeEnum: EventTypeEnum.dro, typeStr: typeStr, item: item, typeStrFull: 'Drop-In');
+      case 'Asm': return EventType(typeEnum: EventTypeEnum.asm, typeStr: typeStr, item: item, typeStrFull: 'Assessment');
+      case 'Com': return EventType(typeEnum: EventTypeEnum.com, typeStr: typeStr, item: item, typeStrFull: 'Computer Lab');
+      case 'Wor': return EventType(typeEnum: EventTypeEnum.wor, typeStr: typeStr, item: item, typeStrFull: 'Workshop');
+      case 'Pre': return EventType(typeEnum: EventTypeEnum.preLec, typeStr: typeStr, item: item, typeStrFull: 'Pre-Lecture');
+      case 'Sem': return EventType(typeEnum: EventTypeEnum.sem, typeStr: typeStr, item: item, typeStrFull: 'Seminar');
+      case 'Pra': return EventType(typeEnum: EventTypeEnum.pra, typeStr: typeStr, item: item, typeStrFull: 'Practical');
+      case 'Stu': return EventType(typeEnum: EventTypeEnum.stu, typeStr: typeStr, item: item, typeStrFull: 'Studio');
+      case 'Let': return EventType(typeEnum: EventTypeEnum.let, typeStr: typeStr, item: item, typeStrFull: 'Lectorial');
+      case _: return EventType(typeEnum: EventTypeEnum.other, typeStr: typeStr, item: item, typeStrFull: typeStr);
+    }
+  }
+
+  @override
+  String toString() {
+    return typeStr + item;
+  }
+}
+
 enum Freq {
   daily, weekly, monthly, yearly;
   // TODO: handle bad input better
@@ -23,7 +63,7 @@ enum Freq {
       case Freq.daily: return 'daily';
       case Freq.weekly: return 'weekly';
       case Freq.monthly: return 'monthly';
-        case Freq.yearly: return 'yearly';
+      case Freq.yearly: return 'yearly';
     }
   }
 }
@@ -59,10 +99,6 @@ class RecurrencePattern {
     this.byWeek,
     this.byMonth,
   });
-
-  // factory RecurrencePattern.fromIcs(String icsStr) {
-
-  // }
 
   factory RecurrencePattern.fromFirestore(Map<String, dynamic> recurrence) {
     return RecurrencePattern(freq: Freq.fromString(recurrence['freq']), interval: recurrence['interval'] ?? 1, 
@@ -133,6 +169,7 @@ class EventRule {
   final String? key;
   final String title;
   final String summary;
+  final EventType type;
   final String description;
   final DateTime startDate;
   /// referring to when an event instance finishes, not the last event occurence, 
@@ -149,6 +186,7 @@ class EventRule {
     required this.key,
     required this.title,
     required this.summary,
+    required this.type,
     required this.description,
     required this.startDate,
     required this.endDate,
@@ -165,11 +203,13 @@ class EventRule {
   /// TODO: kicking rule inference down the road, events will be individual for now
   /// TODO: duration is a dummy property too.
   factory EventRule.fromIcs(VEvent icsEvent) {
+    print(icsEvent.location);
     return EventRule(
       id: Uuid().v4(),
       key: icsEvent.description!.hashCode.toString(),
       title: icsEvent.description!.substring(0, 8),
       summary: icsEvent.summary!,
+      type: EventType.fromString(icsEvent.summary!.substring(icsEvent.summary!.lastIndexOf(' ') + 1)),
       description: icsEvent.description!,
       startDate: icsEvent.start!.toUtc(),
       endDate: icsEvent.end!.toUtc(),
@@ -183,16 +223,18 @@ class EventRule {
 
   factory EventRule.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
+    // print(EventType.fromString(data['type']));
     return EventRule(
       id: data['id'], 
       key: data['key'],
-      title: data['title'], 
-      summary: data['summary'], 
-      description: data['description'], 
-      startDate: data['startDate'].toDate(), 
-      endDate: data['endDate'].toDate(), 
-      isAllDay: data['isAllDay'], 
-      duration: data['duration'], 
+      title: data['title'],
+      summary: data['summary'],
+      type: EventType.fromString(data['type']),
+      description: data['description'],
+      startDate: data['startDate'].toDate(),
+      endDate: data['endDate'].toDate(),
+      isAllDay: data['isAllDay'],
+      duration: data['duration'],
       isRecurring: data['isRecurring'],
       recurrencePattern: data['recurrencePattern'] == null ? null : RecurrencePattern.fromFirestore(data['recurrencePattern']), 
       location: data['location']);
@@ -204,6 +246,7 @@ class EventRule {
       'key': key,
       'title': title,
       'summary': summary,
+      'type': type.toString(),
       'description': description,
       'startDate': startDate,
       'endDate': endDate, 

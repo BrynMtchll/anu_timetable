@@ -8,6 +8,7 @@ import 'package:anu_timetable/model/event.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/sync_anu.dart';
 import 'package:anu_timetable/model/user.dart';
+import 'package:anu_timetable/util/theme_extension.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -85,7 +86,11 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
             surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
             brightness: Brightness.dark,
             dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
-          useMaterial3: true),
+          useMaterial3: true).copyWith(
+            extensions: [
+              CalendarTheme.dark(),
+            ]
+          ),
         routerConfig: widget.router));
   }
 }

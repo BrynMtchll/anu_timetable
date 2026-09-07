@@ -31,12 +31,14 @@ class UserEventsVM extends ChangeNotifier {
       id: Uuid().v4(),
       key: eventRule.key,
       title: eventRule.title,
-      summary: eventRule.summary,
+      type: eventRule.type,
+      summary: eventRule.summary.substring(0, eventRule.summary.length - 21),
       description: eventRule.description,
       startDate: startDate,
       endDate: endDate,
       isAllDay: eventRule.isAllDay,
-      duration: eventRule.duration);
+      duration: eventRule.duration,
+      location: eventRule.location);
   }
 
   Future<Result> _addEventRules(List<EventRule> eventRules) async {

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class TimetableLayout {
   static const double leftMargin = 50;
 
-  static const double height = 1700;
+  static const double height = 1800;
 
   static const double tabBarHeight = 30;
 
