@@ -11,6 +11,7 @@ class Event {
   final DateTime endDate;
   final bool isAllDay;
   final int duration;
+  final String room;
   final String location;
 
   Event({
@@ -24,6 +25,7 @@ class Event {
     required this.endDate,
     required this.isAllDay,
     required this.duration,
+    required this.room,
     required this.location
   });
 

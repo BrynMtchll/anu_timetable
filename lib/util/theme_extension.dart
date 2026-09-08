@@ -12,15 +12,13 @@ class EventColorScheme {
 
 class CalendarTheme extends ThemeExtension<CalendarTheme>{
 
-  // static const List<int> hues = [0, 20 253]
-
   final Map<EventTypeEnum, EventColorScheme> eventColors;
 
   /// Chance for repeats in number of [EventTypeEnum]s increases.
   factory CalendarTheme.dark() {
     const List<double> hues = [210,25,145,355,265,30,330,0,55,190,280,105];
-    List<Color> backgrounds = hues.map((hue) => HSVColor.fromAHSV(1, hue, 0.6, 0.2).toColor()).toList();
-    List<Color> shades = hues.map((hue) => HSVColor.fromAHSV(1, hue, 0.5, 0.9).toColor()).toList();
+    List<Color> backgrounds = hues.map((hue) => HSVColor.fromAHSV(1, hue, 0.45, 0.18).toColor()).toList();
+    List<Color> shades = hues.map((hue) => HSVColor.fromAHSV(1, hue, 0.5, 0.95).toColor()).toList();
     List<Color> borders = hues.map((hue) => HSVColor.fromAHSV(1, hue, 0.7, 0.9).toColor()).toList();
     List<Color> texts = hues.map((hue) => HSVColor.fromAHSV(1, hue, 0.05, 0.95).toColor()).toList();
     Map<EventTypeEnum, EventColorScheme> eventColors = {};

@@ -38,6 +38,7 @@ class UserEventsVM extends ChangeNotifier {
       endDate: endDate,
       isAllDay: eventRule.isAllDay,
       duration: eventRule.duration,
+      room: eventRule.room,
       location: eventRule.location);
   }
 

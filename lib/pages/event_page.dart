@@ -9,6 +9,7 @@ class EventPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = ColorScheme.of(context);
+    print(event.location);
     return Scaffold(
       appBar: AppBar(),
       body: Container(
@@ -19,7 +20,7 @@ class EventPage extends StatelessWidget {
           children: [
             Text(
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800), 
-              "${event.title} - ${event.type}"),
+              "${event.title} - ${event.type.typeStrFull}"),
             Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500), 
               event.summary),
             Container(
@@ -45,8 +46,9 @@ class EventPage extends StatelessWidget {
                 spacing: 10,
                 children: [
                   Icon(Icons.location_pin, color: colorScheme.primary),
-                  Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), 
-                    event.location ?? "")
+                  Expanded(
+                    child: Text(style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400), softWrap: true,
+                      "${event.room}${event.room !="" ? '\n' : ''}${event.location}"))
                 ])),
           ])));
     }

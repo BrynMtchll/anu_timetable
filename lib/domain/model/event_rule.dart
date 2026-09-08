@@ -179,6 +179,7 @@ class EventRule {
   final int duration;
   final bool isRecurring;
   final RecurrencePattern? recurrencePattern;
+  final String room;
   final String location;
 
   EventRule({
@@ -194,6 +195,7 @@ class EventRule {
     required this.duration,
     required this.isRecurring,
     required this.recurrencePattern,
+    required this.room,
     required this.location,
   });
 
@@ -203,7 +205,17 @@ class EventRule {
   /// TODO: kicking rule inference down the road, events will be individual for now
   /// TODO: duration is a dummy property too.
   factory EventRule.fromIcs(VEvent icsEvent) {
-    print(icsEvent.location);
+    int locationSplit = icsEvent.location!.indexOf('_');
+    String room;
+    String location;
+
+    if (locationSplit == -1) {
+      room = "";
+      location = icsEvent.location!;
+    } else {
+      room = icsEvent.location!.substring(0, locationSplit);
+      location = icsEvent.location!.substring(locationSplit + 1);
+    }
     return EventRule(
       id: Uuid().v4(),
       key: icsEvent.description!.hashCode.toString(),
@@ -217,7 +229,8 @@ class EventRule {
       duration: 0,
       isRecurring: false,
       recurrencePattern: null,
-      location: icsEvent.location!,
+      room: room,
+      location: location
     );
   }
 
@@ -237,6 +250,7 @@ class EventRule {
       duration: data['duration'],
       isRecurring: data['isRecurring'],
       recurrencePattern: data['recurrencePattern'] == null ? null : RecurrencePattern.fromFirestore(data['recurrencePattern']), 
+      room: data['room'],
       location: data['location']);
   }
 
@@ -254,6 +268,7 @@ class EventRule {
       'duration': duration,
       'isRecurring': isRecurring,
       'recurrencePattern': recurrencePattern?.toMap(),
+      'room': room,
       'location': location,
     };
   }

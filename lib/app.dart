@@ -11,6 +11,7 @@ import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/util/theme_extension.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:anu_timetable/model/timetable.dart';
 import 'package:anu_timetable/model/controller.dart';
@@ -80,36 +81,106 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
       child: MaterialApp.router(
         title: 'Flutter Demo',
         theme: ThemeData(
+          splashFactory: NoSplash.splashFactory,
+          // splashColor: Colors.transparent,
+          // Removes the highlight background fade on tap
+          highlightColor: Colors.transparent,
           colorScheme: ColorScheme.fromSeed(
             // 255, 190, 135, 43
-            seedColor: const Color.fromARGB(255, 58, 43, 190),
-            surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
+            seedColor: const Color.fromARGB(255, 255, 119, 0),
+            primary: const Color.fromARGB(255, 255, 140, 79),
+            onPrimary: const Color.fromARGB(255, 15, 12, 9),
+            
+            // surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
             brightness: Brightness.dark,
             dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
           useMaterial3: true).copyWith(
             extensions: [
               CalendarTheme.dark(),
-            ]
-          ),
+            ]),
         routerConfig: widget.router));
   }
 }
 
-class ScaffoldWithNavBar extends StatelessWidget {
+class ScaffoldWithNavBar extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
   const ScaffoldWithNavBar({super.key, required this.navigationShell});
 
   @override
+  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+}
+
+class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+  bool toRight = true;
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navigationShell.currentIndex,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'timetable'),
-          BottomNavigationBarItem(icon: Icon(Icons.tab), label: 'messages'),
-        ],
-        onTap: (int index) => navigationShell.goBranch(index)),
-      body: navigationShell);
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: widget.navigationShell.currentIndex,
+        toRight: toRight,
+        onTap: (int index) {
+          toRight = widget.navigationShell.currentIndex < index;
+          widget.navigationShell.goBranch(index);
+        }),
+      body: widget.navigationShell);
+  }
+}
+
+class CustomBottomNavBar extends StatelessWidget {
+  const CustomBottomNavBar({super.key, required this.currentIndex, required this.toRight, required this.onTap});
+
+  final ValueChanged<int> onTap;
+  final int currentIndex;
+  final bool toRight;
+
+  static const _items = [
+    (icon: Icons.home, label: 'home'),
+    (icon: Icons.view_week, label: 'timetable'),
+    (icon: Icons.message, label: 'messages'),
+    (icon: Icons.person, label: 'profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    double compAngle(bool isCurrent) {
+      if (toRight && isCurrent) {
+        return 0;
+      } else if (isCurrent) {
+        return 3.14;
+      } else if (toRight) {
+        return 3.14;
+      }
+      return 0;
+    }
+    return SafeArea(
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          children: [
+            for (final (i, item) in _items.indexed)
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => onTap(i),
+                  child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      item.icon,
+                      color: i == currentIndex ? colorScheme.primary : colorScheme.onSurface),
+                    Text(item.label, style: TextStyle(
+                      color: i == currentIndex ? colorScheme.primary : colorScheme.onSurface,
+                      fontSize: 12))
+                  ]))).animate(
+                      target: i == currentIndex ? 1 : 0,
+                    ).shimmer(
+                      curve: Curves.easeOut,
+                      angle: compAngle(i == currentIndex),
+                      stops: [0.0, 0.0],
+                      duration: Duration(milliseconds: 300),
+                      colors: [ colorScheme.primary, const Color.fromARGB(255, 255, 255, 255)])
+          ])));
   }
 }

@@ -42,10 +42,11 @@ class _HomePageState extends State<HomePage> {
 }
 
 Shader _shaderCallback(ColorScheme colorScheme, Rect bounds) {
+  final shade = HSVColor.fromAHSV(1, HSVColor.fromColor(colorScheme.primary).hue, 0.3, 0.8).toColor();
   return LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [const Color.fromARGB(255, 255, 255, 255), colorScheme.primary])
+    colors: [const Color.fromARGB(255, 255, 255, 255), shade])
       .createShader(bounds);
 }
 
@@ -69,11 +70,9 @@ class _SyncButton extends StatelessWidget {
             child: Text(
               style: TextStyle(
                 color: colorScheme.onPrimary,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 fontSize: 14),
-                "Sync With MyTimetable"))),
-      ),
-    );
+                "Sync With MyTimetable")))));
   }
 }
 
@@ -106,20 +105,6 @@ class Profile extends StatelessWidget {
 class _DateWidget extends StatelessWidget {
   final DateTime day;
   const _DateWidget({required this.day});
-
-  // TODO: move to a util file
-  String daySuffix(DateTime day) {
-    int lastDigit = day.day % 10;
-    if (lastDigit == 1 && day.day != 11) {
-      return "st";
-    } else if (lastDigit == 2 && day.day != 12) {
-      return "nd";
-    } else if (lastDigit == 3 && day.day != 13) {
-      return "rd";
-    } else {
-      return "th";
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

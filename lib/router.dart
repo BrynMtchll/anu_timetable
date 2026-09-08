@@ -4,6 +4,7 @@ import 'package:anu_timetable/pages/event_page.dart';
 import 'package:anu_timetable/pages/home_page.dart';
 import 'package:anu_timetable/pages/login_page.dart';
 import 'package:anu_timetable/pages/messages_page.dart';
+import 'package:anu_timetable/pages/profile_page.dart';
 import 'package:anu_timetable/pages/sync_anu_page.dart';
 import 'package:anu_timetable/pages/timetable_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,9 +27,8 @@ class MyRouter {
         path: '/login',
         builder: (final context, final state) => const LoginPage()),
       StatefulShellRoute.indexedStack(
-        builder: (final context, final state, 
-          StatefulNavigationShell navigationShell)
-            => ScaffoldWithNavBar(navigationShell: navigationShell),
+        builder: (final context, final state, StatefulNavigationShell navigationShell)
+          => ScaffoldWithNavBar(navigationShell: navigationShell),
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
             routes: <RouteBase>[
@@ -47,6 +47,12 @@ class MyRouter {
               GoRoute(
                 path: '/messages',
                 builder: (final context, final state) => const MessagesPage()),
+            ]),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/profile',
+                builder: (final context, final state) => const ProfilePage()),
             ])
         ]),
     ],
