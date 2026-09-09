@@ -115,7 +115,7 @@ class _MonthButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(7)),
                 child: Text(
                   style: TextStyle(
-                    fontWeight: monthIsActive ? FontWeight.w700 : FontWeight.w400,
+                    fontWeight: monthIsActive ? FontWeight.w600 : FontWeight.w400,
                     color: monthIsActive ? colorScheme.onInverseSurface : null,
                     fontSize: 12),
                   DateFormat.MMM().format(DateTime(year, month)))));

@@ -9,7 +9,6 @@ class EventPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = ColorScheme.of(context);
-    print(event.location);
     return Scaffold(
       appBar: AppBar(),
       body: Container(

@@ -20,6 +20,17 @@ class UserRepositoryFirebase implements UserRepository {
   }
 
   @override
+  Future<Result> signOut() async {
+    try {
+      await firebase_auth.FirebaseAuth.instance.signOut();
+      return Result.ok(null);
+    } catch (e) {
+      print("Error signing out: $e");
+      return Result.error(Exception(e));
+    }
+  }
+
+  @override
   Future<Result<User>> getUser(String uid) async {
     final db = FirebaseFirestore.instance;
     final snapshot = await db.collection('users').doc(uid)

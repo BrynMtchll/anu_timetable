@@ -4,7 +4,6 @@ import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/widgets/event_list_item.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -33,9 +32,8 @@ class _HomePageState extends State<HomePage> {
           builder: (context, currentDay, child) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Profile(),
+              // Profile(),
               _DateWidget(day: currentDay.value),
-              _SyncButton(),
               _UpcomingClasses(day: currentDay.value),
             ]))));
   }
@@ -48,32 +46,6 @@ Shader _shaderCallback(ColorScheme colorScheme, Rect bounds) {
     end: Alignment.bottomRight,
     colors: [const Color.fromARGB(255, 255, 255, 255), shade])
       .createShader(bounds);
-}
-
-class _SyncButton extends StatelessWidget {
-  const _SyncButton();
-
-  @override
-  Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () => context.push('/syncAnu'),
-      child: Center(
-        child: Container(
-          height: 45,
-          margin: EdgeInsets.only(left: 10, right: 10, bottom: 20),
-          decoration: BoxDecoration(
-            border: BoxBorder.all(color: colorScheme.onSurface, width: 0.4),
-            color: colorScheme.primary,
-            borderRadius: BorderRadius.circular(30)),
-          child: Center(
-            child: Text(
-              style: TextStyle(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.w600,
-                fontSize: 14),
-                "Sync With MyTimetable")))));
-  }
 }
 
 String getInitials(String name) => name.isNotEmpty

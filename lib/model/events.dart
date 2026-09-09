@@ -202,6 +202,13 @@ class UserEventsVM extends ChangeNotifier {
 
   }
 
+  List<(String, String)> getClasses() {
+    if (_events.isEmpty) {
+      print("no events found!");
+      return [];
+    }
+    return _events.values.expand((e) => e).map((e) => (e.title, e.summary)).toSet().toList();
+  }
   Map<DateTime, List<Event>> getEvents() {
     if (_events.isEmpty) {
       print("no events found!");

@@ -216,6 +216,7 @@ class EventRule {
       room = icsEvent.location!.substring(0, locationSplit);
       location = icsEvent.location!.substring(locationSplit + 1);
     }
+    
     return EventRule(
       id: Uuid().v4(),
       key: icsEvent.description!.hashCode.toString(),

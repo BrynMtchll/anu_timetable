@@ -6,7 +6,6 @@ import 'package:anu_timetable/util/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class EventTile extends StatelessWidget {
   final Event event;
@@ -106,7 +105,7 @@ class EventTile extends StatelessWidget {
                         alignment: Alignment.topLeft,
                         maxWidth: maxContentWidth(),
                         maxHeight: double.infinity,
-                        child: EventTileContent(event: event, transition: transition,)))
+                        child: EventTileContent(event: event, transition: transition)))
                       .animate(
                         autoPlay: false,
                         target: isExpanded || eventTileData.width >= collapseThreshold 

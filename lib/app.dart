@@ -90,6 +90,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
             seedColor: const Color.fromARGB(255, 255, 119, 0),
             primary: const Color.fromARGB(255, 255, 140, 79),
             onPrimary: const Color.fromARGB(255, 15, 12, 9),
+            error: Color.fromARGB(255, 255, 91, 79),
             
             // surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
             brightness: Brightness.dark,
@@ -165,22 +166,24 @@ class CustomBottomNavBar extends StatelessWidget {
                   behavior: HitTestBehavior.translucent,
                   onTap: () => onTap(i),
                   child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      item.icon,
-                      color: i == currentIndex ? colorScheme.primary : colorScheme.onSurface),
-                    Text(item.label, style: TextStyle(
-                      color: i == currentIndex ? colorScheme.primary : colorScheme.onSurface,
-                      fontSize: 12))
-                  ]))).animate(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        item.icon,
+                        color: colorScheme.onSurface),
+                      Text(item.label, style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 12))
+                    ]),
+                  )).animate(
                       target: i == currentIndex ? 1 : 0,
                     ).shimmer(
                       curve: Curves.easeOut,
                       angle: compAngle(i == currentIndex),
                       stops: [0.0, 0.0],
                       duration: Duration(milliseconds: 300),
-                      colors: [ colorScheme.primary, const Color.fromARGB(255, 255, 255, 255)])
+                      // blendMode: BlendMode.,
+                      colors: [ colorScheme.primary, const Color.fromARGB(0, 255, 255, 255)])
           ])));
   }
 }

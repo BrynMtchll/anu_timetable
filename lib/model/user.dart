@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 class UserVM extends ChangeNotifier {
   late Command0<void> signInWithGoogle;
+  late Command0<void> signOut;
   late Command0<void> loadCurrentUser;
   late Command1<void, DateTime> loadYear;
 
@@ -13,6 +14,7 @@ class UserVM extends ChangeNotifier {
     : _userRepository = userRepository {
       signInWithGoogle = Command0(_signInWithGoogle);
       loadCurrentUser = Command0(_loadCurrentUser);
+      signOut = Command0(_signOut);
     }
 
   final UserRepository _userRepository;
@@ -24,6 +26,17 @@ class UserVM extends ChangeNotifier {
     switch(result) {
       case Ok():
         currentUser = result.value;
+        notifyListeners();
+        return result;
+      case Error():
+        throw result;
+    }
+  }
+
+  Future<Result<void>> _signOut() async {
+    final result = await _userRepository.signOut();
+    switch(result) {
+      case Ok():
         notifyListeners();
         return result;
       case Error():
