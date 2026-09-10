@@ -1,5 +1,7 @@
 import 'package:anu_timetable/data/repositories/event_repository.dart';
+import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
 import 'package:anu_timetable/data/repositories/user_repository.dart';
+import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/data/services/ics_service.dart';
 import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/domain/model/user.dart';
@@ -12,13 +14,13 @@ import 'package:go_router/go_router.dart';
 
 class SyncAnuVM extends ChangeNotifier {
   static final loginSuccessMarker = "mytimetable.anu.edu.au/even/student?ss=";
-  final EventRepository _eventRepository;
-  final UserRepository _userRepository;
+  final EventRepositoryFirebase _eventRepository;
+  final UserRepositoryFirebase _userRepository;
   late Command1<void, Uri> loadAndSyncIcs;
   final _icsService = IcsService();
   bool _authorised = false;
 
-  SyncAnuVM({required UserRepository userRepository, required EventRepository eventRepository})
+  SyncAnuVM({required UserRepositoryFirebase userRepository, required EventRepositoryFirebase eventRepository})
     : _eventRepository = eventRepository, _userRepository = userRepository {
     loadAndSyncIcs = Command1(_loadAndSyncIcs);
   }
@@ -61,8 +63,8 @@ class SyncAnuVM extends ChangeNotifier {
       case Ok<User>():
     }
     final user = userResult.value;
-    Set<String> keys = eventRules.map((eventRule) => eventRule.key!).toSet();
-    final setUserKeysResult = await _userRepository.setUserEventRuleKeys(user.uid, keys);
+    Set<String> ids = eventRules.map((eventRule) => eventRule.id).toSet();
+    final setUserKeysResult = await _userRepository.setUserEventRuleKeys(user.uid, ids);
     switch(setUserKeysResult) {
       case Ok():
         break;
@@ -71,12 +73,19 @@ class SyncAnuVM extends ChangeNotifier {
     }
     final (keysRemoved, keysAdded) = setUserKeysResult.value;
     
-    final setUserGroupsResult = await _userRepository.setUserGroups(user, keysRemoved, keys);
-    switch(setUserGroupsResult) {
+    final removeFromGroupsResult = await _userRepository.removeFromGroups(user.uid, keysRemoved);
+    switch(removeFromGroupsResult) {
+      case Ok():
+        break;
+      case Error():
+        throw removeFromGroupsResult.error;
+    }
+    final addToGroupsResult = await _userRepository.addToGroups(user.uid, ids);
+    switch(addToGroupsResult) {
       case Ok():
         return Result.ok(null);
       case Error():
-        throw setUserGroupsResult.error;
+        throw addToGroupsResult.error;
     }
   }
 

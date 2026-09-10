@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:anu_timetable/data/repositories/event_repository.dart';
+import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
 import 'package:anu_timetable/data/repositories/user_repository.dart';
+import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/model/timetable.dart';
@@ -8,38 +12,65 @@ import 'package:anu_timetable/util/result.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 class UserEventsVM extends ChangeNotifier {
-  final EventRepository _eventRepository;
-  final UserRepository _userRepository;
+  final EventRepositoryFirebase _eventRepository;
+  final UserRepositoryFirebase _userRepository;
   late Command3<void, List<String>, DateTime, DateTime> loadEvents;
   late Command1<void, List<EventRule>> addEventRules;
 
-  UserEventsVM({required UserRepository userRepository, required EventRepository eventRepository})
+  UserEventsVM({required UserRepositoryFirebase userRepository, required EventRepositoryFirebase eventRepository})
     : _eventRepository = eventRepository, _userRepository = userRepository {
     loadEvents = Command3(_loadEvents);
     addEventRules = Command1(_addEventRules);
   }
-  final Map<DateTime, List<Event>> _events = {};
+  // final Map<DateTime, List<Event>> _events = {};
+  Set<Event> _events = {};
 
-  Event _genEventFromRecurrence(EventRule eventRule, int dayOffset) {
+  StreamSubscription<List<EventRule>>? _sub;
+
+  void startWatching(String userId) {
+    _sub?.cancel();
+    print("watching");
+    // notifyListeners();
+    _sub = _eventRepository.watchEventsForUser(userId).listen(
+      (final updated) {
+        _events = _expandEventOccurrences(updated).toSet();
+        print(_events);
+        notifyListeners();
+      },
+      onError: (e) {
+        print("error $e");
+        // existing error state
+      },
+    );
+  }
+
+  void stopWatching() {
+    _sub?.cancel();
+    _sub = null;
+    _events = {};
+    print("stopped watching");
+  }
+
+  List<Event> _expandEventOccurrences(List<EventRule> eventRules) {
+    final List<Event> events = [];
+    for (final eventRule in eventRules) {
+      for (final occurrence in eventRule.occurrences) {
+        DateTime startDate = occurrence.$1;
+        DateTime endDate = occurrence.$2;
+        events.add(Event.fromRule(eventRule, startDate, endDate));
+      }
+    }
+    return events;
+  }
+
+
+  Event _eventFromRecurrence(EventRule eventRule, int dayOffset) {
     /// could alternatively use duration property?
     DateTime startDate = eventRule.startDate.add(Duration(days: dayOffset));
     DateTime endDate = eventRule.endDate.add(Duration(days: dayOffset));
-    return Event(
-      id: Uuid().v4(),
-      key: eventRule.key,
-      title: eventRule.title,
-      type: eventRule.type,
-      summary: eventRule.summary.substring(0, eventRule.summary.length - 21),
-      description: eventRule.description,
-      startDate: startDate,
-      endDate: endDate,
-      isAllDay: eventRule.isAllDay,
-      duration: eventRule.duration,
-      room: eventRule.room,
-      location: eventRule.location);
+    return Event.fromRule(eventRule, startDate, endDate);
   }
 
   Future<Result> _addEventRules(List<EventRule> eventRules) async {
@@ -69,14 +100,16 @@ class UserEventsVM extends ChangeNotifier {
   }
 
   void _addEvent(Event event) {
-    DateTime day = TimetableVM.dateWithoutTime(event.startDate);
-    if (!_events.containsKey(day)) {
-      _events[day] = [event];
-    }
-    else if (_events[day]!.firstWhereOrNull((e) 
-      => e.startDate == event.startDate && e.description == event.description) == null) {
-      _events[day]!.add(event);
-    }
+    throw UnimplementedError();
+    // DateTime day = TimetableVM.dateWithoutTime(event.startDate);
+    // _events.add()
+    // if (!_events.containsKey(day)) {
+    //   _events[day] = [event];
+    // }
+    // else if (_events[day]!.firstWhereOrNull((e)
+    //   => e.startDate == event.startDate && e.description == event.description) == null) {
+    //   _events[day]!.add(event);
+    // }
   }
   
   // TODO: should live somewhere else?
@@ -147,7 +180,7 @@ class UserEventsVM extends ChangeNotifier {
       }
       else {
         final dayOffset = eventRule.startDate.getDayDifference(day);
-        final event = _genEventFromRecurrence(eventRule, dayOffset);
+        final event = _eventFromRecurrence(eventRule, dayOffset);
         _addEvent(event);
         currCount++;
         day = day.add(Duration(days: 1));
@@ -167,7 +200,7 @@ class UserEventsVM extends ChangeNotifier {
       if (eventRule.isRecurring && eventRule.recurrencePattern!.until != null 
         && eventRule.recurrencePattern!.until!.isBefore(from) || eventRule.startDate.isAfter(to)) continue;
       if (!eventRule.isRecurring) {
-        final event = _genEventFromRecurrence(eventRule, 0);
+        final event = _eventFromRecurrence(eventRule, 0);
         _addEvent(event);
         continue;
       }
@@ -178,28 +211,25 @@ class UserEventsVM extends ChangeNotifier {
   // wipe events when expanding rules?
   // store range queryable? complex to maintain... or store sorted
   Future<Result> _loadEvents(List<String> eventRuleKeys, DateTime from, DateTime to) async {
-
-    try {
-      final result = await _eventRepository.getEventRules(eventRuleKeys);
-      switch(result) {
-        case Ok<List<EventRule>>():
-          _expandEventRules(result.value, from, to);
-          return result;
-        case Error<List<EventRule>>():
-          throw result.error;
-      }
-    } finally {
-      notifyListeners();
-    }
+    throw UnimplementedError();
+    // try {
+    //   final result = await _eventRepository.getEventRules(eventRuleKeys);
+    //   switch(result) {
+    //     case Ok<List<EventRule>>():
+    //       _expandEventRules(result.value, from, to);
+    //       return result;
+    //     case Error<List<EventRule>>():
+    //       throw result.error;
+    //   }
+    // } finally {
+    //   notifyListeners();
+    // }
   }
 
-  Event getEvent(DateTime day, String eventId) {
-    Event? event;
-    if (_events.containsKey(day)) {
-      event = _events[day]!.firstWhereOrNull((event) => event.id == eventId);
-    }
-    return event ?? (throw Exception("event not found! eventId: $eventId"));
-
+  Event getEvent(String eventId) {
+    Event? event = _events.firstWhereOrNull((event) => event.id == eventId);
+    if (event == null) (throw Exception("event not found! eventId: $eventId"));
+    return event;
   }
 
   List<(String, String)> getClasses() {
@@ -207,18 +237,22 @@ class UserEventsVM extends ChangeNotifier {
       print("no events found!");
       return [];
     }
-    return _events.values.expand((e) => e).map((e) => (e.title, e.summary)).toSet().toList();
+    return _events.map((e) => (e.title, e.summary)).toSet().toList();
   }
-  Map<DateTime, List<Event>> getEvents() {
+  List<Event> getEvents() {
     if (_events.isEmpty) {
       print("no events found!");
     }
-    return _events;
+    return _events.toList();
   }
 
   List<Event> getEventsOnDay(DateTime day) {
     // time shouldn't be there anyway but just to be sure.
     DateTime dayWithoutTime = TimetableVM.dateWithoutTime(day);
-    return _events.containsKey(dayWithoutTime) ? _events[dayWithoutTime]! : [];
+    return _events.where((event) {
+      DateTime startWithoutTime = TimetableVM.dateWithoutTime(event.startDate);
+      DateTime endWithoutTime = TimetableVM.dateWithoutTime(event.endDate);
+      return (startWithoutTime == dayWithoutTime || endWithoutTime == dayWithoutTime);
+    }).toList();
   }
 }

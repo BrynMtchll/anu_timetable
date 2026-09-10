@@ -54,6 +54,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   http: ^1.6.0
   enough_icalendar: ^0.17.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

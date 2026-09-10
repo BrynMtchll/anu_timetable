@@ -1,4 +1,5 @@
 import 'package:anu_timetable/domain/model/event_rule.dart';
+import 'package:uuid/uuid.dart';
 
 class Event {
   late String id;
@@ -28,6 +29,22 @@ class Event {
     required this.room,
     required this.location
   });
+
+  factory Event.fromRule(EventRule eventRule, DateTime startDate, DateTime endDate) {
+    return Event(
+      id: Uuid().v4(),
+      key: eventRule.id,
+      title: eventRule.title,
+      type: eventRule.type,
+      summary: eventRule.summary.substring(0, eventRule.summary.length - 21),
+      description: eventRule.description,
+      startDate: startDate,
+      endDate: endDate,
+      isAllDay: eventRule.isAllDay,
+      duration: eventRule.duration,
+      room: eventRule.room,
+      location: eventRule.location);
+  }
 
 //  factory Event.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
 //     final data = snapshot.data()!;

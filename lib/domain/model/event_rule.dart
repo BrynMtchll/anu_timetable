@@ -160,13 +160,6 @@ class RecurrencePattern {
 
 class EventRule {
   final String id;
-  /// For eventRules that belong to the same rule.
-  /// They should be the same rule but rule inference is too much effort
-  /// right now when converting from the ics file that MyTimetable provides.
-  /// the description is used as the key.
-  /// Using a key means group membership doesn't need to be duplicated for
-  /// every event instance.
-  final String? key;
   final String title;
   final String summary;
   final EventType type;
@@ -181,10 +174,14 @@ class EventRule {
   final RecurrencePattern? recurrencePattern;
   final String room;
   final String location;
+  /// Abusing the specification here as ANU has - they provide each ics event as its own rule,
+  /// so rather than inferring the rule from the set of events given, we will keep track of the
+  /// start and end dates for those rules. Reverting this is trivial if there isn't much real data to modify.
+  /// [startDate] and [endDate] are kept for compatability, but their values redundant where [occurrences] are being used
+  final List<(DateTime, DateTime)> occurrences;
 
   EventRule({
     required this.id,
-    required this.key,
     required this.title,
     required this.summary,
     required this.type,
@@ -197,7 +194,22 @@ class EventRule {
     required this.recurrencePattern,
     required this.room,
     required this.location,
+    required this.occurrences
   });
+
+  static List<EventRule> fromIcsList(List<VEvent> icsEventList) {
+    Map<String, EventRule> eventRules = {};
+
+    for (final icsEvent in icsEventList) {
+      final id = icsEvent.description!.hashCode.toString();
+      if (eventRules.keys.contains(id)) {
+        eventRules[id]!.occurrences.add((icsEvent.start!.toUtc(), icsEvent.end!.toUtc()));
+      } else {
+        eventRules[id] = EventRule.fromIcs(icsEvent);
+      }
+    }
+    return eventRules.values.toList();
+  }
 
   /// a list of events of the same class (since ANU provides them as individual events
   /// rather than as a rule). The rule must be inferred.
@@ -216,14 +228,14 @@ class EventRule {
       room = icsEvent.location!.substring(0, locationSplit);
       location = icsEvent.location!.substring(locationSplit + 1);
     }
-    
+
     return EventRule(
-      id: Uuid().v4(),
-      key: icsEvent.description!.hashCode.toString(),
+      id: icsEvent.description!.hashCode.toString(),
       title: icsEvent.description!.substring(0, 8),
       summary: icsEvent.summary!,
       type: EventType.fromString(icsEvent.summary!.substring(icsEvent.summary!.lastIndexOf(' ') + 1)),
       description: icsEvent.description!,
+      occurrences: [(icsEvent.start!.toUtc(), icsEvent.end!.toUtc())],
       startDate: icsEvent.start!.toUtc(),
       endDate: icsEvent.end!.toUtc(),
       isAllDay: icsEvent.isAllDayEvent ?? false,
@@ -231,22 +243,29 @@ class EventRule {
       isRecurring: false,
       recurrencePattern: null,
       room: room,
-      location: location
-    );
+      location: location);
   }
 
-  factory EventRule.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
-    final data = snapshot.data()!;
+  factory EventRule.fromFirestore(QueryDocumentSnapshot<Map<String, dynamic>> snapshot) {
+    final data = snapshot.data();
     // print(EventType.fromString(data['type']));
+    print("hi");
+    print(data['occurrences'].runtimeType);
     return EventRule(
-      id: data['id'], 
-      key: data['key'],
+      id: snapshot.id,
       title: data['title'],
       summary: data['summary'],
       type: EventType.fromString(data['type']),
       description: data['description'],
       startDate: data['startDate'].toDate(),
       endDate: data['endDate'].toDate(),
+      occurrences: (data['occurrences'] as List<dynamic>).map((item) {
+      final map = item as Map<String, dynamic>;
+      return (
+        (map['start'] as Timestamp).toDate(),
+        (map['end'] as Timestamp).toDate(),
+      );
+    }).toList(),
       isAllDay: data['isAllDay'],
       duration: data['duration'],
       isRecurring: data['isRecurring'],
@@ -257,14 +276,13 @@ class EventRule {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
-      'key': key,
       'title': title,
       'summary': summary,
       'type': type.toString(),
       'description': description,
       'startDate': startDate,
-      'endDate': endDate, 
+      'endDate': endDate,
+      'occurrences': occurrences.map((occ) => {"start": occ.$1, "end": occ.$2}).toList(),
       'isAllDay': isAllDay,
       'duration': duration,
       'isRecurring': isRecurring,

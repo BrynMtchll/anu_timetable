@@ -31,6 +31,46 @@ class UserRepositoryFirebase implements UserRepository {
   }
 
   @override
+  Future<Result> deleteAccount(User? user) async {
+    try {
+      final authUser = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (authUser == null || user == null) {
+        throw Exception("No current user found");
+      }
+      // TODO: handle requires-recent-login error
+      await authUser.delete();
+
+      final result = await removeFromGroups(user.uid, user.eventRuleKeys);
+
+      switch(result) {
+        case Ok():
+          break;
+        case Error():
+          throw result.error;
+      }
+
+      final db = FirebaseFirestore.instance;
+
+      await db.collection('users').doc(user.uid).delete();
+
+      return Result.ok(null);
+
+    } on firebase_auth.FirebaseAuthException catch(e) {
+
+      // TODO: finish
+      if (e.code == 'requires-recent-login') {
+        final authUser = firebase_auth.FirebaseAuth.instance.currentUser;
+        // authUser.reauthenticateWithCredential(credential)
+      }
+      return Result.error(e);
+
+    } catch (e) {
+      print("Error deleteing account: $e");
+      return Result.error(Exception(e));
+    }
+  }
+
+  @override
   Future<Result<User>> getUser(String uid) async {
     final db = FirebaseFirestore.instance;
     final snapshot = await db.collection('users').doc(uid)
@@ -62,7 +102,7 @@ class UserRepositoryFirebase implements UserRepository {
   Future<Result<User>> getCurrentUser() async {
     final authUser = firebase_auth.FirebaseAuth.instance.currentUser;
     if (authUser == null) {
-      return Future.value(Result.error(Exception("No user currently signed in")));
+      return Result.error(Exception("No user currently signed in"));
     }
     final uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
     return await getUser(uid);
@@ -96,24 +136,69 @@ class UserRepositoryFirebase implements UserRepository {
       return Result.error(Exception(e));
     }
   }
-  
+
   @override
-  Future<Result> setUserGroups(User user, Set<String> keysRemoved, Set<String> keysAdded) async {
+  Future<Result> removeFromGroups(String uid, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
+    
     try {
       // TODO: check for empty groups and remove (including associated eventRules)
-      for (final key in keysRemoved) {
-        await db.collection('groups').doc(key).collection('members').doc(user.uid).delete();
+      final batch = db.batch();
+      for (final key in keys) {
+        batch.delete(db.collection('groups').doc(key).collection('members').doc(uid));
+        // await db.collection('groups').doc(key).collection('members').doc(user.uid).delete();
       }
-      for (final key in keysAdded) {
-        await db.collection('groups').doc(key).collection('members').doc(user.uid).set({"userId": user.uid});
-      }
+      await batch.commit();
       return Result.ok(null);
     }
     catch (e) {
       return Result.error(Exception(e));
     }
   }
+
+  @override
+  Future<Result> addToGroups(String uid, Set<String> keys) async {
+    final db = FirebaseFirestore.instance;
+    
+    try {
+      final batch = db.batch();
+      for (final key in keys) {
+        batch.set(db.collection('groups').doc(key).collection('members').doc(uid), {"userId": uid});
+        // await db.collection('groups').doc(key).collection('members').doc(user.uid).set({"userId": user.uid});
+      }
+      await batch.commit();
+      return Result.ok(null);
+    }
+    catch (e) {
+      return Result.error(Exception(e));
+    }
+  }
+  
+  // @override
+  // Future<Result> setUserGroups(User user, Set<String> keysRemoved, Set<String> keysAdded) async {
+  //   final db = FirebaseFirestore.instance;
+    
+  //   try {
+  //     // TODO: check for empty groups and remove (including associated eventRules)
+  //     var batch = db.batch();
+  //     for (final key in keysRemoved) {
+  //       batch.delete(db.collection('groups').doc(key).collection('members').doc(user.uid));
+  //       // await db.collection('groups').doc(key).collection('members').doc(user.uid).delete();
+  //     }
+  //     await batch.commit();
+  //     batch = db.batch();
+  //     for (final key in keysAdded) {
+  //       batch.set(db.collection('groups').doc(key).collection('members').doc(user.uid), {"userId": user.uid});
+  //       // await db.collection('groups').doc(key).collection('members').doc(user.uid).set({"userId": user.uid});
+  //     }
+  //     await batch.commit();
+  //     return Result.ok(null);
+  //   }
+  //   catch (e) {
+  //     return Result.error(Exception(e));
+  //   }
+  // }
+
   @override
   Future<Result> addUserToGroup(User user, Set<String> keys) async {
     final db = FirebaseFirestore.instance;

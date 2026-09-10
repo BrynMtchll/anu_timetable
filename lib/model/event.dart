@@ -1,4 +1,5 @@
 import 'package:anu_timetable/data/repositories/event_repository.dart';
+import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
 import 'package:anu_timetable/domain/model/event.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
@@ -6,12 +7,12 @@ import 'package:flutter/material.dart';
 
 class EventVM extends ChangeNotifier {
   EventVM({
-    required EventRepository eventRepository,
+    required EventRepositoryFirebase eventRepository,
   }) : _eventRepository = eventRepository {
     loadEvent = Command1(_loadEvent);
   }
 
-  final EventRepository _eventRepository;
+  final EventRepositoryFirebase _eventRepository;
 
   late Command1<void, String> loadEvent;
 

@@ -1,3 +1,4 @@
+import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/router.dart';
 import 'package:anu_timetable/util/firebase_emulator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

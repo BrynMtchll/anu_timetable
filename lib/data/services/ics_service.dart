@@ -27,12 +27,8 @@ class IcsService {
   Future<Result<List<EventRule>>> parseIcs(String icsStr) async {
     final vcomp = VComponent.parse(icsStr);
     final icalendar = vcomp as VCalendar;
-    final List<EventRule> eventRules = [];
-    for (final child in icalendar.children) {
-      if (child.name == "VEVENT") {
-        eventRules.add(EventRule.fromIcs(child as VEvent));
-      }
-    }
+    final List<EventRule> eventRules = EventRule.fromIcsList(
+      [for (final child in icalendar.children) if (child.name == "VEVENT") child as VEvent]);
     return Result.ok(eventRules);
   }
 }

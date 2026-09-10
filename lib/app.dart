@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
 import 'package:anu_timetable/data/repositories/user_repository.dart';
@@ -10,6 +12,7 @@ import 'package:anu_timetable/model/sync_anu.dart';
 import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/util/theme_extension.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -62,8 +65,8 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider(create:(context) => EventRepositoryFirebase() as EventRepository),
-        Provider(create:(context) => UserRepositoryFirebase() as UserRepository),
+        Provider(create:(context) => EventRepositoryFirebase()),
+        Provider(create:(context) => UserRepositoryFirebase()),
         ChangeNotifierProvider(create: (context) => CurrentDay()),
         ChangeNotifierProvider(create: (context) => CurrentMinute()),
         ChangeNotifierProvider(create: (context) => CurrentSecond()),
@@ -78,28 +81,66 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
           ..loadCurrentUser.execute()),
         ChangeNotifierProvider<SyncAnuVM>(create: (context) => SyncAnuVM(eventRepository: context.read(), userRepository: context.read()))
       ],
-      child: MaterialApp.router(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          splashFactory: NoSplash.splashFactory,
-          // splashColor: Colors.transparent,
-          // Removes the highlight background fade on tap
-          highlightColor: Colors.transparent,
-          colorScheme: ColorScheme.fromSeed(
-            // 255, 190, 135, 43
-            seedColor: const Color.fromARGB(255, 255, 119, 0),
-            primary: const Color.fromARGB(255, 255, 140, 79),
-            onPrimary: const Color.fromARGB(255, 15, 12, 9),
-            error: Color.fromARGB(255, 255, 91, 79),
-            
-            // surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
-            brightness: Brightness.dark,
-            dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
-          useMaterial3: true).copyWith(
-            extensions: [
-              CalendarTheme.dark(),
-            ]),
-        routerConfig: widget.router));
+      child: AuthGate(
+        child: MaterialApp.router(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            splashFactory: NoSplash.splashFactory,
+            // splashColor: Colors.transparent,
+            // Removes the highlight background fade on tap
+            highlightColor: Colors.transparent,
+            colorScheme: ColorScheme.fromSeed(
+              // 255, 190, 135, 43
+              seedColor: const Color.fromARGB(255, 255, 119, 0),
+              primary: const Color.fromARGB(255, 255, 140, 79),
+              onPrimary: const Color.fromARGB(255, 15, 12, 9),
+              error: Color.fromARGB(255, 255, 91, 79),
+              
+              // surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
+              brightness: Brightness.dark,
+              dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
+            useMaterial3: true).copyWith(
+              extensions: [
+                CalendarTheme.dark(),
+              ]),
+          routerConfig: widget.router)));
+  }
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  StreamSubscription<User?>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    final vm = context.read<UserEventsVM>();
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        vm.startWatching(user.uid);
+      } else {
+        vm.stopWatching();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
 

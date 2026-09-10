@@ -25,7 +25,7 @@ class ProfilePage extends StatelessWidget {
                   _ClassList(),
                   _SyncButton(),
                   _LogOutButton(userVM: userVM),
-                  _DeleteAccountButton(),
+                  _DeleteAccountButton(userVM: userVM),
             ]))));
   }
 }
@@ -52,12 +52,19 @@ class _LogOutButton extends StatelessWidget {
   }
 }
 class _DeleteAccountButton extends StatelessWidget {
-  const _DeleteAccountButton();
+  const _DeleteAccountButton({required this.userVM});
+
+  final UserVM userVM;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
+      onTap: () async {
+        final result = await showSuggestedActionDialog(context: context, title: "Delete Account",
+          message: "Are you sure you want to delete your account? This action can't be undone", actionButtonText: null).result;
+        if (result != null) userVM.deleteAccount.execute();
+      },
       child: Text("Delete Account", style: TextStyle(
         decoration: TextDecoration.underline,
         decorationColor: colorScheme.error,

@@ -1,4 +1,5 @@
 import 'package:anu_timetable/data/repositories/user_repository.dart';
+import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
@@ -7,17 +8,19 @@ import 'package:flutter/material.dart';
 class UserVM extends ChangeNotifier {
   late Command0<void> signInWithGoogle;
   late Command0<void> signOut;
+  late Command0<void> deleteAccount;
   late Command0<void> loadCurrentUser;
   late Command1<void, DateTime> loadYear;
 
-  UserVM({required UserRepository userRepository})
+  UserVM({required UserRepositoryFirebase userRepository})
     : _userRepository = userRepository {
       signInWithGoogle = Command0(_signInWithGoogle);
       loadCurrentUser = Command0(_loadCurrentUser);
       signOut = Command0(_signOut);
+      deleteAccount = Command0(_deleteAccount);
     }
 
-  final UserRepository _userRepository;
+  final UserRepositoryFirebase _userRepository;
   
   User? currentUser;
 
@@ -35,6 +38,17 @@ class UserVM extends ChangeNotifier {
 
   Future<Result<void>> _signOut() async {
     final result = await _userRepository.signOut();
+    switch(result) {
+      case Ok():
+        notifyListeners();
+        return result;
+      case Error():
+        throw result;
+    }
+  }
+
+  Future<Result<void>> _deleteAccount() async {
+    final result = await _userRepository.deleteAccount(currentUser);
     switch(result) {
       case Ok():
         notifyListeners();

@@ -21,9 +21,9 @@ class TimetablePage extends StatelessWidget {
     return ListenableBuilder(
       listenable: userVM.loadCurrentUser,
       builder: (context, child) {
-        final user = userVM.currentUser!;
-        Provider.of<UserEventsVM>(context, listen: false)
-          .loadEvents.execute(user.eventRuleKeys.toList(), DateTime(DateTime.now().year), DateTime(DateTime.now().year + 1));
+        // final user = userVM.currentUser!;
+        // Provider.of<UserEventsVM>(context, listen: false)
+        //   .loadEvents.execute(user.eventRuleKeys.toList(), DateTime(DateTime.now().year), DateTime(DateTime.now().year + 1));
         return child!;
       },
       child: Scaffold(
