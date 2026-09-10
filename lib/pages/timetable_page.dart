@@ -1,6 +1,5 @@
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/controller.dart';
-import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/widgets/app_bar.dart';
 import 'package:anu_timetable/widgets/list_view.dart';

@@ -1,13 +1,10 @@
-import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
-import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/data/services/ics_service.dart';
 import 'package:anu_timetable/domain/model/event_rule.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/command.dart';
 import 'package:anu_timetable/util/result.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';

@@ -246,11 +246,18 @@ class EventRule {
       location: location);
   }
 
+  static List<(DateTime, DateTime)> occurrencesFromFirestore(Map<String, dynamic> occurrencesData) {
+    return (occurrencesData as List<dynamic>).map((item) {
+      final map = item as Map<String, dynamic>;
+      return (
+        (map['start'] as Timestamp).toDate(),
+        (map['end'] as Timestamp).toDate(),
+      ); 
+    }).toList();
+  }
+
   factory EventRule.fromFirestore(QueryDocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data();
-    // print(EventType.fromString(data['type']));
-    print("hi");
-    print(data['occurrences'].runtimeType);
     return EventRule(
       id: snapshot.id,
       title: data['title'],
@@ -259,17 +266,12 @@ class EventRule {
       description: data['description'],
       startDate: data['startDate'].toDate(),
       endDate: data['endDate'].toDate(),
-      occurrences: (data['occurrences'] as List<dynamic>).map((item) {
-      final map = item as Map<String, dynamic>;
-      return (
-        (map['start'] as Timestamp).toDate(),
-        (map['end'] as Timestamp).toDate(),
-      );
-    }).toList(),
+      occurrences: occurrencesFromFirestore(data['occurrences']),
       isAllDay: data['isAllDay'],
       duration: data['duration'],
       isRecurring: data['isRecurring'],
-      recurrencePattern: data['recurrencePattern'] == null ? null : RecurrencePattern.fromFirestore(data['recurrencePattern']), 
+      recurrencePattern: data['recurrencePattern'] == null ? null
+        : RecurrencePattern.fromFirestore(data['recurrencePattern']), 
       room: data['room'],
       location: data['location']);
   }
@@ -288,7 +290,6 @@ class EventRule {
       'isRecurring': isRecurring,
       'recurrencePattern': recurrencePattern?.toMap(),
       'room': room,
-      'location': location,
-    };
+      'location': location};
   }
 }

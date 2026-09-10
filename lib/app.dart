@@ -1,12 +1,9 @@
 import 'dart:async';
 
-import 'package:anu_timetable/data/repositories/event_repository.dart';
 import 'package:anu_timetable/data/repositories/event_repository_firebase.dart';
-import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/model/animation.dart';
 import 'package:anu_timetable/model/current.dart';
-import 'package:anu_timetable/model/event.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/sync_anu.dart';
 import 'package:anu_timetable/model/user.dart';
@@ -76,7 +73,6 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
         ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
         ChangeNotifierProvider<UserEventsVM>(create: (context) => UserEventsVM(eventRepository: context.read(), userRepository: context.read())),
-        ChangeNotifierProvider<EventVM>(create: (context) => EventVM(eventRepository: context.read())),
         ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read())
           ..loadCurrentUser.execute()),
         ChangeNotifierProvider<SyncAnuVM>(create: (context) => SyncAnuVM(eventRepository: context.read(), userRepository: context.read()))

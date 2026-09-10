@@ -1,4 +1,3 @@
-import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/data/repositories/user_repository_firebase.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/command.dart';

@@ -1,14 +1,12 @@
-import 'package:anu_timetable/data/repositories/user_repository.dart';
 import 'package:anu_timetable/domain/model/user.dart';
 import 'package:anu_timetable/util/result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 
-class UserRepositoryFirebase implements UserRepository {
+class UserRepositoryFirebase {
   User? currentUser;
   
-  @override
   Future<Result<User>> signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
@@ -19,7 +17,6 @@ class UserRepositoryFirebase implements UserRepository {
       : await getUser(userCredential.user!.uid);
   }
 
-  @override
   Future<Result> signOut() async {
     try {
       await firebase_auth.FirebaseAuth.instance.signOut();
@@ -30,7 +27,6 @@ class UserRepositoryFirebase implements UserRepository {
     }
   }
 
-  @override
   Future<Result> deleteAccount(User? user) async {
     try {
       final authUser = firebase_auth.FirebaseAuth.instance.currentUser;
@@ -70,7 +66,6 @@ class UserRepositoryFirebase implements UserRepository {
     }
   }
 
-  @override
   Future<Result<User>> getUser(String uid) async {
     final db = FirebaseFirestore.instance;
     final snapshot = await db.collection('users').doc(uid)
@@ -85,7 +80,6 @@ class UserRepositoryFirebase implements UserRepository {
       : Result.ok(user);
   }
 
-  @override
   Future<Result<User>> addNewUser(firebase_auth.UserCredential userCredential) async {
     final db = FirebaseFirestore.instance;
     User user = User.fromAuth(userCredential: userCredential);
@@ -98,7 +92,6 @@ class UserRepositoryFirebase implements UserRepository {
     }
   }
   
-  @override
   Future<Result<User>> getCurrentUser() async {
     final authUser = firebase_auth.FirebaseAuth.instance.currentUser;
     if (authUser == null) {
@@ -108,7 +101,6 @@ class UserRepositoryFirebase implements UserRepository {
     return await getUser(uid);
   }
 
-  @override
   Future<Result<(Set<String>, Set<String>)>> setUserEventRuleKeys(String userId, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
     try {
@@ -137,7 +129,6 @@ class UserRepositoryFirebase implements UserRepository {
     }
   }
 
-  @override
   Future<Result> removeFromGroups(String uid, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
     
@@ -156,7 +147,6 @@ class UserRepositoryFirebase implements UserRepository {
     }
   }
 
-  @override
   Future<Result> addToGroups(String uid, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
     
@@ -174,32 +164,6 @@ class UserRepositoryFirebase implements UserRepository {
     }
   }
   
-  // @override
-  // Future<Result> setUserGroups(User user, Set<String> keysRemoved, Set<String> keysAdded) async {
-  //   final db = FirebaseFirestore.instance;
-    
-  //   try {
-  //     // TODO: check for empty groups and remove (including associated eventRules)
-  //     var batch = db.batch();
-  //     for (final key in keysRemoved) {
-  //       batch.delete(db.collection('groups').doc(key).collection('members').doc(user.uid));
-  //       // await db.collection('groups').doc(key).collection('members').doc(user.uid).delete();
-  //     }
-  //     await batch.commit();
-  //     batch = db.batch();
-  //     for (final key in keysAdded) {
-  //       batch.set(db.collection('groups').doc(key).collection('members').doc(user.uid), {"userId": user.uid});
-  //       // await db.collection('groups').doc(key).collection('members').doc(user.uid).set({"userId": user.uid});
-  //     }
-  //     await batch.commit();
-  //     return Result.ok(null);
-  //   }
-  //   catch (e) {
-  //     return Result.error(Exception(e));
-  //   }
-  // }
-
-  @override
   Future<Result> addUserToGroup(User user, Set<String> keys) async {
     final db = FirebaseFirestore.instance;
     try {
