@@ -1,61 +1,51 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:ui';
+
+import 'package:anu_timetable/widgets/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
-///
-/// [isDefaultAction] and [isDestructiveAction] are ignored on Android
-/// because Material Design doesn't specify corresponding styles.
-Widget _adaptiveAction({
-  required VoidCallback onPressed,
-  required bool isDefaultAction,
-  bool isDestructiveAction = false,
-  required String text,
-}) {
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      return TextButton(
-        onPressed: onPressed,
-        child: Text(text, textAlign: TextAlign.end));
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      return CupertinoDialogAction(
-        onPressed: onPressed,
-        isDefaultAction: isDefaultAction,
-        isDestructiveAction: isDestructiveAction,
-        child: Text(text));
-  }
-}
+class MyDialog extends StatelessWidget {
+  const MyDialog({
+    super.key,
+    required this.title,
+    this.content,
+    required this.actions,
+  });
 
-/// Platform-appropriate content for [AlertDialog.adaptive]'s [content] param.
-Widget? _adaptiveContent(Widget? content) {
-  if (content == null) return null;
+  final String title;
+  final Widget? content;
+  final List<MyButton> actions;
 
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      // [AlertDialog] does not create a [SingleChildScrollView];
-      // callers are asked to do that themselves, to handle long content.
-      return SingleChildScrollView(child: content);
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
 
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      // A [SingleChildScrollView] (wrapping both title and content) is already
-      // created by [CupertinoAlertDialog].
-      return DefaultTextStyle.merge(
-        // The "alert description" is start-aligned in one example in Apple's
-        // HIG document:
-        //   https://developer.apple.com/design/human-interface-guidelines/alerts#Anatomy
-        // (Confusingly, in 2025-10, it's center-aligned in the graphic at the
-        // *top* of that page; shrug.)
-        textAlign: TextAlign.start,
-        child: content);
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+      backgroundColor: colorScheme.surfaceContainer,
+      child: IntrinsicHeight(
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: Text(title, style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 18))),
+            if (content != null)
+              Container(
+                padding: EdgeInsets.only(left: 20, right: 20, bottom: 5),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: 400),
+                  child: SingleChildScrollView(
+                    child: content)),
+              ),
+            Container(
+              padding: EdgeInsets.all(15),
+              child: Row(
+                spacing: 10,
+                children: actions.map((a) => Expanded(child: a)).toList()))
+          ])));
   }
 }
 
@@ -109,14 +99,14 @@ DialogStatus<void> showErrorDialog({
   HapticFeedback.errorNotification();
   final future = showDialog<void>(
     context: context,
-    builder: (BuildContext context) => AlertDialog.adaptive(
-      title: Text(title),
-      content: message != null ? _adaptiveContent(Text(message)) : null,
+    builder: (BuildContext context) => MyDialog(
+      title: title,
+      content: message != null ? Text(message) : null,
       actions: [
-        _adaptiveAction(
-          onPressed: () => Navigator.pop(context),
-          isDefaultAction: true,
-          text: "continue"),
+        MyButton(
+        onPressed: () => Navigator.pop(context),
+        isPrimary: true,
+        text: "continue")
       ]));
   return DialogStatus(future);
 }
@@ -134,22 +124,23 @@ DialogStatus<bool> showSuggestedActionDialog({
   required String title,
   String? message,
   required String? actionButtonText,
+  bool cancelIsPrimary = false,
+  bool isPrimary = false,
   bool destructiveActionButton = false,
 }) {
   final future = showDialog<bool>(
     context: context,
-    builder: (BuildContext context) => AlertDialog.adaptive(
-      title: Text(title),
-      content: message != null ? _adaptiveContent(Text(message)) : null,
+    builder: (BuildContext context) => MyDialog(
+      title: title,
+      content: message != null ? Text(message) : null,
       actions: [
-        _adaptiveAction(
+        MyButton(
           onPressed: () => Navigator.pop<bool>(context, null),
-          isDefaultAction: false,
+          isPrimary: cancelIsPrimary,
           text: "cancel"),
-        _adaptiveAction(
+        MyButton(
           onPressed: () => Navigator.pop<bool>(context, true),
-          isDefaultAction: true,
-          isDestructiveAction: destructiveActionButton,
+          isPrimary: isPrimary,
           text: actionButtonText ?? "continue"),
       ]));
   return DialogStatus(future);

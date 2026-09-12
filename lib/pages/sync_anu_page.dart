@@ -1,4 +1,5 @@
 import 'package:anu_timetable/model/sync_anu.dart';
+import 'package:anu_timetable/widgets/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
@@ -18,11 +19,9 @@ class SyncAnuPage extends StatelessWidget {
         child: InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri('https://mytimetable.anu.edu.au/even/student')),
           initialSettings: InAppWebViewSettings(useOnDownloadStart: true),
-          onDownloadStartRequest: (controller, downloadRequest) async {
-            syncAnuVM.loadAndSyncIcs.execute(Uri.parse(downloadRequest.url.toString()));
-          },
           onReceivedError: (controller, request, error) 
             => syncAnuVM.onReceivedError(controller, request, error, context),
-          onLoadStop: syncAnuVM.onLoadStop)));
+          onLoadStop: (controller, request) 
+            => syncAnuVM.onLoadStop(controller, request, context))));
   }
 }
