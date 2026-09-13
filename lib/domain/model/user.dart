@@ -2,14 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class User {
-  late String uid;
-  late String displayName;
-  late String email;
+  final String uid;
+  final String displayName;
+  final String email;
+  late Uri? iCalUrl;
   final Set<String> eventRuleKeys = {};
-  late String? photoUrl;
+  final String? photoUrl;
 
   User({required this.uid, required this.displayName, required this.email, 
-    this.photoUrl, Set<String>? eventRuleKeys}) {
+    this.iCalUrl, this.photoUrl, Set<String>? eventRuleKeys}) {
     if (eventRuleKeys != null) {
       this.eventRuleKeys.addAll(eventRuleKeys);
     }
@@ -23,7 +24,8 @@ class User {
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) {
     final data = snapshot.data()!;
     return User(uid: data['uid'], displayName: data['displayName'], email: data['email'], 
-      photoUrl: data['photoUrl'], eventRuleKeys: Set<String>.from(data['eventRuleKeys']));
+      photoUrl: data['photoUrl'], iCalUrl: data['iCalUrl'] != null ? Uri.parse(data['iCalUrl']) : null,
+      eventRuleKeys: Set<String>.from(data['eventRuleKeys']));
   }
 
   Map<String, dynamic> toMap() {
@@ -31,6 +33,7 @@ class User {
       'uid': uid,
       'email': email,
       'photoUrl': photoUrl,
+      'iCalUrl': iCalUrl?.toString(),
       'displayName': displayName,
       'eventRuleKeys': eventRuleKeys
     };

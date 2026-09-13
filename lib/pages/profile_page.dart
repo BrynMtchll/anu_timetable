@@ -46,8 +46,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Container(
                       width: 1,
                       height: screenHeight,
-                      color: colorScheme.surfaceContainerHighest,
-                    ),
+                      color: colorScheme.surfaceContainerHighest),
                     _Drawer(panelWidth: panelWidth)
                   ]))
           ]));
@@ -234,21 +233,22 @@ class _Details extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: 25),
                   getInitials(userVM.currentUser?.displayName ?? '')))),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18),
-                  userVM.currentUser?.displayName ?? ''),
-                Text(
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 15),
-                  userVM.currentUser?.email ?? ''),
-              ]),
-              Spacer(),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18),
+                    userVM.currentUser?.displayName ?? ''),
+                  Text(
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15),
+                    userVM.currentUser?.email ?? ''),
+                ]),
+            ),
               GestureDetector(
                 onTap: onTap,
                 child: Container(

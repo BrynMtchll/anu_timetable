@@ -19,9 +19,9 @@ void main() async {
   FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
   await FirebaseAuth.instance.useAuthEmulator(emulatorHost, 9099);
 
-  final router = MyRouter().router;
-  FirebaseAuth.instance.authStateChanges().listen((User? user) {
-    router.refresh();
-  });
-  runApp(App(router: router));
+  // final router = MyRouter().router;
+  // FirebaseAuth.instance.authStateChanges().listen((User? user) {
+  //   router.refresh();
+  // });
+  runApp(App());
 }

@@ -1,69 +1,46 @@
 import 'package:anu_timetable/model/user.dart';
+import 'package:anu_timetable/widgets/button.dart';
+import 'package:anu_timetable/widgets/dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:anu_timetable/util/result.dart';
 
-Future<UserCredential> signInWithGoogle() async {
-  // Trigger the authentication flow
-  final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
-
-  // Obtain the auth details from the request
-  final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-
-  // Create a new credential
-  final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
-
-  // Once signed in, return the UserCredential
-  final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-
-  if (userCredential.additionalUserInfo!.isNewUser) {
-    
-  }
-  return userCredential; 
-}
-
-Future<UserCredential> signInWithMicrosoft() async {
-  final microsoftProvider = MicrosoftAuthProvider();
-  if (kIsWeb) {
-    return await FirebaseAuth.instance.signInWithPopup(microsoftProvider);
-  } else {
-    return await FirebaseAuth.instance.signInWithProvider(microsoftProvider);
-  }
-}
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: SafeArea(
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+          padding: EdgeInsets.symmetric(vertical: 50, horizontal: 30),
           child: Center(
             child: Column(
               spacing: 20,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w600,
-                  ),
-                "Login"),
+                Text("Welcome", style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600)),
+                Text("Please sign in using your ANU student email.",
+                  style: TextStyle(fontSize: 15)),
                 Consumer<UserVM>(
                   builder: (context, userVM, child) => 
-
-                  ElevatedButton(
-                    child: Text("Sign in with Microsoft"),
-                    onPressed: () {
-                      userVM.signInWithGoogle.execute();
-                      // signInWithMicrosoft();
-                    }),
-                )
+                    MyButton(
+                      text: "Sign In",
+                      isPrimary: true,
+                      onPressed: () async {
+                        await userVM.signInWithMicrosoft.execute();
+                        if (userVM.signInWithMicrosoft.error && context.mounted) {
+                          showErrorDialog(context: context,
+                            title: (userVM.signInWithMicrosoft.result! as Error).error.toString());
+                      }
+                    })),
+                    Text("You will be prompted to do this twice. The second time is to connect to your MyTimetable.",
+                    style: TextStyle(fontSize: 15))
               ])))));
   }
 }

@@ -17,14 +17,15 @@ class MyButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final hslcolor = HSLColor.fromColor(colorScheme.primary);
     final colorStart = hslcolor.withSaturation(0.65).withLightness(0.55).toColor();
-    final colorEnd = hslcolor.withSaturation(0.68).withLightness(0.52).withHue(hslcolor.hue - 8).toColor();
+    final colorEnd = hslcolor.withSaturation(0.68).withLightness(0.52).withHue(hslcolor.hue - 5).toColor();
     final hslgrey = HSLColor.fromColor(colorScheme.surfaceContainerHighest);
     final greyStart = hslgrey.withLightness(0.35).toColor();
     final greyEnd = hslgrey.withLightness(0.3).toColor();
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+      height: 40,
       decoration: BoxDecoration(
-        // border: Border.all(color)
+        // border: Border.all(color: isPrimary ? colorScheme.primary : const Color.fromARGB(255, 114, 114, 114)),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -34,6 +35,8 @@ class MyButton extends StatelessWidget {
       ),
       child: TextButton(
         onPressed: onPressed,
+        style: TextButton.styleFrom(
+          minimumSize: const Size.fromHeight(0)),
         child: Text(text, style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 14,

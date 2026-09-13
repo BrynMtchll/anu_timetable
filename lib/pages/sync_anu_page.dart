@@ -1,5 +1,4 @@
 import 'package:anu_timetable/model/sync_anu.dart';
-import 'package:anu_timetable/widgets/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';

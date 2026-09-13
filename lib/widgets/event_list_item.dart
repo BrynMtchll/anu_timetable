@@ -11,7 +11,8 @@ class EventItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final eventColorScheme = Theme.of(context).extension<CalendarTheme>()!.eventColors[event.type.typeEnum]!;
+    final eventColorScheme = Theme.of(context).extension<CalendarTheme>()!
+      .eventColors[event.type.typeEnum]!;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,

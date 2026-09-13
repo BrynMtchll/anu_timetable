@@ -7,6 +7,7 @@ import 'package:anu_timetable/model/current.dart';
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/sync_anu.dart';
 import 'package:anu_timetable/model/user.dart';
+import 'package:anu_timetable/router.dart';
 import 'package:anu_timetable/util/theme_extension.dart';
 import 'package:anu_timetable/util/timetable_layout.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,9 +19,7 @@ import 'package:anu_timetable/model/controller.dart';
 import 'package:go_router/go_router.dart';
 
 class App extends StatefulWidget {
-  const App({super.key, required this.router});
-
-  final GoRouter router;
+  const App({super.key});
 
   @override
   State<App> createState() => _AppState();
@@ -73,33 +72,43 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
         ChangeNotifierProvider.value(value: weekViewScrollController),
         ChangeNotifierProvider<TimetableVM>(create: (context) => TimetableVM()),
         ChangeNotifierProvider<UserEventsVM>(create: (context) => UserEventsVM(eventRepository: context.read(), userRepository: context.read())),
-        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read())
-          ..loadCurrentUser.execute()),
-        ChangeNotifierProvider<SyncAnuVM>(create: (context) => SyncAnuVM(eventRepository: context.read(), userRepository: context.read()))
+        ChangeNotifierProvider<UserVM>(create: (context) => UserVM(userRepository: context.read(), eventRepository: context.read())),
+        ChangeNotifierProvider<SyncAnuVM>(create: (context) => SyncAnuVM())
       ],
       child: AuthGate(
-        child: MaterialApp.router(
-          title: 'Flutter Demo',
-          theme: ThemeData(
-            splashFactory: NoSplash.splashFactory,
-            // splashColor: Colors.transparent,
-            // Removes the highlight background fade on tap
-            highlightColor: Colors.transparent,
-            colorScheme: ColorScheme.fromSeed(
-              // 255, 190, 135, 43
-              seedColor: const Color.fromARGB(255, 255, 119, 0),
-              primary: const Color.fromARGB(255, 255, 140, 79),
-              onPrimary: const Color.fromARGB(255, 15, 12, 9),
-              error: Color.fromARGB(255, 255, 91, 79),
-              
-              // surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
-              brightness: Brightness.dark,
-              dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
-            useMaterial3: true).copyWith(
-              extensions: [
-                CalendarTheme.dark(),
-              ]),
-          routerConfig: widget.router)));
+        child: MyMaterialApp()));
+  }
+}
+
+class MyMaterialApp extends StatelessWidget {
+  const MyMaterialApp({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        splashFactory: NoSplash.splashFactory,
+        // splashColor: Colors.transparent,
+        // Removes the highlight background fade on tap
+        highlightColor: Colors.transparent,
+        colorScheme: ColorScheme.fromSeed(
+          // 255, 190, 135, 43
+          seedColor: const Color.fromARGB(255, 255, 119, 0),
+          primary: const Color.fromARGB(255, 255, 140, 79),
+          onPrimary: const Color.fromARGB(255, 15, 12, 9),
+          error: Color.fromARGB(255, 255, 91, 79),
+          
+          // surfaceContainerHighest: const Color.fromARGB(255, 50, 41, 85),
+          brightness: Brightness.dark,
+          dynamicSchemeVariant: DynamicSchemeVariant.rainbow),
+        useMaterial3: true).copyWith(
+          extensions: [
+            CalendarTheme.dark(),
+          ]),
+      routerConfig: MyRouter.createRouter(userVM: context.read<UserVM>()));
   }
 }
 

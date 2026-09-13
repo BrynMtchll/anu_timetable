@@ -1,5 +1,6 @@
 import 'package:anu_timetable/app.dart';
 import 'package:anu_timetable/domain/model/event.dart';
+import 'package:anu_timetable/model/user.dart';
 import 'package:anu_timetable/pages/event_page.dart';
 import 'package:anu_timetable/pages/home_page.dart';
 import 'package:anu_timetable/pages/login_page.dart';
@@ -11,8 +12,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 class MyRouter {
-  final router = GoRouter(
+  MyRouter();
+
+  static GoRouter createRouter({required UserVM userVM}) {
+    return GoRouter(
     initialLocation: '/home',
+    refreshListenable: userVM,
     routes: <RouteBase>[
       GoRoute(
         path: '/syncAnu',
@@ -60,8 +65,21 @@ class MyRouter {
     redirect: (final context, final state) {
       final bool loggedIn = FirebaseAuth.instance.currentUser != null;
       final bool loggingIn = state.matchedLocation == '/login';
+      final bool syncing = state.matchedLocation == '/syncAnu';
+      print("refreshing! ${state.matchedLocation}");
+      // print("isLoggedIn: $loggedIn isNewUser: ${userVM.isNewUser}");
+      if (userVM.triedInitialSync && loggedIn && loggingIn) {
+        return '/syncAnu';
+      }
+      if (syncing && userVM.triedInitialSync) {
+        return null;
+      }
+      if (syncing) {
+        return '/home';
+      }
       if (!loggedIn) return '/login';
       if (loggingIn) return '/home';
+      if (syncing) return '/home';
       return null;
     });
-}
+}}
