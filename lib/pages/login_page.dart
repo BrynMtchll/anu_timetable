@@ -29,7 +29,7 @@ class LoginPage extends StatelessWidget {
                   style: TextStyle(fontSize: 15)),
                 Consumer<UserVM>(
                   builder: (context, userVM, child) => 
-                    MyButton(
+                    CustomButton(
                       text: "Sign In",
                       isPrimary: true,
                       onPressed: () async {

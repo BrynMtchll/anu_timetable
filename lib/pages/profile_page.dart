@@ -2,9 +2,13 @@
 
 import 'package:anu_timetable/model/events.dart';
 import 'package:anu_timetable/model/user.dart';
+import 'package:anu_timetable/util/result.dart';
+import 'package:anu_timetable/widgets/button.dart';
 import 'package:anu_timetable/widgets/dialog.dart';
+import 'package:anu_timetable/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -15,7 +19,9 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool isOpen = false;
+  bool _isOpen = false;
+  bool _isLoading = false;
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,21 +30,28 @@ class _ProfilePageState extends State<ProfilePage> {
     final double panelWidth = 250;
     final colorScheme = Theme.of(context).colorScheme;
 
+    void setLoading(bool loading) {
+      setState(() => _isLoading = loading);
+    }
+    void setOpen(bool open) {
+      setState(() => _isOpen = open);
+    }
+
     return Consumer<UserVM>(
       builder: (context, userVM, child)
         => Stack(
           children: [
             AnimatedPositioned(
-              left:  isOpen ? -panelWidth : 0,
+              left:  _isOpen ? -panelWidth : 0,
               duration: Duration(milliseconds: 200),
               child: _MainPage(screenWidth: screenWidth,
-                onTap: () => setState(() => isOpen = !isOpen))),
-            if (isOpen) 
+                onTap: () => setOpen(!_isOpen))),
+            if (_isOpen) 
               Positioned.fill(
                 child: GestureDetector(
-                  onTap: () => setState(() => isOpen = false))),
+                  onTap: () => setOpen(false))),
             AnimatedPositioned(
-              left: isOpen ? screenWidth - panelWidth : screenWidth,
+              left: _isOpen ? screenWidth - panelWidth : screenWidth,
               duration: Duration(milliseconds: 200),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,18 +60,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       width: 1,
                       height: screenHeight,
                       color: colorScheme.surfaceContainerHighest),
-                    _Drawer(panelWidth: panelWidth)
-                  ]))
+                    _Drawer(panelWidth: panelWidth, setOpen: setOpen, setLoading: setLoading)
+                  ])),
+                  if (_isLoading) Center(
+                    child: CircularProgressIndicator(
+                      color: colorScheme.onSurface, strokeWidth: 2)),
           ]));
   }
 }
 
 class _Drawer extends StatelessWidget {
   const _Drawer({
-    required this.panelWidth,
+    required this.panelWidth, required this.setOpen, required this.setLoading,
   });
 
   final double panelWidth;
+  final Function(bool) setOpen;
+  final Function(bool) setLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -73,12 +91,53 @@ class _Drawer extends StatelessWidget {
         width: panelWidth,
         child: Consumer<UserVM>(
           builder: (context, userVM, child) {
+            Future<void> onDelete() async {
+              final result = await showSuggestedActionDialog(context: context, title: "Delete Account",
+                message: "Are you sure you want to delete your account? This action can't be undone", actionButtonText: null, cancelIsPrimary: true).result;
+              if (result != null) userVM.deleteAccount.execute();
+            }
+
+            Future<void> onLogout() async {
+              final result = await showSuggestedActionDialog(context: context, title: "Log Out",
+                message: "Are you sure you want to log out?", actionButtonText: null, cancelIsPrimary: true).result;
+              if (result != null) userVM.signOut.execute();
+            }
+
+            Future<void> onSync() async {
+              
+              final url = userVM.currentUser!.iCalUrl;
+              // TODO: handle no url - dialog saying need to resync
+              if (url == null) {
+              }
+              setLoading(true);
+              await userVM.loadAndSyncIcs.execute(url!);
+              setLoading(false);
+              if (context.mounted) {
+                if (userVM.loadAndSyncIcs.error) {
+                  showErrorDialog(context: context,
+                    title: (userVM.loadAndSyncIcs.result as Error).toString());
+                }
+                showSnackBar(context, "Synced With MyTimetable!");
+                setOpen(false);
+              }
+            }
+
             return Column(
               spacing: 20,
               children: [
-                _SyncButton(userVM: userVM),
-                _LogOutButton(userVM: userVM),
-                _DeleteAccountButton(userVM: userVM),
+                CustomTextButton(
+                  text: "Sync with MyTimetable",
+                  color: colorScheme.onSurface,
+                  onPressed: onSync),
+                
+                CustomTextButton(
+                  text: "Log Out",
+                  color: colorScheme.onSurface,
+                  onPressed: onLogout),
+                CustomTextButton(
+                  text: "Delete Account",
+                  color: colorScheme.error,
+                  onPressed: onDelete),
               ]);
           })));
   }
@@ -104,64 +163,6 @@ class _MainPage extends StatelessWidget {
               _Details(onTap: onTap),
               _ClassList()
       ])));
-  }
-}
-
-class _SyncButton extends StatelessWidget {
-  const _SyncButton({required this.userVM});
-
-  final UserVM userVM;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () => context.push('/syncAnu'),
-      child: Text("Sync With My Timetable", style: TextStyle(
-        decorationColor: colorScheme.onSurface,
-        fontWeight: FontWeight.w400,
-        fontSize: 15, color: colorScheme.onSurface)));
-  }
-}
-
-class _LogOutButton extends StatelessWidget {
-  const _LogOutButton({required this.userVM});
-
-  final UserVM userVM;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () async {
-        final result = await showSuggestedActionDialog(context: context, title: "Log Out",
-          message: "Are you sure you want to log out?", actionButtonText: null, cancelIsPrimary: true).result;
-        if (result != null) userVM.signOut.execute();
-      },
-      child: Text("Log Out", style: TextStyle(
-        decorationColor: colorScheme.onSurface,
-        fontWeight: FontWeight.w400,
-        fontSize: 15, color: colorScheme.onSurface)));
-  }
-}
-class _DeleteAccountButton extends StatelessWidget {
-  const _DeleteAccountButton({required this.userVM});
-
-  final UserVM userVM;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () async {
-        final result = await showSuggestedActionDialog(context: context, title: "Delete Account",
-          message: "Are you sure you want to delete your account? This action can't be undone", actionButtonText: null, cancelIsPrimary: true).result;
-        if (result != null) userVM.deleteAccount.execute();
-      },
-      child: Text("Delete Account", style: TextStyle(
-        decorationColor: colorScheme.error,
-        fontWeight: FontWeight.w400,
-        fontSize: 15, color: colorScheme.error)));
   }
 }
 

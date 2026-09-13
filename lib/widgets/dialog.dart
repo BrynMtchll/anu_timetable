@@ -1,11 +1,9 @@
-import 'dart:ui';
-
 import 'package:anu_timetable/widgets/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class MyDialog extends StatelessWidget {
-  const MyDialog({
+class CustomDialog extends StatelessWidget {
+  const CustomDialog({
     super.key,
     required this.title,
     this.content,
@@ -14,7 +12,7 @@ class MyDialog extends StatelessWidget {
 
   final String title;
   final Widget? content;
-  final List<MyButton> actions;
+  final List<CustomButton> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -99,11 +97,11 @@ DialogStatus<void> showErrorDialog({
   HapticFeedback.errorNotification();
   final future = showDialog<void>(
     context: context,
-    builder: (BuildContext context) => MyDialog(
+    builder: (BuildContext context) => CustomDialog(
       title: title,
       content: message != null ? Text(message) : null,
       actions: [
-        MyButton(
+        CustomButton(
         onPressed: () => Navigator.pop(context),
         isPrimary: true,
         text: "continue")
@@ -130,15 +128,15 @@ DialogStatus<bool> showSuggestedActionDialog({
 }) {
   final future = showDialog<bool>(
     context: context,
-    builder: (BuildContext context) => MyDialog(
+    builder: (BuildContext context) => CustomDialog(
       title: title,
       content: message != null ? Text(message) : null,
       actions: [
-        MyButton(
+        CustomButton(
           onPressed: () => Navigator.pop<bool>(context, null),
           isPrimary: cancelIsPrimary,
           text: "cancel"),
-        MyButton(
+        CustomButton(
           onPressed: () => Navigator.pop<bool>(context, true),
           isPrimary: isPrimary,
           text: actionButtonText ?? "continue"),

@@ -1,8 +1,24 @@
 
 import 'package:flutter/material.dart';
 
-class MyButton extends StatelessWidget {
-  const MyButton({
+class CustomTextButton extends StatelessWidget {
+  const CustomTextButton({super.key, required this.color, required this.onPressed, required this.text});
+
+  final Color color;
+  final VoidCallback onPressed;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Text(text, style: TextStyle(
+        fontWeight: FontWeight.w400, fontSize: 15, color: color)));
+  }
+}
+
+class CustomButton extends StatelessWidget {
+  const CustomButton({
     super.key,
     required this.onPressed,
     required this.text,
