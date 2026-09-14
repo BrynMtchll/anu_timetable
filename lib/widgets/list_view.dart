@@ -74,15 +74,11 @@ class _DayItem extends StatelessWidget {
     DateTime day = TimetableVM.getDay(index);
     ColorScheme colorScheme = ColorScheme.of(context);
     List<Event> events = eventsVM.getEventsOnDay(day);
-    events.sort((a, b) {
-      int startOrder = a.startDate.compareTo(b.startDate);
-      return startOrder == 0 ? a.endDate.compareTo(b.endDate) : startOrder;
-    });
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: Column(
         children: [
-          Consumer<CurrentDay>(builder: (context, currentDay, child) {
+          Consumer<CurrentMinute>(builder: (context, currentDay, child) {
             bool dayIsCurrent = TimetableVM.dayEquiv(day, currentDay.value);
             return Container(
               width: double.infinity,
@@ -100,8 +96,10 @@ class _DayItem extends StatelessWidget {
           }),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              children: [for (final event in events) EventItem(event: event)]))
+            child: Consumer<CurrentMinute>(builder: (context, currentMinute, child)
+              => Column(
+              children: [for (final event in events) EventItem(
+                event: event, now: event.isNow(currentMinute.value))])))
         ]));
   }
 }

@@ -28,14 +28,12 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.all(15),
-        child: Consumer<CurrentDay>(
-          builder: (context, currentDay, child) => Column(
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile(),
-              _DateWidget(day: currentDay.value),
-              _UpcomingClasses(day: currentDay.value),
-            ]))));
+              _DateWidget(),
+              _UpcomingClasses()
+            ])));
   }
 }
 
@@ -75,8 +73,7 @@ class Profile extends StatelessWidget {
 }
 
 class _DateWidget extends StatelessWidget {
-  final DateTime day;
-  const _DateWidget({required this.day});
+  const _DateWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -92,44 +89,44 @@ class _DateWidget extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(30)),
             color: colorScheme.surfaceContainerHigh),
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
-                        fontSize: 20),
-                      DateFormat("EEEE").format(day)),
-                  ]),
-                Row(
-                  textBaseline: TextBaseline.alphabetic,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  children: [
-                    Text(
-                      style: TextStyle(
-                        height: 1,
-                        color: colorScheme.primary,
-                        fontSize: 50),
-                      day.day.toString()),
-                  ]),
-                Text(
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    color: colorScheme.onSurface,
-                    fontSize: 20),
-                  DateFormat("MMMM").format(day)),
-              ])))));
+            child: Consumer<CurrentDay>(
+              builder: (context, currentDay, child) => Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurface,
+                          fontSize: 20),
+                        DateFormat("EEEE").format(currentDay.value)),
+                    ]),
+                  Row(
+                    textBaseline: TextBaseline.alphabetic,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    children: [
+                      Text(
+                        style: TextStyle(
+                          height: 1,
+                          color: colorScheme.primary,
+                          fontSize: 50),
+                        currentDay.value.day.toString()),
+                    ]),
+                  Text(
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      color: colorScheme.onSurface,
+                      fontSize: 20),
+                    DateFormat("MMMM").format(currentDay.value)),
+                ]))))));
   }
 }
 
 class _UpcomingClasses extends StatelessWidget {
-  final DateTime day;
-  const _UpcomingClasses({required this.day});
+  const _UpcomingClasses();
 
   @override
   Widget build(BuildContext context) {
@@ -145,11 +142,23 @@ class _UpcomingClasses extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface),
             "COMING UP".toUpperCase())),
-        Consumer<UserEventsVM>(
-          builder: (context, eventsVM, child) {
-            List<Event> events = eventsVM.getEventsOnDay(day);
+        Consumer2<CurrentMinute, UserEventsVM>(
+          builder: (context, currentMinute, eventsVM, child) {
+            DateTime time = currentMinute.value;
+            List<Event> events = eventsVM.getEventsAfterTime(time);
+            if (events.isEmpty) {
+              events = eventsVM.getEventsOnDay(DateTime(time.year, time.month, time.day+1));
+              if (events.isEmpty) {
+                return Center(
+                  child: Text("No classes found for the rest of today or tomorrow!",
+                    style: TextStyle(fontSize: 15, color: colorScheme.secondary),
+                    textAlign: TextAlign.center));
+              }
+            }
             return Column(
-              children: [for (final event in events) EventItem(event: event)]);
+              children: [
+                for (final event in events) EventItem(event: event, now: event.isNow(time))
+              ]);
           })
       ]);
   }

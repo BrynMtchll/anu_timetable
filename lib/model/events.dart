@@ -61,13 +61,21 @@ class UserEventsVM extends ChangeNotifier {
     return _events.toList();
   }
 
+  /// returns events occuring on a given day including events that cross over
+  /// the either the start or end of the day, or both.
   List<Event> getEventsOnDay(DateTime day) {
-    // time shouldn't be there anyway but just to be sure.
     DateTime dayWithoutTime = TimetableVM.dateWithoutTime(day);
     return _events.where((event) {
       DateTime startWithoutTime = TimetableVM.dateWithoutTime(event.startDate);
       DateTime endWithoutTime = TimetableVM.dateWithoutTime(event.endDate);
-      return (startWithoutTime == dayWithoutTime || endWithoutTime == dayWithoutTime);
-    }).toList();
+      return ((startWithoutTime == dayWithoutTime || endWithoutTime == dayWithoutTime) 
+        || (startWithoutTime.isBefore(dayWithoutTime) && endWithoutTime.isAfter(dayWithoutTime)));
+    }).toList()..sort((a, b) {
+      final startComp = a.startDate.compareTo(b.startDate);
+      return startComp == 0 ? a.endDate.compareTo(b.endDate) : startComp;
+    });
+  }
+  List<Event> getEventsAfterTime(DateTime time) {
+    return getEventsOnDay(time).where((event) => event.endDate.isAfter(time)).toList();
   }
 }

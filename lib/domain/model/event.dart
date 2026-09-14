@@ -63,6 +63,7 @@ class Event {
 //     };
 //   }
 
+  bool isNow(DateTime time) => startDate.isBefore(time) && endDate.isAfter(time);
   bool overlapping(Event other) =>
     startDate.compareTo(other.endDate) < 0 && other.startDate.compareTo(endDate) < 0;
 }
